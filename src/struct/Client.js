@@ -1,4 +1,3 @@
-require('dotenv').config();
 const { AkairoClient, CommandHandler, InhibitorHandler, ListenerHandler } = require('discord-akairo');
 const path = require('path');
 const nClient = require('./nhentai/index');
