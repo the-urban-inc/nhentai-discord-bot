@@ -11,15 +11,20 @@ class RichDisplay {
 
 		this.infoPage = null;
 
+		this.gid = null;
+
+		this.requester = null;
+
 		this.emojis = {
 			first: '⏪',
 			back: '◀',
 			forward: '▶',
 			last: '⏩',
 			jump: '↗️',
-			info: 'ℹ',
+			info: 'ℹ️',
 			auto: '🇦',
 			stop: '⏹',
+			love: '❤️',
 			remove: '❌'
 		};
 
@@ -47,8 +52,21 @@ class RichDisplay {
 		return this;
 	}
 
-	addPage(embed) {
-		this.pages.push(this._handlePageGeneration(embed));
+	setGID(id) {
+		this.gid = id;
+		return this;
+	}
+
+	setRequester(id) {
+		this.requester = id;
+		return this;
+	}
+
+	addPage(embed, id = null) {
+		this.pages.push({ 
+			id: id,
+			embed: this._handlePageGeneration(embed) 
+		});
 		return this;
 	}
 
@@ -68,11 +86,9 @@ class RichDisplay {
 		);
 		let msg;
 		if (message.editable) {
-			await message.edit({ embed: this.infoPage || this.pages[options.startPage || 0] });
+			await message.edit({ embed: this.infoPage || this.pages[options.startPage || 0].embed });
 			msg = message;
-		} else {
-			msg = await message.channel.send(this.infoPage || this.pages[options.startPage || 0]);
-		}
+		} else msg = await message.channel.send(this.infoPage || this.pages[options.startPage || 0].embed);
 		return new ReactionHandler(
 			msg,
 			(reaction, user) => emojis.includes(reaction.emoji.id || reaction.emoji.name) && user !== message.client.user && options.filter(reaction, user),
@@ -83,7 +99,7 @@ class RichDisplay {
 	}
 
 	async _footer() {
-		for (let i = 1; i <= this.pages.length; i++) this.pages[i - 1].setFooter(`Page ${i} of ${this.pages.length}`);
+		for (let i = 1; i <= this.pages.length; i++) this.pages[i - 1].embed.setFooter(`Page ${i} of ${this.pages.length}`);
 		// if (this.infoPage) this.infoPage.setFooter('General Info');
 	}
 
@@ -94,6 +110,7 @@ class RichDisplay {
 		}
 		if (this.infoPage) emojis.push(this.emojis.info);
 		if (this.automode) emojis.push(this.emojis.auto, this.emojis.stop);
+		if (this.requester) emojis.push(this.emojis.love);
 		if (remove) emojis.push(this.emojis.remove);
 		return emojis;
 	}

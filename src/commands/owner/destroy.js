@@ -7,13 +7,11 @@ module.exports = class DestroyCommand extends Command {
             category: 'owner',
             ownerOnly: true,
             protected: true,
-            args: [
-                {
-                    id: 'force',
-                    match: 'flag',
-                    flag: '--force'
-                }
-            ]
+            args: [{
+                id: 'force',
+                match: 'flag',
+                flag: '--force'
+            }]
         });
     }
 

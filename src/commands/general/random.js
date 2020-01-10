@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
+const he = require('he');
 const moment = require('moment');
 const RichDisplay = require('../../utils/richDisplay');
 
@@ -13,21 +14,15 @@ module.exports = class RandomCommand extends Command {
                 usage: '',
                 examples: ['']
             },
-            cooldown: 3000
+            cooldown: 10000
 		});
     }
 
 	exec(message) {
-        let error = new MessageEmbed()
-            .setAuthor('❌ Error')
-            .setColor('#ff0000')
-            .setDescription('An unexpected error has occurred.')
-            .setFooter(`Requested by ${message.author.tag}`, message.author.displayAvatarURL())
-            .setTimestamp()
 		this.client.nhentai.random().then(async data => {
             this.client.nhentai.g(data.id).then(async doujin => {
                 const info = new MessageEmbed()
-                    .setAuthor(doujin.title.english, this.client.icon, `https://nhentai.net/g/${doujin.id}`)
+                    .setAuthor(he.decode(doujin.title).english, this.client.icon, `https://nhentai.net/g/${doujin.id}`)
                     .setThumbnail(doujin.getCoverThumbnail())
                     .setFooter(`ID: ${doujin.id}`)
                     .setTimestamp()
@@ -50,11 +45,11 @@ module.exports = class RandomCommand extends Command {
                 return display.run(await message.channel.send('Searching for doujin ...'));
             }).catch(err => {
                 this.client.logger.error(err);
-                return message.channel.send(error);
+                return this.client.embeds.error(message);
             });
         }).catch(err => {
             this.client.logger.error(err);
-            return message.channel.send(error);
+            return this.client.embeds.error(message);
         });
 	}
 };

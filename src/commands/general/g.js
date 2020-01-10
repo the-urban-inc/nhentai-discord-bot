@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
+const he = require('he');
 const moment = require('moment');
 const RichDisplay = require('../../utils/richDisplay');
 
@@ -18,14 +19,14 @@ module.exports = class GCommand extends Command {
                 type: 'string',
                 match: 'text'
             }],
-            cooldown: 3000
+            cooldown: 10000
 		});
     }
 
 	exec(message, { code }) {
 		this.client.nhentai.g(code).then(async doujin => {
             const info = new MessageEmbed()
-                .setAuthor(doujin.title.english, this.client.icon, `https://nhentai.net/g/${doujin.id}`)
+                .setAuthor(he.decode(doujin.title.english), this.client.icon, `https://nhentai.net/g/${doujin.id}`)
                 .setThumbnail(doujin.getCoverThumbnail())
                 .setFooter(`ID: ${doujin.id} | React with 🇦 to start an auto session`)
                 .setTimestamp()
@@ -43,18 +44,12 @@ module.exports = class GCommand extends Command {
             if (tags.has('language')) info.addField('Languages', tags.get('language').join(' '));
             if (tags.has('category')) info.addField('Categories', tags.get('category').join(' '));
             info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
-            const display = new RichDisplay().useAutoMode().setInfoPage(info);
+            const display = new RichDisplay().useAutoMode().setGID(doujin.id).setRequester(message.author.id).setInfoPage(info);
             doujin.getPages().forEach(page => display.addPage(new MessageEmbed().setImage(page).setTimestamp()));
             return display.run(await message.channel.send('Searching for doujin ...'));
         }).catch(err => {
             this.client.logger.error(err);
-            return message.channel.send(new MessageEmbed()
-                .setAuthor('❌ Error')
-                .setColor('#ff0000')
-                .setDescription('An unexpected error has occurred. Are you sure this is an existing doujin?')
-                .setFooter(`Requested by ${message.author.tag}`, message.author.displayAvatarURL())
-                .setTimestamp()
-            )
+            return this.client.embeds.error(message, 'An unexpected error has occurred. Are you sure this is an existing doujin?');
         });
 	}
 };

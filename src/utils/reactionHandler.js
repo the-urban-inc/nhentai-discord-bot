@@ -1,4 +1,7 @@
-const { ReactionCollector } = require('discord.js');
+const { MessageEmbed, ReactionCollector } = require('discord.js');
+const User = require('../models/user');
+const logger = require('./logger');
+const { info, error } = require('./embeds');
 
 class ReactionHandler extends ReactionCollector {
 	constructor(message, filter, options, display, emojis) {
@@ -59,7 +62,7 @@ class ReactionHandler extends ReactionCollector {
 	async jump(user) {
 		if (this.awaiting) return;
 		this.awaiting = true;
-		const message = await this.message.channel.send(this.promptJump);
+		const message = await info(this.message, this.promptJump);
 		const collected = await this.message.channel.awaitMessages(mess => mess.author === user, { max: 1, time: this.time });
 		this.awaiting = false;
 		await message.delete();
@@ -75,7 +78,7 @@ class ReactionHandler extends ReactionCollector {
 	async auto(user) {
 		if (this.awaiting) return;
 		this.awaiting = true;
-		const message = await this.message.channel.send(this.promptAuto);
+		const message = await info(this.message, this.promptAuto);
 		const collected = await this.message.channel.awaitMessages(mess => mess.author === user, { max: 1, time: this.time });
 		this.awaiting = false;
 		await message.delete();
@@ -84,7 +87,10 @@ class ReactionHandler extends ReactionCollector {
 		collected.first().delete();
 		this.update();
 		this.automode = setInterval(() => {
-			if (this.currentPage > this.display.pages.length - 1) return;
+			if (this.currentPage > this.display.pages.length - 1) {
+				clearInterval(this.automode);
+				return info(this.message, 'Reached last page. Stopping auto session.').then(message => message.delete({ timeout: 5000 }));
+			}
 			this.currentPage++;
 			this.update();
 		}, seconds * 1000);
@@ -97,12 +103,36 @@ class ReactionHandler extends ReactionCollector {
 	async stop() {
 		if (this.automode) {
 			clearInterval(this.automode);
-			const message = await this.message.channel.send('Stopped current auto session.');
-			await message.delete({ timeout: 3000});
-		} else {
-			const message = await this.message.channel.send('There\'s no existing auto session. Nothing happened.');
-			await message.delete({ timeout: 3000 });
-		}
+			return info(this.message, 'Stopped current auto session.').then(message => message.delete({ timeout: 5000 }));
+		} else return info(this.message, 'There\'s no existing auto session. Nothing happened.').then(message => message.delete({ timeout: 5000 }));
+	}
+
+	async love() {
+		let id = this.display.gid || this.display.pages[this.currentPage].id;
+		let failed = false, adding = false;
+		await User.findOne({
+            userID: this.display.requester
+        }, (err, user) => {
+            if (err) { logger.error(err); failed = true; return; }
+            if (!user) {
+                const newUser = new User({
+                    userID: this.display.requester,
+                    favorites: [id]
+                });
+				newUser.save().catch(err => { logger.error(err); failed = true; });
+				adding = true;
+            } else {
+				if (user.favorites.includes(id)) {
+					user.favorites.splice(user.favorites.indexOf(id), 1);
+				} else { 
+					user.favorites.push(id); 
+					adding = true; 
+				}
+                return user.save().catch(err => { logger.error(err); failed = true; });
+            }
+		});
+		if (!failed) return info(this.message, adding ? `Added ${id} to favorites.` : `Removed ${id} from favorites.`).then(message => message.delete({ timeout: 5000 }));
+		return error(this.message);
 	}
 	
 	remove() {
@@ -112,7 +142,7 @@ class ReactionHandler extends ReactionCollector {
 	}
     
 	update() {
-		this.message.edit({ embed: this.display.pages[this.currentPage] });
+		this.message.edit({ embed: this.display.pages[this.currentPage].embed });
     }
     
 	async _queueEmojiReactions(emojis) {

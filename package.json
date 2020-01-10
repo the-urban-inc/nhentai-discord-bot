@@ -12,8 +12,10 @@
     "discord-akairo": "github:discord-akairo/discord-akairo",
     "discord.js": "github:discordjs/discord.js",
     "dotenv": "^8.0.0",
+    "he": "^1.2.0",
     "jszip": "^3.2.2",
     "moment": "^2.24.0",
+    "mongoose": "^5.8.6",
     "node-fetch": "^2.6.0",
     "node-superfetch": "^0.1.9",
     "qs": "^6.9.1"

@@ -25,7 +25,9 @@ module.exports = class Client extends AkairoClient {
         this.listenerHandler = new ListenerHandler(this, { directory: path.join(__dirname, '..', 'listeners') });
         
         this.logger = require('../utils/logger');
-
+        this.mongoose = require('../utils/mongoose');
+        this.extensions = require('../utils/extensions');
+        this.embeds = require('../utils/embeds');
         this.nhentai = new nClient();
 
         this.icon = 'https://pbs.twimg.com/profile_images/733172726731415552/8P68F-_I_400x400.jpg';
@@ -56,6 +58,7 @@ module.exports = class Client extends AkairoClient {
     }
 
     async start() { 
+        await this.mongoose.init();
         await this.login(DISCORD_TOKEN); 
     }
 };
