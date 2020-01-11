@@ -1,15 +1,14 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 const he = require('he');
-const RichDisplay = require('../../utils/richDisplay');
 
-module.exports = class ParodyCommand extends Command {
+module.exports = class GroupCommand extends Command {
 	constructor() {
-		super('parody', {
+		super('group', {
             category: 'general',
-			aliases: ['parody'],
+			aliases: ['group'],
 			description: {
-                content: 'Searches nHentai for given parody.',
+                content: 'Searches nHentai for given group.',
                 usage: '<text> [--page=pagenum] [--sort=(date/popular)]',
                 examples: ['lolicon', 'rape -p=2', 'ahegao -s=popular']
             },
@@ -34,25 +33,26 @@ module.exports = class ParodyCommand extends Command {
     }
 
 	exec(message, { text, page, sort }) {
+        if (!text) return message.channel.send(this.client.embeds('error', 'Group name is not specified.'));
         page = parseInt(page);
-        if (sort !== 'date' && sort !== 'popular') return this.client.embeds.error(message, 'Invalid sort method provided. Available methods are: `date` and `popular`');
-		this.client.nhentai.parody(text.toLowerCase(), page, sort).then(async data => {
-            if (!data.num_pages) return this.client.embeds.error(message, 'Found nothing.');
-            if (!page || page < 1 || page > data.num_pages) return this.client.embeds.error(message, 'Page number is not an integer or is out of range.');
-            const display = new RichDisplay().useCustomFooters().setRequester(message.author.id)
+        if (sort !== 'date' && sort !== 'popular') return message.channel.send(this.client.embeds('error', 'Invalid sort method provided. Available methods are: `date` and `popular`'));
+		this.client.nhentai.group(text.toLowerCase(), page, sort).then(async data => {
+            if (!data.num_pages || !data.results.length) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
+            if (!page || page < 1 || page > data.num_pages) return messsage.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
+            const display = this.client.embeds('display').useCustomFooters().setRequestMessage(message)
             for (const [idx, doujin] of data.results.entries()) {
                 display.addPage(new MessageEmbed()
                     .setTitle(`${he.decode(doujin.title)}`)
                     .setURL(`https://nhentai.net/g/${doujin.id}`)
-                    .setDescription(`**ID** : ${doujin.id} | **Language** : ${this.this.client.flag[doujin.language]}`)
+                    .setDescription(`**ID** : ${doujin.id} | **Language** : ${this.client.flag[doujin.language] || 'N/A'}`)
                     .setImage(doujin.thumbnail.s)
-                    .setFooter(`Doujin ${idx + 1} of ${data.results.length} | Page ${page} of ${data.num_pages}`)
+                    .setFooter(`Doujin ${idx + 1} of ${data.results.length} | Page ${page} of ${data.num_pages || 1}`)
                     .setTimestamp(), doujin.id)
             }
             return display.run(await message.channel.send('Searching ...'));
         }).catch(err => {
             this.client.logger.error(err);
-            return this.client.embeds.error(message);
+            return message.channel.send(this.client.embeds('error', 'An unexpected error has occurred. Are you sure this is an existing group?'));
         });
 	}
 };

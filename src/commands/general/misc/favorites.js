@@ -2,8 +2,7 @@ const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 const he = require('he');
 const moment = require('moment');
-const RichDisplay = require('../../utils/richDisplay');
-const User = require('../../models/user');
+const User = require('../../../models/user');
 
 module.exports = class FavoritesCommand extends Command {
 	constructor() {
@@ -11,7 +10,7 @@ module.exports = class FavoritesCommand extends Command {
             category: 'general',
 			aliases: ['favorites', 'favourites'],
 			description: {
-                content: 'Check your (or your buddy\'s) favorites list.',
+                content: 'Check your (or your buddy\'s) favorites list.\nTo add a doujin to your favorites list, react with `❤️`',
                 usage: '[user]',
                 examples: ['', '@nhentai#7217']
             },
@@ -30,11 +29,13 @@ module.exports = class FavoritesCommand extends Command {
         }, async (err, user) => {
             if (err) {
 				this.client.logger.error(err);
-				return this.client.embeds.error(message);
+				return message.channel.send(this.client.embeds('error'));
 			}
-            if (!user) return this.client.embeds.info(message, 'Favorites list not found.');
+            if (!user) return message.channel.send(this.client.embeds('error', 'Favorites list not found.'));
             else {
-                const display = new RichDisplay().setRequester(message.author.id);
+                if (!user.favorites.length) return message.channel.send(this.client.embeds('error', 'Favorites list not found.'));
+                let msg = await message.channel.send('Fetching favorites ... The longer your favorites list is, the more time you have to wait ...');
+                const display = this.client.embeds('display').setRequestMessage(message);
                 for (let i = 0, a = user.favorites; i < a.length; i++) {
                     await this.client.nhentai.g(a[i]).then(async doujin => {
                         const info = new MessageEmbed()
@@ -58,10 +59,10 @@ module.exports = class FavoritesCommand extends Command {
                         display.addPage(info, doujin.id);
                     }).catch(err => {
                         this.client.logger.error(err);
-                        return this.client.embeds.error(message);
+                        return message.channel.send(this.client.embeds('error'));
                     });
                 }
-                return display.run(await message.channel.send('Fetching favorites ...'));
+                return display.run(await msg.edit('Done.'));
             }
 		});
 	}

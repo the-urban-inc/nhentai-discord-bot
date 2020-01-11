@@ -8,8 +8,8 @@ module.exports = {
             autoIndex: true,
             useUnifiedTopology: true
         });
-        mongoose.connection.on('connected', () => { logger.info('[DB] Connected to db successfully!'); });
-        mongoose.connection.on('err', err => { logger.error(`[DB] Error connecting mongoose: ${err}`); });
-        mongoose.connection.on('disconnected', () => { logger.info('[DB] Mongoose has disconnected from db!'); });
+        mongoose.connection.on('connected', () => { logger.info('[DATABASE] Connected to MongoDB successfully!'); });
+        mongoose.connection.on('err', err => { logger.error(`[DATABASE] Error connecting mongoose: ${err}`); });
+        mongoose.connection.on('disconnected', () => { logger.info('[DATABASE] Mongoose has disconnected from db!'); });
     }
 };

@@ -2,7 +2,6 @@ const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 const he = require('he');
 const moment = require('moment');
-const RichDisplay = require('../../utils/richDisplay');
 
 module.exports = class RandomCommand extends Command {
 	constructor() {
@@ -40,16 +39,16 @@ module.exports = class RandomCommand extends Command {
                 if (tags.has('language')) info.addField('Languages', tags.get('language').join(' '));
                 if (tags.has('category')) info.addField('Categories', tags.get('category').join(' '));
                 info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
-                const display = new RichDisplay().addPage(info);
+                const display = this.client.embeds('display').addPage(info);
                 doujin.getPages().forEach(page => display.addPage(new MessageEmbed().setImage(page).setTimestamp()));
                 return display.run(await message.channel.send('Searching for doujin ...'));
             }).catch(err => {
                 this.client.logger.error(err);
-                return this.client.embeds.error(message);
+                return message.channel.send(this.client.embeds('error'));
             });
         }).catch(err => {
             this.client.logger.error(err);
-            return this.client.embeds.error(message);
+            return message.channel.send(this.client.embeds('error'));
         });
 	}
 };

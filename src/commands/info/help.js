@@ -43,7 +43,7 @@ module.exports = class HelpCommand extends Command {
 			embed.addField('Examples', `\`${text} ${description.examples.join(`\`\n\`${text} `)}\``);
 		}
 		if (command.aliases.length > 1) embed.addField('Aliases', `\`${command.aliases.join('` `')}\``);
-		return message.util.send({ embed });
+		return message.channel.send({ embed });
 	}
 
 	async execCommandList(message) {

@@ -1,9 +1,10 @@
 const { MessageEmbed: Embed } = require('discord.js');
 const ReactionHandler = require('./reactionHandler');
 
-class RichDisplay {
+module.exports = class RichDisplay {
 
-	constructor(embed = new Embed()) {
+	constructor(client, embed = new Embed()) {
+		this.client = client;
 
 		this.embedTemplate = embed;
 
@@ -13,7 +14,7 @@ class RichDisplay {
 
 		this.gid = null;
 
-		this.requester = null;
+		this.requestMessage = null;
 
 		this.emojis = {
 			first: '⏪',
@@ -57,8 +58,8 @@ class RichDisplay {
 		return this;
 	}
 
-	setRequester(id) {
-		this.requester = id;
+	setRequestMessage(message) {
+		this.requestMessage = message;
 		return this;
 	}
 
@@ -82,7 +83,8 @@ class RichDisplay {
 			[],
 			!('remove' in options) || ('remove' in options && options.stop),
 			!('jump' in options) || ('jump' in options && options.jump),
-			!('firstLast' in options) || ('firstLast' in options && options.firstLast)
+			!('firstLast' in options) || ('firstLast' in options && options.firstLast),
+			!('love' in options) || ('love' in options && options.love),
 		);
 		let msg;
 		if (message.editable) {
@@ -103,14 +105,14 @@ class RichDisplay {
 		// if (this.infoPage) this.infoPage.setFooter('General Info');
 	}
 
-	_determineEmojis(emojis, remove, jump, firstLast) {
+	_determineEmojis(emojis, remove, jump, firstLast, love) {
 		if (this.pages.length > 1 || this.infoPage) {
 			if (firstLast) emojis.push(this.emojis.first, this.emojis.back, this.emojis.jump, this.emojis.forward, this.emojis.last);
 			else emojis.push(this.emojis.back, this.emojis.jump, this.emojis.forward);
 		}
 		if (this.infoPage) emojis.push(this.emojis.info);
 		if (this.automode) emojis.push(this.emojis.auto, this.emojis.stop);
-		if (this.requester) emojis.push(this.emojis.love);
+		if (love) emojis.push(this.emojis.love);
 		if (remove) emojis.push(this.emojis.remove);
 		return emojis;
 	}
@@ -127,5 +129,3 @@ class RichDisplay {
 	}
 
 }
-
-module.exports = RichDisplay;

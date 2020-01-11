@@ -2,7 +2,6 @@ const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 const he = require('he');
 const moment = require('moment');
-const RichDisplay = require('../../utils/richDisplay');
 
 module.exports = class GCommand extends Command {
 	constructor() {
@@ -24,6 +23,7 @@ module.exports = class GCommand extends Command {
     }
 
 	exec(message, { code }) {
+        if (!code) return message.channel.send(this.client.embeds('error', 'Code is not specified.'));
 		this.client.nhentai.g(code).then(async doujin => {
             const info = new MessageEmbed()
                 .setAuthor(he.decode(doujin.title.english), this.client.icon, `https://nhentai.net/g/${doujin.id}`)
@@ -44,12 +44,12 @@ module.exports = class GCommand extends Command {
             if (tags.has('language')) info.addField('Languages', tags.get('language').join(' '));
             if (tags.has('category')) info.addField('Categories', tags.get('category').join(' '));
             info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
-            const display = new RichDisplay().useAutoMode().setGID(doujin.id).setRequester(message.author.id).setInfoPage(info);
+            const display = this.client.embeds('display').useAutoMode().setGID(doujin.id).setRequestMessage(message).setInfoPage(info);
             doujin.getPages().forEach(page => display.addPage(new MessageEmbed().setImage(page).setTimestamp()));
             return display.run(await message.channel.send('Searching for doujin ...'));
         }).catch(err => {
             this.client.logger.error(err);
-            return this.client.embeds.error(message, 'An unexpected error has occurred. Are you sure this is an existing doujin?');
+            return message.channel.send(this.client.embeds('error', 'An unexpected error has occurred. Are you sure this is an existing doujin?'));
         });
 	}
 };

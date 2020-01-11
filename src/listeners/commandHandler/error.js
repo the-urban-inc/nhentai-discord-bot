@@ -1,6 +1,5 @@
 const { Listener } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
-const { error } = require('../../utils/embeds');
 
 module.exports = class ErrorListener extends Listener {
     constructor() {
@@ -15,6 +14,6 @@ module.exports = class ErrorListener extends Listener {
         this.client.logger.error('A handler error occured.');
         this.client.logger.stackTrace(err);
         if (message.guild && !message.channel.permissionsFor(this.client.user).has('SEND_MESSAGES')) return;
-        error(message);
+        return message.channel.send(this.client.embeds('error'));
     }
 };

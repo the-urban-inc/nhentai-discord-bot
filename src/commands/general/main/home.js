@@ -1,7 +1,6 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 const he = require('he');
-const RichDisplay = require('../../utils/richDisplay');
 
 module.exports = class HomeCommand extends Command {
 	constructor() {
@@ -27,22 +26,22 @@ module.exports = class HomeCommand extends Command {
 	exec(message, { page }) {
         page = parseInt(page);
 		this.client.nhentai.homepage(page).then(async data => {
-            if (!data.num_pages) return this.client.embeds.error(message, 'Found nothing.');
-            if (!page || page < 1 || page > data.num_pages) return this.client.embeds.error(message, 'Page number is not an integer or is out of range.');
-            const display = new RichDisplay().useCustomFooters().setRequester(message.author.id)
+            if (!data.num_pages) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
+            if (!page || page < 1 || page > data.num_pages) return message.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
+            const display = this.client.embeds('display').useCustomFooters().setRequestMessage(message)
             for (const [idx, doujin] of data.results.entries()) {
                 display.addPage(new MessageEmbed()
                     .setTitle(`${he.decode(doujin.title)}`)
                     .setURL(`https://nhentai.net/g/${doujin.id}`)
-                    .setDescription(`**ID** : ${doujin.id} | **Language** : ${this.client.flag[doujin.language]}`)
+                    .setDescription(`**ID** : ${doujin.id} | **Language** : ${this.client.flag[doujin.language] || 'N/A'}`)
                     .setImage(doujin.thumbnail.s)
-                    .setFooter(`Doujin ${idx + 1} of ${data.results.length} | Page ${page} of ${data.num_pages}`)
+                    .setFooter(`Doujin ${idx + 1} of ${data.results.length} | Page ${page} of ${data.num_pages || 1}`)
                     .setTimestamp(), doujin.id)
             }
             return display.run(await message.channel.send('Searching ...'));
         }).catch(err => {
             this.client.logger.error(err);
-            return this.client.embeds.error(message);
+            return message.channel.send(this.client.embeds('error'));
         });
 	}
 };

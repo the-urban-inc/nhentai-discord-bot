@@ -1,6 +1,8 @@
 const { AkairoClient, CommandHandler, InhibitorHandler, ListenerHandler } = require('discord-akairo');
+const { MessageEmbed } = require('discord.js');
 const path = require('path');
 const nClient = require('./nhentai/index');
+const RichDisplay = require('../utils/richDisplay');
 const { DISCORD_TOKEN, PREFIX, OWNER } = process.env;
 
 module.exports = class Client extends AkairoClient {
@@ -27,7 +29,12 @@ module.exports = class Client extends AkairoClient {
         this.logger = require('../utils/logger');
         this.mongoose = require('../utils/mongoose');
         this.extensions = require('../utils/extensions');
-        this.embeds = require('../utils/embeds');
+        this.embeds = (method, text = 'An unexpected error has occurred.') => {
+            if (method === 'display') return new RichDisplay(this);
+            return new MessageEmbed()
+			    .setColor(method === 'info' ? '#f0f0f0' : '#ff0000')
+			    .setDescription(text)
+        };
         this.nhentai = new nClient();
 
         this.icon = 'https://pbs.twimg.com/profile_images/733172726731415552/8P68F-_I_400x400.jpg';
