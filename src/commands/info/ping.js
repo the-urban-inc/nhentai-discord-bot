@@ -10,6 +10,6 @@ module.exports = class PingCommand extends Command {
     async exec(message) {
         const sent = await message.channel.send('Pong!');
         const timeDiff = (sent.editedAt || sent.createdAt) - (message.editedAt || message.createdAt);
-        return sent.edit(`🔂 **RTT**: ${timeDiff} ms\n💟 **Heartbeat**: ${Math.round(this.client.ping)} ms`);
+        return sent.edit(`🔂 **RTT**: ${timeDiff} ms\n💟 **Heartbeat**: ${Math.round(this.client.ws.ping)} ms`);
     }
 };
