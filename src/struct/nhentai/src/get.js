@@ -2,7 +2,7 @@
     baseURL: 'https://jsonplaceholder.typicode.com/posts',
     proxy: {
         host: '0.tcp.ngrok.io',
-        port: 13576,
+        port: 18020,
         protocol: 'tcp'
     }
 };

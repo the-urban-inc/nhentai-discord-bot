@@ -10,7 +10,7 @@ module.exports = class BlacklistInhibitor extends Inhibitor {
 
     exec(message) {
         // Haha chet me may de
-        const blacklist = ['383990559070486529'];
+        const blacklist = [];
         return blacklist.includes(message.author.id);
     }
 };

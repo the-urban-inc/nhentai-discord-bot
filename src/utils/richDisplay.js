@@ -26,7 +26,7 @@ module.exports = class RichDisplay {
 			auto: '🇦',
 			stop: '⏹',
 			love: '❤️',
-			remove: '❌'
+			remove: '🗑'
 		};
 
 		this.automode = false;
@@ -58,11 +58,6 @@ module.exports = class RichDisplay {
 		return this;
 	}
 
-	setRequestMessage(message) {
-		this.requestMessage = message;
-		return this;
-	}
-
 	addPage(embed, id = null) {
 		this.pages.push({ 
 			id: id,
@@ -76,24 +71,21 @@ module.exports = class RichDisplay {
 		return this;
 	}
 
-	async run(message, options = {}) {
+	async run(message, options = []) {
 		if (!this.footered) this._footer();
-		if (!options.filter) options.filter = () => true;
 		const emojis = this._determineEmojis(
 			[],
-			!('remove' in options) || ('remove' in options && options.stop),
-			!('jump' in options) || ('jump' in options && options.jump),
-			!('firstLast' in options) || ('firstLast' in options && options.firstLast),
-			!('love' in options) || ('love' in options && options.love),
+			!(options.includes('remove')),
+			!(options.includes('jump')),
+			!(options.includes('firstLast')),
+			!(options.includes('love')),
+			(options.includes('images'))
 		);
-		let msg;
-		if (message.editable) {
-			await message.edit({ embed: this.infoPage || this.pages[options.startPage || 0].embed });
-			msg = message;
-		} else msg = await message.channel.send(this.infoPage || this.pages[options.startPage || 0].embed);
+		this.requestMessage = message;
+		let msg = await message.channel.send(this.infoPage || this.pages[options.startPage || 0].embed);
 		return new ReactionHandler(
 			msg,
-			(reaction, user) => emojis.includes(reaction.emoji.id || reaction.emoji.name) && user !== message.client.user && options.filter(reaction, user),
+			(reaction, user) => emojis.includes(reaction.emoji.id || reaction.emoji.name) && user !== message.client.user,
 			options,
 			this,
 			emojis
@@ -105,7 +97,11 @@ module.exports = class RichDisplay {
 		// if (this.infoPage) this.infoPage.setFooter('General Info');
 	}
 
-	_determineEmojis(emojis, remove, jump, firstLast, love) {
+	_determineEmojis(emojis, remove, jump, firstLast, love, images) {
+		if (images) {
+			emojis.push(this.emojis.remove);
+			return emojis;
+		}
 		if (this.pages.length > 1 || this.infoPage) {
 			if (firstLast) emojis.push(this.emojis.first, this.emojis.back, this.emojis.jump, this.emojis.forward, this.emojis.last);
 			else emojis.push(this.emojis.back, this.emojis.jump, this.emojis.forward);

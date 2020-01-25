@@ -39,7 +39,7 @@ module.exports = class SearchCommand extends Command {
 		this.client.nhentai.search(text, page, sort).then(async data => {
             if (!data.num_results) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
             if (!page || page < 1 || page > data.num_pages) return message.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
-            const display = this.client.embeds('display').useCustomFooters().setRequestMessage(message)
+            const display = this.client.embeds('display').useCustomFooters()
             for (const [idx, doujin] of data.results.entries()) {
                 console.log(doujin.language);
                 display.addPage(new MessageEmbed()

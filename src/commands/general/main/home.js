@@ -28,7 +28,7 @@ module.exports = class HomeCommand extends Command {
 		this.client.nhentai.homepage(page).then(async data => {
             if (!data.num_pages) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
             if (!page || page < 1 || page > data.num_pages) return message.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
-            const display = this.client.embeds('display').useCustomFooters().setRequestMessage(message)
+            const display = this.client.embeds('display').useCustomFooters()
             for (const [idx, doujin] of data.results.entries()) {
                 display.addPage(new MessageEmbed()
                     .setTitle(`${he.decode(doujin.title)}`)

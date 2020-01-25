@@ -134,10 +134,11 @@ class ReactionHandler extends ReactionCollector {
 		return this.message.channel.send(this.display.client.embeds('error'));
 	}
 	
-	remove() {
+	async remove() {
 		if (this.resolve) this.resolve(null);
 		if (this.automode) clearInterval(this.automode);
-		this.message.delete();
+		if (this.message.channel.permissionsFor(this.display.client.user).has('MANAGE_MESSAGES')) await this.display.requestMessage.delete();
+		await this.message.delete();
 	}
     
 	update() {

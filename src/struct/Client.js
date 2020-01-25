@@ -3,6 +3,9 @@ const { MessageEmbed } = require('discord.js');
 const path = require('path');
 const nClient = require('./nhentai/index');
 const RichDisplay = require('../utils/richDisplay');
+const fetch = require('node-fetch');
+const NekosLifeAPI = require('nekos.life');
+const LolisLifeAPI = require('lolis.life');
 const { DISCORD_TOKEN, PREFIX, OWNER } = process.env;
 
 module.exports = class Client extends AkairoClient {
@@ -44,6 +47,14 @@ module.exports = class Client extends AkairoClient {
             'english': ':flag_gb:',
             'japanese': ':flag_jp:'
         };
+
+        this.nekoslife = new NekosLifeAPI();
+        this.lolislife = new LolisLifeAPI();
+        this.nekobot = function(type) {
+            return fetch(`https://nekobot.xyz/api/image?type=${type}`)
+                .then(res => res.json())
+                .then(data => data.message)
+        }
 
         this.setup();
     }
