@@ -57,6 +57,7 @@ module.exports = class HelpCommand extends Command {
 		for (const category of this.handler.categories.values()) {
 			const title = {
 				general: 'General',
+				images: 'Images',
 				info: 'Info',
 				owner: 'Owner',
 			}[category.id];

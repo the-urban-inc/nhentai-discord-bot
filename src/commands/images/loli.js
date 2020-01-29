@@ -1,14 +1,14 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class KetaCommand extends Command {
+module.exports = class Loli extends Command {
     constructor() {
-        super('keta', {
+        super('loli', {
             category: 'images',
-            aliases: ['keta'],
+            aliases: ['loli'],
             channel: 'guild',
             description: {
-                content: 'It\'s keta.',
+                content: 'FBI here! Open up!',
                 usage: '',
                 examples: ['']
             },
@@ -17,8 +17,8 @@ module.exports = class KetaCommand extends Command {
     }
 
     async exec(message) {
-        const keta = await this.client.nekoslife.nsfw.keta();
-        const embed = new MessageEmbed().setDescription(`[Click here if image failed to load](${keta.url})`).setImage(keta.url);
+        const loli = await this.client.lolislife.getNSFWLoli();
+        const embed = new MessageEmbed().setDescription(`[Click here if image failed to load](${loli.url})`).setImage(loli.url);
         this.client.embeds('display').addPage(embed).useCustomFooters().run(message, ['images']);
     }
 };

@@ -49,13 +49,45 @@ module.exports = class Client extends AkairoClient {
         };
 
         this.nekoslife = new NekosLifeAPI();
+        this.nltags = {
+            'anal': ['anal'],
+            'avatar': ['avatar'],
+            'blowjob': ['bJ', 'blowJob'],
+            'boobs': ['boobs', 'tits'],
+            'cum': ['cumsluts', 'cumArts'],
+            'ero': ['ero'],
+            'feet': ['feet', 'feetGif', 'eroFeet'],
+            'femdom': ['femdom'],
+            'futa': ['futanari'],
+            'hentai': ['classic', 'randomHentaiGif'],
+            'holo': ['holo', 'holoEro'],
+            'kemonomimi': ['kemonomimi', 'eroKemonomimi'],
+            'keta': ['keta'],
+            'kitsune': ['kitsune'],
+            'kuni': ['kuni'],
+            'neko': ['neko', 'eroNeko', 'nekoGif'],
+            'pussy': ['pussy', 'pussyWankGif', 'pussyArt', 'pussyGif'],
+            'solo': ['girlSolo', 'girlSoloGif'],
+            'trap': ['trap'],
+            'yuri': ['yuri', 'eroYuri', 'lesbian']
+        };
         this.lolislife = new LolisLifeAPI();
         this.nekobot = function(type) {
             return fetch(`https://nekobot.xyz/api/image?type=${type}`)
                 .then(res => res.json())
                 .then(data => data.message)
         }
-
+        this.nbtags = {
+            'anal': ['hanal'],
+            'ass': ['hass'],
+            'hentai': ['hentai'],
+            'holo': ['holo'],
+            'kemonomimi': ['kemonomimi'],
+            'kitsune': ['hkitsune'],
+            'midriff': ['hmidriff'],
+            'neko': ['neko', 'hneko'],
+            'thigh': ['hthigh']
+        };
         this.setup();
     }
 
