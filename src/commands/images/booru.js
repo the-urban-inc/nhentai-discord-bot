@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
+const he = require('he');
 const { search, BooruError } = require('booru');
 
 module.exports = class Booru extends Command {
@@ -52,7 +53,7 @@ module.exports = class Booru extends Command {
             if (!data) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
             const image = data.fileUrl || data.sampleUrl, tags = data.tags;
             const embed = new MessageEmbed()
-                .setDescription(`**Tags** : ${tags.map(x => `\`${x.replace(/_/g, ' ')}\``).join(' ')}\n\n[Click here if image failed to load](${image})`)
+                .setDescription(`**Tags** : ${tags.map(x => `\`${he.decode(x).replace(/_/g, ' ')}\``).join(' ')}\n\n[Click here if image failed to load](${image})`)
                 .setImage(image)
             this.client.embeds('display').addPage(embed).useCustomFooters().run(message, ['images']);
         }).catch(err => {
