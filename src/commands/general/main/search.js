@@ -41,7 +41,6 @@ module.exports = class SearchCommand extends Command {
             if (!page || page < 1 || page > data.num_pages) return message.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
             const display = this.client.embeds('display').useCustomFooters()
             for (const [idx, doujin] of data.results.entries()) {
-                console.log(doujin.language);
                 display.addPage(new MessageEmbed()
                     .setTitle(`${he.decode(doujin.title)}`)
                     .setURL(`https://nhentai.net/g/${doujin.id}`)
