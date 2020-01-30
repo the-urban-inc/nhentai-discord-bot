@@ -65,11 +65,11 @@ module.exports = class Booru extends Command {
         search(site, tags, { limit: 3, random: true }).then(res => {
             let data = res.posts;
             if (!data.length) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
-            data = data.map(x => x.fileUrl).filter(x => isUrl(x));
+            data = data.filter(x => isUrl(x.fileUrl));
             if (!data.length) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
-            const image = data[0], tags = data.tags;
+            const image = data[0].fileUrl, tags = data[0].tags;
             const embed = new MessageEmbed()
-                .setDescription(`**Tags** : ${tags.map(x => `\`${he.decode(x).replace(/_/g, ' ')}\``).join(' ')}\n\n[Click here if image failed to load](${image})`)
+                .setDescription(`**Tags** : ${tags.map(x => `\`${he.decode(x).replace(/_/g, ' ')}\``).join('\u2000')}\n\n[Click here if image failed to load](${image})`)
                 .setImage(image)
             this.client.embeds('display').addPage(embed).useCustomFooters().run(message, ['images']);
         }).catch(err => {
