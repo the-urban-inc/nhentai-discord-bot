@@ -28,20 +28,7 @@ module.exports = class Util {
         return array[Math.floor(Math.random() * array.length)];
     }
 
-    static removeWithTrashcan(clientMessage, botMessage) {
-        const filter = (reaction, user) => {
-            return reaction.emoji.name === '🗑' && user === clientMessage.author && !user.bot;
-        };
-        botMessage.createReactionCollector(filter, { time: 60000, max: 1 })
-            .on('end', async collected => {
-                if (collected.size) {
-                    await clientMessage.delete();
-                    await botMessage.delete();
-                }
-            })
-    }
-
     static shorten(text, maxLen = 2000) {
-        return (text.substring(0, text.lastIndexOf(' ', maxLen) + 1)+"...");
+        return (text.substring(0, text.lastIndexOf(' ', maxLen) + 1) + "...");
     }
 };
