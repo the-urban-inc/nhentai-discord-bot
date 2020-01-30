@@ -3,6 +3,20 @@ const { MessageEmbed } = require('discord.js');
 const he = require('he');
 const { search, BooruError } = require('booru');
 
+const protocolAndDomainRE = /^(?:\w+:)?\/\/(\S+)$/;
+const localhostDomainRE = /^localhost[\:?\d]*(?:[^\:?\d]\S*)?$/
+const nonLocalhostDomainRE = /^[^\s\.]+\.\S{2,}$/;
+
+function isUrl(string) {
+    if (typeof string !== 'string') return false;
+    const match = string.match(protocolAndDomainRE);
+    if (!match) return false;
+    const everythingAfterProtocol = match[1];
+    if (!everythingAfterProtocol) return false;
+    if (localhostDomainRE.test(everythingAfterProtocol) || nonLocalhostDomainRE.test(everythingAfterProtocol)) return true;
+    return false;
+}
+
 module.exports = class Booru extends Command {
     constructor() {
         super('booru', {
@@ -47,11 +61,12 @@ module.exports = class Booru extends Command {
 
     exec(message, { site, tags }) {
         if (!site) return message.channel.send(this.client.embeds('error', 'Unknown or unsupported site. Supported sites are: [e621](https://e621.net/), [e926](https://e926.net/), [hypnohub](https://hypnohub.net/), [danbooru](https://danbooru.donmai.us/), [konac (konachan.com)](https://konachan.com/), [konan (konachan.net)](https://konachan.net/), [yandere](https://yande.re/), [gelbooru](https://gelbooru.com/), [rule34](https://rule34.xxx/), [safebooru](https://safebooru.org/), [tbib](https://tbib.org/), [xbooru](https://xbooru.com/), [lolibooru](https://lolibooru.moe/), [paheal (rule34.paheal.net)](https://rule34.paheal.net/), [derpibooru](https://derpibooru.org/), [furrybooru](https://furry.booru.org/), [realbooru](https://realbooru.com/).'));
-        tags = tags.split(' ');
-        search(site, tags, { limit: 1, random: true }).then(res => {
-            const data = res.posts[0];
-            if (!data) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
-            const image = data.fileUrl || data.sampleUrl, tags = data.tags;
+        tags = tags.split(' '); 
+        search(site, tags, { limit: 3, random: true }).then(res => {
+            const data = res.posts;
+            if (!data.length) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
+            data = data.map(x => x.fileUrl).filter(x => isUrl(x));
+            const image = data[0], tags = data.tags;
             const embed = new MessageEmbed()
                 .setDescription(`**Tags** : ${tags.map(x => `\`${he.decode(x).replace(/_/g, ' ')}\``).join(' ')}\n\n[Click here if image failed to load](${image})`)
                 .setImage(image)
