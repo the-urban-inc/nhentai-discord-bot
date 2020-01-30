@@ -70,7 +70,7 @@ module.exports = class Booru extends Command {
             data = this.client.extensions.random(data);
             const image = data.fileUrl, tags = data.tags, original = data.postView;
             const embed = new MessageEmbed()
-                .setDescription(`**Tags** : ${this.client.extensions.shorten(tags.map(x => `\`${he.decode(x).replace(/_/g, ' ')}\``).join('\u2000'))}\n\n[Original post](${original}) | [Click here if image failed to load](${image})`)
+                .setDescription(`**Tags** : ${this.client.extensions.shorten(tags.map(x => `\`${he.decode(x).replace(/_/g, ' ')}\``).join('\u2000'))}\n\n[Original post](${original}) • [Click here if image failed to load](${image})`)
                 .setImage(image)
             this.client.embeds('display').addPage(embed).useCustomFooters().run(message, ['images']);
         }).catch(err => {
