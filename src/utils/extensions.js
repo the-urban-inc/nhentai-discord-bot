@@ -28,7 +28,7 @@ module.exports = class Util {
         return array[Math.floor(Math.random() * array.length)];
     }
 
-    static shorten(text, maxLen = 2020) {
+    static shorten(text, maxLen = 2000) {
         return (text.substring(0, text.lastIndexOf('\u2000`', maxLen) + 1) + '`...`');
     }
 };
