@@ -67,7 +67,8 @@ module.exports = class Booru extends Command {
             if (!data.length) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
             data = data.filter(x => isUrl(x.fileUrl));
             if (!data.length) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
-            const image = data[0].fileUrl, tags = data[0].tags;
+            data = this.client.extensions.random(data);
+            const image = data.fileUrl, tags = data.tags;
             const embed = new MessageEmbed()
                 .setDescription(`**Tags** : ${tags.map(x => `\`${he.decode(x).replace(/_/g, ' ')}\``).join('\u2000')}\n\n[Click here if image failed to load](${image})`)
                 .setImage(image)
