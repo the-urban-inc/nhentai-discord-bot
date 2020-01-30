@@ -29,6 +29,6 @@ module.exports = class Util {
     }
 
     static shorten(text, maxLen = 2000) {
-        return (text.substring(0, text.lastIndexOf(' ', maxLen) + 1) + "...");
+        return (text.substring(0, text.lastIndexOf(' `', maxLen) + 1) + "...");
     }
 };
