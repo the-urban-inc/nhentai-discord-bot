@@ -48,14 +48,14 @@ module.exports = class FavoritesCommand extends Command {
                             let a = tags.get(tag.type); a.push(`**\`${tag.name}\`**\`(${tag.count.toLocaleString()})\``);
                             tags.set(tag.type, a);
                         });
-                        if (tags.has('parody')) info.addField('Parodies', tags.get('parody').join(' '));
-                        if (tags.has('character')) info.addField('Characters', tags.get('character').join(' '));
-                        if (tags.has('tag')) info.addField('Tags', tags.get('tag').join(' '));
-                        if (tags.has('artist')) info.addField('Artists', tags.get('artist').join(' '));
-                        if (tags.has('group')) info.addField('Groups', tags.get('group').join(' '));
-                        if (tags.has('language')) info.addField('Languages', tags.get('language').join(' '));
-                        if (tags.has('category')) info.addField('Categories', tags.get('category').join(' '));
-                        info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
+                        if (tags.has('parody')) info.addField('Parodies', this.client.extensions.shorten(tags.get('parody').join(' ')));
+                        if (tags.has('character')) info.addField('Characters', this.client.extensions.shorten(tags.get('character').join(' ')));
+                        if (tags.has('tag')) info.addField('Tags', this.client.extensions.shorten(tags.get('tag').join(' ')));
+                        if (tags.has('artist')) info.addField('Artists', this.client.extensions.shorten(tags.get('artist').join(' ')));
+                        if (tags.has('group')) info.addField('Groups', this.client.extensions.shorten(tags.get('group').join(' ')));
+                        if (tags.has('language')) info.addField('Languages', this.client.extensions.shorten(tags.get('language').join(' ')));
+                        if (tags.has('category')) info.addField('Categories', this.client.extensions.shorten(tags.get('category').join(' ')));
+                        info.addField('‏‏‎ ‎', `ID : ${doujin.id}\u2000•\u2000${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
                         display.addPage(info, doujin.id);
                     }).catch(err => {
                         this.client.logger.error(err);
