@@ -44,9 +44,9 @@ module.exports = class ParodyCommand extends Command {
                 display.addPage(new MessageEmbed()
                     .setTitle(`${he.decode(doujin.title)}`)
                     .setURL(`https://nhentai.net/g/${doujin.id}`)
-                    .setDescription(`**ID** : ${doujin.id} | **Language** : ${this.client.flag[doujin.language] || 'N/A'}`)
+                    .setDescription(`**ID** : ${doujin.id}\u2000•\u2000**Language** : ${this.client.flag[doujin.language] || 'N/A'}`)
                     .setImage(doujin.thumbnail.s)
-                    .setFooter(`Doujin ${idx + 1} of ${data.results.length} | Page ${page} of ${data.num_pages || 1}`)
+                    .setFooter(`Doujin ${idx + 1} of ${data.results.length} • Page ${page} of ${data.num_pages || 1}`)
                     .setTimestamp(), doujin.id)
             }
             return display.run(await message.channel.send('Searching ...'));

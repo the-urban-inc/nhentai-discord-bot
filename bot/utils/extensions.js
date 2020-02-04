@@ -29,6 +29,7 @@ module.exports = class Util {
     }
 
     static shorten(text, maxLen = 2000) {
+        if (text.length <= maxLen) return text;
         return (text.substring(0, text.lastIndexOf('\u2000`', maxLen) + 1) + '`...`');
     }
 };
