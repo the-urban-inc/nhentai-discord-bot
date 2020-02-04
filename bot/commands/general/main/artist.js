@@ -8,7 +8,7 @@ module.exports = class ArtistCommand extends Command {
             category: 'general',
 			aliases: ['artist'],
 			description: {
-                content: 'Searches nHentai for given artist.',
+                content: 'Searches nhentai for given artist.',
                 usage: '<text> [--page=pagenum] [--sort=(date/popular)]',
                 examples: ['hiten', 'hiten -p=2', 'hiten -s=popular']
             },

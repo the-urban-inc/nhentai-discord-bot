@@ -8,7 +8,7 @@ module.exports = class ParodyCommand extends Command {
             category: 'general',
 			aliases: ['parody'],
 			description: {
-                content: 'Searches nHentai for given parody.',
+                content: 'Searches nhentai for given parody.',
                 usage: '<text> [--page=pagenum] [--sort=(date/popular)]',
                 examples: ['lolicon', 'rape -p=2', 'ahegao -s=popular']
             },

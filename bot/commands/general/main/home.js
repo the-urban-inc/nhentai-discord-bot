@@ -8,7 +8,7 @@ module.exports = class HomeCommand extends Command {
             category: 'general',
 			aliases: ['home', 'homepage'],
 			description: {
-                content: 'nHentai homepage.',
+                content: 'nhentai homepage.',
                 usage: '[--page=pagenum]',
                 examples: ['', '-p=3']
             },

@@ -8,7 +8,7 @@ module.exports = class TagCommand extends Command {
             category: 'general',
 			aliases: ['tag'],
 			description: {
-                content: 'Searches nHentai for given tag.',
+                content: 'Searches nhentai for given tag.',
                 usage: '<text> [--page=pagenum] [--sort=(date/popular)]',
                 examples: ['lolicon', 'rape -p=2', 'ahegao -s=popular']
             },

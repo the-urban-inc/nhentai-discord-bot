@@ -9,7 +9,7 @@ module.exports = class GCommand extends Command {
             category: 'general',
 			aliases: ['g', 'get', 'doujin'],
 			description: {
-                content: 'Searches for a code on nHentai.',
+                content: 'Searches for a code on nhentai.',
                 usage: '<code>',
                 examples: ['177013']
             },
