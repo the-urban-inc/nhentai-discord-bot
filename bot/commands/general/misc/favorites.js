@@ -35,7 +35,7 @@ module.exports = class FavoritesCommand extends Command {
             else {
                 if (!user.favorites.length) return message.channel.send(this.client.embeds('error', 'Favorites list not found.'));
                 let msg = await message.channel.send('Fetching favorites ... The longer your favorites list is, the more time you have to wait ...');
-                const display = this.client.embeds('display').setRequestMessage(message);
+                const display = this.client.embeds('display');
                 for (let i = 0, a = user.favorites; i < a.length; i++) {
                     await this.client.nhentai.g(a[i]).then(async doujin => {
                         const info = new MessageEmbed()
