@@ -48,7 +48,7 @@ class ReactionHandler extends ReactionCollector {
 	}
 
 	forward() {
-		if (this.currentPage > this.display.pages.length - 1) return;
+		if (this.currentPage >= this.display.pages.length - 1) return;
 		this.currentPage++;
 		this.update();
 	}
@@ -137,8 +137,8 @@ class ReactionHandler extends ReactionCollector {
 	async remove() {
 		if (this.resolve) this.resolve(null);
 		if (this.automode) clearInterval(this.automode);
-		if (this.message.channel.permissionsFor(this.display.client.user).has('MANAGE_MESSAGES')) await this.display.requestMessage.delete();
-		await this.message.delete();
+		if (this.message.channel.permissionsFor(this.display.client.user).has('MANAGE_MESSAGES') && this.display.requestMessage.deletable) await this.display.requestMessage.delete();
+		if (this.message.deletable) await this.message.delete();
 	}
     
 	update() {

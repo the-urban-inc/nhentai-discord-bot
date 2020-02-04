@@ -18,6 +18,7 @@ module.exports = class ChangelogCommand extends Command {
 	}
 
 	async exec(message) {
+		if (!GITHUB_USERNAME || !GITHUB_PASSWORD || !NHENTAI_GITHUB_REPO_USERNAME || !NHENTAI_GITHUB_REPO_NAME) return message.channel.send(this.client.embeds('error', 'Owner hasn\'t specified the Github parameters yet.'));
 		const { body } = await fetch
 			.get(`https://api.github.com/repos/${NHENTAI_GITHUB_REPO_USERNAME}/${NHENTAI_GITHUB_REPO_NAME}/commits`)
 			.set({ Authorization: `Basic ${this.client.extensions.base64(`${GITHUB_USERNAME}:${GITHUB_PASSWORD}`)}` });
