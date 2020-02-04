@@ -8,7 +8,7 @@ module.exports = class SearchCommand extends Command {
             category: 'general',
 			aliases: ['search'],
 			description: {
-                content: 'Searches nHentai.',
+                content: 'Searches nhentai.',
                 usage: '<text> [--page=pagenum] [--sort=(date/popular)]',
                 examples: ['lolicon', 'rape -p=2', 'ahegao -s=popular']
             },

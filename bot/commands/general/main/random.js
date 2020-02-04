@@ -38,7 +38,7 @@ module.exports = class RandomCommand extends Command {
                 if (tags.has('group')) info.addField('Groups', this.client.extensions.shorten(tags.get('group').join(' ')));
                 if (tags.has('language')) info.addField('Languages', this.client.extensions.shorten(tags.get('language').join(' ')));
                 if (tags.has('category')) info.addField('Categories', this.client.extensions.shorten(tags.get('category').join(' ')));
-                info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
+                info.addField('‏‏‎ ‎', `ID : ${doujin.id}\u2000•\u2000${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
                 const display = this.client.embeds('display').useAutoMode().setGID(doujin.id).addPage(info);
                 doujin.getPages().forEach(page => display.addPage(new MessageEmbed().setImage(page).setTimestamp()));
                 return display.run(await message.channel.send('Searching for doujin ...'));

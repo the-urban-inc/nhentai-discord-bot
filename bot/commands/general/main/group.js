@@ -8,7 +8,7 @@ module.exports = class GroupCommand extends Command {
             category: 'general',
 			aliases: ['group'],
 			description: {
-                content: 'Searches nHentai for given group.',
+                content: 'Searches nhentai for given group.',
                 usage: '<text> [--page=pagenum] [--sort=(date/popular)]',
                 examples: ['lolicon', 'rape -p=2', 'ahegao -s=popular']
             },

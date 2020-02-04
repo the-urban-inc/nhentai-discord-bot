@@ -1,2 +1,2 @@
 web: node web/bin/www
-worker: node bot/bot
+worker: node bot/index

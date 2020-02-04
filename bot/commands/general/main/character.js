@@ -8,7 +8,7 @@ module.exports = class CharacterCommand extends Command {
             category: 'general',
 			aliases: ['character'],
 			description: {
-                content: 'Searches nHentai for given character.',
+                content: 'Searches nhentai for given character.',
                 usage: '<text> [--page=pagenum] [--sort=(date/popular)]',
                 examples: ['laffey', 'aqua -p=2', 'megumin -s=popular']
             },
