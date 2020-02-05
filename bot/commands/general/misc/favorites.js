@@ -54,7 +54,7 @@ module.exports = class FavoritesCommand extends Command {
                         if (tags.has('artist')) info.addField('Artists', this.client.extensions.shorten(tags.get('artist').join(' '), 1000));
                         if (tags.has('group')) info.addField('Groups', this.client.extensions.shorten(tags.get('group').join(' '), 1000));
                         if (tags.has('language')) info.addField('Languages', this.client.extensions.shorten(tags.get('language').join(' '), 1000));
-                        if (tags.has('category')) info.addField('Categories', this.client.extensions.shorten(tags.get('category').join(' '), 1000));'category')) info.addField('Categories', this.client.extensions.shorten(tags.get('category').join(' ')));
+                        if (tags.has('category')) info.addField('Categories', this.client.extensions.shorten(tags.get('category').join(' '), 1000));
                         info.addField('‏‏‎ ‎', `ID : ${doujin.id}\u2000•\u2000${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
                         display.addPage(info, doujin.id);
                     }).catch(err => {
