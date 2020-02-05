@@ -28,8 +28,8 @@ module.exports = class Util {
         return array[Math.floor(Math.random() * array.length)];
     }
 
-    static shorten(text, maxLen = 2000) {
+    static shorten(text, split = ' ', maxLen = 2000) {
         if (text.length <= maxLen) return text;
-        return (text.substring(0, text.lastIndexOf('\u2000`', maxLen) + 1) + '`...`');
+        return (text.substring(0, text.lastIndexOf(split, maxLen) + 1) + '`...`');
     }
 };
