@@ -25,6 +25,6 @@ module.exports = class Nekoslife extends Command {
         if (!tag || !Object.keys(this.client.nltags).includes(tag)) return message.channel.send(this.client.embeds('error', `Unknown tag. The following tags are available: ${Object.keys(this.client.nltags).map(x => `\`${x}\``).join(' ')}`));
         const image = await this.client.nekoslife.nsfw[this.client.extensions.random(this.client.nltags[tag])]();
         const embed = new MessageEmbed().setDescription(`[Click here if image failed to load](${image.url})`).setImage(image.url);
-        this.client.embeds('display').addPage(embed).useCustomFooters().run(message, ['images']);
+        this.client.embeds('display').addPage(embed).useCustomFooters().run(message, message, ['images']);
     }
 };

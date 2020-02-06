@@ -26,6 +26,6 @@ module.exports = class Nekobot extends Command {
         const image = await this.client.nekobot(this.client.extensions.random(this.client.nbtags[tag]));
         if (image === 'Unknown Image Type') return message.channel.send(this.client.embeds('error'));
         const embed = new MessageEmbed().setDescription(`[Click here if image failed to load](${image})`).setImage(image);
-        this.client.embeds('display').addPage(embed).useCustomFooters().run(message, ['images']);
+        this.client.embeds('display').addPage(embed).useCustomFooters().run(message, message, ['images']);
     }
 };

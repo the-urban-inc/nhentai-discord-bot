@@ -49,7 +49,7 @@ module.exports = class ArtistCommand extends Command {
                     .setFooter(`Doujin ${idx + 1} of ${data.results.length} • Page ${page} of ${data.num_pages || 1}`)
                     .setTimestamp(), doujin.id)
             }
-            return display.run(await message.channel.send('Searching ...'));
+            return display.run(message, await message.channel.send('Searching ...'));
         }).catch(err => {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds('error', 'An unexpected error has occurred. Are you sure this is an existing artist?'));

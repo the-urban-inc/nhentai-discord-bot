@@ -72,7 +72,7 @@ module.exports = class Booru extends Command {
             const embed = new MessageEmbed()
                 .setDescription(`**Tags** : ${this.client.extensions.shorten(tags.map(x => `\`${he.decode(x).replace(/_/g, ' ')}\``).join('\u2000'), '\u2000')}\n\n[Original post](${original})\u2000•\u2000[Click here if image failed to load](${image})`)
                 .setImage(image)
-            this.client.embeds('display').addPage(embed).useCustomFooters().run(message, ['images']);
+            this.client.embeds('display').addPage(embed).useCustomFooters().run(message, await message.channel.send('Searching ...'), ['images']);
         }).catch(err => {
             if (err instanceof BooruError) {
                 this.client.logger.error(err.message);
