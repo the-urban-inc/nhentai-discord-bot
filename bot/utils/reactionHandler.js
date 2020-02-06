@@ -138,7 +138,7 @@ class ReactionHandler extends ReactionCollector {
 		if (this.resolve) this.resolve(null);
 		if (this.automode) clearInterval(this.automode);
 		if (this.display.requestMessage.deletable) await this.display.requestMessage.delete();
-		if (this.display.awaitMessage.deletable) await this.display.awaitMessage.delete();
+		if (this.display.awaitMessage.deletable && this.display.awaitMessage != this.display.requestMessage) await this.display.awaitMessage.delete();
 		if (this.message.deletable) await this.message.delete();
 	}
     
