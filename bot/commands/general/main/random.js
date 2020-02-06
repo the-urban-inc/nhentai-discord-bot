@@ -21,7 +21,7 @@ module.exports = class RandomCommand extends Command {
 		this.client.nhentai.random().then(async data => {
             this.client.nhentai.g(data.id).then(async doujin => {
                 const info = new MessageEmbed()
-                    .setAuthor(he.decode(doujin.title).english, this.client.icon, `https://nhentai.net/g/${doujin.id}`)
+                    .setAuthor(he.decode(doujin.title.english), this.client.icon, `https://nhentai.net/g/${doujin.id}`)
                     .setThumbnail(doujin.getCoverThumbnail())
                     .setFooter(`ID : ${doujin.id} • React with 🇦 to start an auto session`)
                     .setTimestamp()
