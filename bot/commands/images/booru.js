@@ -62,7 +62,7 @@ module.exports = class Booru extends Command {
     exec(message, { site, tags }) {
         if (!site) return message.channel.send(this.client.embeds('error', 'Unknown or unsupported site. Supported sites are: [e621](https://e621.net/), [e926](https://e926.net/), [hypnohub](https://hypnohub.net/), [danbooru](https://danbooru.donmai.us/), [konac (konachan.com)](https://konachan.com/), [konan (konachan.net)](https://konachan.net/), [yandere](https://yande.re/), [gelbooru](https://gelbooru.com/), [rule34](https://rule34.xxx/), [safebooru](https://safebooru.org/), [tbib](https://tbib.org/), [xbooru](https://xbooru.com/), [lolibooru](https://lolibooru.moe/), [paheal (rule34.paheal.net)](https://rule34.paheal.net/), [derpibooru](https://derpibooru.org/), [furrybooru](https://furry.booru.org/), [realbooru](https://realbooru.com/).'));
         tags = tags.split(' '); 
-        search(site, tags, { limit: 3, random: true }).then(res => {
+        search(site, tags, { limit: 3, random: true }).then(async res => {
             let data = res.posts;
             if (!data.length) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
             data = data.filter(x => isUrl(x.fileUrl));
@@ -71,7 +71,7 @@ module.exports = class Booru extends Command {
             const image = data.fileUrl, tags = data.tags, original = data.postView;
             const embed = new MessageEmbed()
                 .setDescription(`**Tags** : ${this.client.extensions.shorten(tags.map(x => `\`${he.decode(x).replace(/_/g, ' ')}\``).join('\u2000'), '\u2000')}\n\n[Original post](${original})\u2000•\u2000[Click here if image failed to load](${image})`)
-                .setImage(image)
+                .attachFiles([image])
             this.client.embeds('display').addPage(embed).useCustomFooters().run(message, await message.channel.send('Searching ...'), ['images']);
         }).catch(err => {
             if (err instanceof BooruError) {
