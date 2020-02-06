@@ -15,6 +15,7 @@ module.exports = class RichDisplay {
 		this.gid = null;
 
 		this.requestMessage = null;
+		this.awaitMessage = null;
 
 		this.emojis = {
 			first: '⏪',
@@ -71,7 +72,7 @@ module.exports = class RichDisplay {
 		return this;
 	}
 
-	async run(message, options = []) {
+	async run(requestMessage, awaitMessage, options = []) {
 		if (!this.footered) this._footer();
 		const emojis = this._determineEmojis(
 			[],
@@ -81,8 +82,9 @@ module.exports = class RichDisplay {
 			!(options.includes('love')),
 			(options.includes('images'))
 		);
-		this.requestMessage = message;
-		let msg = await message.channel.send(this.infoPage || this.pages[options.startPage || 0].embed);
+		this.requestMessage = requestMessage;
+		this.awaitMessage = awaitMessage;
+		let msg = await requestMessage.channel.send(this.infoPage || this.pages[options.startPage || 0].embed);
 		return new ReactionHandler(
 			msg,
 			(reaction, user) => emojis.includes(reaction.emoji.id || reaction.emoji.name) && user !== message.client.user,

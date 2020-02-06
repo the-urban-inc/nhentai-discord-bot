@@ -10,7 +10,7 @@ class ReactionHandler extends ReactionCollector {
 
 		this.methodMap = new Map(Object.entries(this.display.emojis).map(([key, value]) => [value, key]));
 
-		this.currentPage = this.options.startPage || 0;
+		this.currentPage = this.options.startPage || (this.display.infoPage ? -1 : 0);
 
 		this.promptJump = this.options.prompt || 'Which page would you like to jump to?';
 
@@ -25,7 +25,7 @@ class ReactionHandler extends ReactionCollector {
 		this.automode = null;
 
 		if (emojis.length) this._queueEmojiReactions(emojis.slice());
-		else return this.stop();
+		else return this.remove();
 
 		this.on('collect', (reaction, user) => {
 			reaction.users.remove(user);
@@ -86,7 +86,7 @@ class ReactionHandler extends ReactionCollector {
 		collected.first().delete();
 		this.update();
 		this.automode = setInterval(() => {
-			if (this.currentPage > this.display.pages.length - 1) {
+			if (this.currentPage >= this.display.pages.length - 1) {
 				clearInterval(this.automode);
 				return this.message.channel.send(this.display.client.embeds('info', 'Reached last page. Stopping auto session.')).then(message => message.delete({ timeout: 5000 }));
 			}
@@ -137,11 +137,13 @@ class ReactionHandler extends ReactionCollector {
 	async remove() {
 		if (this.resolve) this.resolve(null);
 		if (this.automode) clearInterval(this.automode);
-		if (this.message.channel.permissionsFor(this.display.client.user).has('MANAGE_MESSAGES') && this.display.requestMessage.deletable) await this.display.requestMessage.delete();
+		if (this.display.requestMessage.deletable) await this.display.requestMessage.delete();
+		if (this.display.awaitMessage.deletable) await this.display.awaitMessage.delete();
 		if (this.message.deletable) await this.message.delete();
 	}
     
 	update() {
+		if (this.currentPage == -1) this.currentPage = 0;
 		this.message.edit({ embed: this.display.pages[this.currentPage].embed });
     }
     

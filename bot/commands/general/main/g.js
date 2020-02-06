@@ -46,7 +46,7 @@ module.exports = class GCommand extends Command {
             info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
             const display = this.client.embeds('display').useAutoMode().setGID(doujin.id).setInfoPage(info);
             doujin.getPages().forEach(page => display.addPage(new MessageEmbed().setImage(page).setTimestamp()));
-            return display.run(await message.channel.send('Searching for doujin ...'));
+            return display.run(message, await message.channel.send('Searching for doujin ...'));
         }).catch(err => {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds('error', 'An unexpected error has occurred. Are you sure this is an existing doujin?'));

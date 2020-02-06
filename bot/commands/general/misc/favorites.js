@@ -62,7 +62,7 @@ module.exports = class FavoritesCommand extends Command {
                         return message.channel.send(this.client.embeds('error'));
                     });
                 }
-                return display.run(await msg.edit('Done.'));
+                return display.run(message, await msg.edit('Done.'));
             }
 		});
 	}
