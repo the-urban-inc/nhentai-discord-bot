@@ -87,7 +87,7 @@ module.exports = class RichDisplay {
 		let msg = await requestMessage.channel.send(this.infoPage || this.pages[options.startPage || 0].embed);
 		return new ReactionHandler(
 			msg,
-			(reaction, user) => emojis.includes(reaction.emoji.id || reaction.emoji.name) && user !== message.client.user,
+			(reaction, user) => emojis.includes(reaction.emoji.id || reaction.emoji.name) && user !== awaitMessage.client.user,
 			options,
 			this,
 			emojis
