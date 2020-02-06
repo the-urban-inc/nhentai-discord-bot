@@ -36,7 +36,7 @@ class ReactionHandler extends ReactionCollector {
 			reaction.users.remove(user);
 			this[this.methodMap.get(reaction.emoji.id || reaction.emoji.name)](user);
 		});
-		
+
 		this.on('end', () => {
 			if (this.reactionsDone && !this.message.deleted) this.message.reactions.removeAll();
 		});
@@ -105,7 +105,7 @@ class ReactionHandler extends ReactionCollector {
 		this.message.edit(this.display.infoPage);
 	}
 
-	async stop() {
+	async pause() {
 		if (this.automode) {
 			clearInterval(this.automode);
 			return this.message.channel.send(this.display.client.embeds('info', 'Stopped current auto session.')).then(message => message.delete({ timeout: 5000 }));
