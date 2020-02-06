@@ -25,7 +25,7 @@ module.exports = class RichDisplay {
 			jump: '↗️',
 			info: 'ℹ️',
 			auto: '🇦',
-			stop: '⏹',
+			pause: '⏹',
 			love: '❤️',
 			remove: '🗑'
 		};
@@ -109,7 +109,7 @@ module.exports = class RichDisplay {
 			else emojis.push(this.emojis.back, this.emojis.jump, this.emojis.forward);
 		}
 		if (this.infoPage) emojis.push(this.emojis.info);
-		if (this.automode) emojis.push(this.emojis.auto, this.emojis.stop);
+		if (this.automode) emojis.push(this.emojis.auto, this.emojis.pause);
 		if (love) emojis.push(this.emojis.love);
 		if (remove) emojis.push(this.emojis.remove);
 		return emojis;

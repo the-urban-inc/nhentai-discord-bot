@@ -20,17 +20,23 @@ class ReactionHandler extends ReactionCollector {
 
 		this.awaiting = false;
 
+		this.selection = this.display.emojis.zero ? new Promise((resolve, reject) => {
+			this.reject = reject;
+			this.resolve = resolve;
+		}) : Promise.resolve(null);
+
 		this.reactionsDone = false;
 
 		this.automode = null;
 
 		if (emojis.length) this._queueEmojiReactions(emojis.slice());
-		else return this.remove();
+		else return this._stop();
 
 		this.on('collect', (reaction, user) => {
 			reaction.users.remove(user);
 			this[this.methodMap.get(reaction.emoji.id || reaction.emoji.name)](user);
 		});
+
 		this.on('end', () => {
 			if (this.reactionsDone && !this.message.deleted) this.message.reactions.removeAll();
 		});
@@ -99,7 +105,7 @@ class ReactionHandler extends ReactionCollector {
 		this.message.edit(this.display.infoPage);
 	}
 
-	async stop() {
+	async pause() {
 		if (this.automode) {
 			clearInterval(this.automode);
 			return this.message.channel.send(this.display.client.embeds('info', 'Stopped current auto session.')).then(message => message.delete({ timeout: 5000 }));
@@ -135,20 +141,24 @@ class ReactionHandler extends ReactionCollector {
 	}
 	
 	async remove() {
-		if (this.resolve) this.resolve(null);
 		if (this.automode) clearInterval(this.automode);
 		if (this.display.requestMessage.deletable) await this.display.requestMessage.delete();
-		if (this.display.awaitMessage.deletable) await this.display.awaitMessage.delete();
+		if (this.display.awaitMessage.deletable && this.display.awaitMessage != this.display.requestMessage) await this.display.awaitMessage.delete();
 		if (this.message.deletable) await this.message.delete();
 	}
     
 	update() {
 		if (this.currentPage == -1) this.currentPage = 0;
 		this.message.edit({ embed: this.display.pages[this.currentPage].embed });
-    }
+	}
+	
+	async _stop() {
+		if (this.resolve) this.resolve(null);
+		super.stop();
+	}
     
 	async _queueEmojiReactions(emojis) {
-		if (this.message.deleted) return this.stop();
+		if (this.message.deleted) return this._stop();
 		if (this.ended) return this.message.reactions.removeAll();
 		await this.message.react(emojis.shift());
 		if (emojis.length) return this._queueEmojiReactions(emojis);
