@@ -148,7 +148,7 @@ class ReactionHandler extends ReactionCollector {
     }
     
 	async _queueEmojiReactions(emojis) {
-		if (this.message.deleted) return this.stop();
+		if (this.message.deleted) return this.remove();
 		if (this.ended) return this.message.reactions.removeAll();
 		await this.message.react(emojis.shift());
 		if (emojis.length) return this._queueEmojiReactions(emojis);
