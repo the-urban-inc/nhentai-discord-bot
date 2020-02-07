@@ -5,17 +5,21 @@ const logger = require('../../utils/logger');
 const Qs = require('qs');
 
 async function parseDetailsHTML(url) {
-	return Parse.details(await getHTML(url).catch(err => {
-		if (err.response.status == 404) logger.error('Doujin Not Found');
-		else logger.error(err);
-	}));
+	const details = await getHTML(url).catch(err => {
+		if (err.response.status == 404) return logger.error('Doujin Not Found');
+		else return logger.error(err);
+	});
+	if (!details) return undefined;
+	return Parse.details(details);
 }
 
 async function parseListHTML(url) {
-	return Parse.list(await getHTML(url).catch(err => {
-		if (err.response.status == 404) logger.error('Parameter Error');
-		else logger.error(err);
-	}));
+	const list = await getHTML(url).catch(err => {
+		if (err.response.status == 404) return logger.error('Parameter Error');
+		else return logger.error(err);
+	});
+	if (!list) return undefined;
+	return Parse.list(list);
 }
 
 module.exports = class nClient {
@@ -25,7 +29,8 @@ module.exports = class nClient {
 	}
 
 	async g(id) {
-		return new Gallery(await parseDetailsHTML(`${this.baseURL}/g/${id}/`));
+		const details = await parseDetailsHTML(`${this.baseURL}/g/${id}/`);
+		return details ? new Gallery(details) : details;
     }
     
 	search(keyword, page = 1, sort = 'date') {

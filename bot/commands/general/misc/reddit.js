@@ -14,22 +14,18 @@ module.exports = class RedditCommand extends Command {
                 usage: '',
                 examples: ['']
             },
-            cooldown: 10000
+            cooldown: 3000
 		});
     }
 
-	exec(message) {
-		axios.get('https://reddit.com/r/nhentai/random.json').then((res) => {
-            const data = res.data[0]['data']['children'][0]['data'];
-            let embed = new MessageEmbed()
-                .setAuthor(`${data['title']}`, icon, `https://reddit.com${data['permalink']}`)
-                .setFooter(`Author: ${data['author']} | Upvote ratio: ${data['upvote_ratio'] * 100}%`)
-            if (data['url'].match('.jpg') || data['url'].match('.png')) embed.setImage(data['url'])
-            else embed.setImage(data['url'] + '.jpg')
-            return message.channel.send({ embed }).then(async msg => { await msg.react('⬆'); await msg.react('⬇'); });
-        }).catch(err => {
-            this.client.logger.error(err);
-            return message.channel.send(this.client.embeds('error'));
-        });
+	async exec(message) {
+        const data = await axios.get('https://reddit.com/r/nhentai/random.json').then((res) => res.data[0]['data']['children'][0]['data']).catch(err => this.client.logger.error(err));
+        if (!data) return message.channel.send(this.client.embeds('error'));
+        let embed = new MessageEmbed()
+            .setAuthor(`${data['title']}`, icon, `https://reddit.com${data['permalink']}`)
+            .setFooter(`Author: ${data['author']} | Upvote ratio: ${data['upvote_ratio'] * 100}%`)
+        if (data['url'].match('.jpg') || data['url'].match('.png')) embed.setImage(data['url'])
+        else embed.setImage(data['url'] + '.jpg')
+        return message.channel.send({ embed }).then(async msg => { await msg.react('⬆'); await msg.react('⬇'); });
 	}
 };
