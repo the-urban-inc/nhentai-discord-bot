@@ -34,7 +34,7 @@ module.exports = class Booru extends Command {
                 type: [
                     ['e621', 'e6'],
                     ['e926', 'e9'],
-                    ['hh', 'hypnohub', 'hypno'],
+                    ['hypnohub', 'hypno', 'hh'],
                     ['danbooru', 'dan', 'db'],
                     ['konac', 'kcom', 'kc'],
                     ['konan', 'knet', 'kn'],

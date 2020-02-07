@@ -2,8 +2,9 @@ const Cheerio = require('cheerio');
 const Qs = require('qs');
 
 function details(html) {
-	let json = /(?<=gallery\()\{.+\}(?=\);)/.exec(html)[0];
-	let obj = JSON.parse(json);
+	let json = /(?<=gallery\()\{.+\}(?=\);)/.exec(html);
+	if (!json) return undefined;
+	let obj = JSON.parse(json[0]);
 	// For consistency such as https://nhentai.net/g/66/
 	if (typeof obj.id == 'string') obj.id = parseInt(obj.id);
 	return obj;
