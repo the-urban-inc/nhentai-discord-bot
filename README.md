@@ -55,6 +55,8 @@ GITHUB_USERNAME = 'Your Github Username'
 GITHUB_PASSWORD = 'Your Github Password'
 NHENTAI_GITHUB_REPO_USERNAME = 'The Github Username for the owner of the repo'
 NHENTAI_GITHUB_REPO_NAME = 'The Github repo name'
+TWITTER_API = 'Your Twitter API key'
+TWITTER_SECRET = 'Your Twitter secret'
 MONGODB_URI = 'URL of MongoDB server'
 ```
 

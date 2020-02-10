@@ -52,7 +52,7 @@ module.exports = class Client extends AkairoClient {
 
         this.nhentai = new nClient();
 
-        this.icon = 'https://pbs.twimg.com/profile_images/733172726731415552/8P68F-_I_400x400.jpg';
+        this.icon = 'https://static.nhentai.net/img/logo.650c98bbb08e.svg';
 
         this.flag = {
             'chinese': ':flag_cn:',
