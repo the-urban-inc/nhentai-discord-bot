@@ -9,7 +9,7 @@ module.exports = class SearchCommand extends Command {
 			aliases: ['search'],
 			description: {
                 content: 'Searches nhentai.',
-                usage: '<text> [--page=pagenum] [--sort=(date/popular)]',
+                usage: '<text> [--page=pagenum] [--sort=(recent/popular-today/popular-week/popular)]',
                 examples: ['lolicon', 'rape -p=2', 'ahegao -s=popular']
             },
             split: 'sticky',
@@ -34,8 +34,8 @@ module.exports = class SearchCommand extends Command {
 
 	async exec(message, { text, page, sort }) {
         if (!text) return message.channel.send(this.client.embeds('error', 'Search text is not specified.'));
-        page = parseInt(page);
-        if (sort !== 'date' && sort !== 'popular') return message.channel.send(this.client.embeds('error', 'Invalid sort method provided. Available methods are: `date` and `popular`'));
+        page = parseInt(page, 10);
+        if (!['recent', 'popular-today', 'popular-week', 'popular'].includes(sort)) return message.channel.send(this.client.embeds('error', 'Invalid sort method provided. Available methods are: `recent`, `popular-today`, `popular-week`, `popular`'));
 		const data = await this.client.nhentai.search(text, page, sort).then(data => data).catch(err => this.client.logger.error(err));
         if (!data) return message.channel.send(this.client.embeds('error'));
         if (!data.num_results) return message.channel.send(this.client.embeds('error', 'Found nothing.'));

@@ -30,6 +30,8 @@ module.exports = class RichDisplay {
 			remove: '🗑'
 		};
 
+		this.previousDisplay = null;
+
 		this.automode = false;
 
 		this.footered = false;
@@ -59,6 +61,11 @@ module.exports = class RichDisplay {
 		return this;
 	}
 
+	useMultipleDisplay(display) {
+		this.previousDisplay = display;
+		return this;
+	}
+
 	addPage(embed, id = null) {
 		this.pages.push({ 
 			id: id,
@@ -77,7 +84,6 @@ module.exports = class RichDisplay {
 		const emojis = this._determineEmojis(
 			[],
 			!(options.includes('remove')),
-			!(options.includes('jump')),
 			!(options.includes('firstLast')),
 			!(options.includes('love')),
 			(options.includes('images'))
@@ -99,7 +105,7 @@ module.exports = class RichDisplay {
 		// if (this.infoPage) this.infoPage.setFooter('General Info');
 	}
 
-	_determineEmojis(emojis, remove, jump, firstLast, love, images) {
+	_determineEmojis(emojis, remove, firstLast, love, images) {
 		if (images) {
 			emojis.push(this.emojis.remove);
 			return emojis;

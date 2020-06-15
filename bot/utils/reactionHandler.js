@@ -114,6 +114,7 @@ class ReactionHandler extends ReactionCollector {
 
 	async love() {
 		let id = this.display.gid || this.display.pages[this.currentPage].id;
+		let name = (this.display.gid ? this.display.infoPage.author.name : this.display.pages[this.currentPage].embed.title);
 		let failed = false, adding = false;
 		await User.findOne({
             userID: this.display.requestMessage.author.id
@@ -122,15 +123,15 @@ class ReactionHandler extends ReactionCollector {
             if (!user) {
                 const newUser = new User({
                     userID: this.display.requestMessage.author.id,
-                    favorites: [id]
+                    favorites: [`${id} ${name}`]
                 });
 				newUser.save().catch(err => { logger.error(err); failed = true; });
 				adding = true;
             } else {
-				if (user.favorites.includes(id)) {
-					user.favorites.splice(user.favorites.indexOf(id), 1);
+				if (user.favorites.includes(`${id} ${name}`)) {
+					user.favorites.splice(user.favorites.indexOf(`${id} ${name}`), 1);
 				} else { 
-					user.favorites.push(id); 
+					user.favorites.push(`${id} ${name}`); 
 					adding = true; 
 				}
                 return user.save().catch(err => { logger.error(err); failed = true; });
@@ -145,6 +146,7 @@ class ReactionHandler extends ReactionCollector {
 		if (this.display.requestMessage.deletable) await this.display.requestMessage.delete();
 		if (this.display.awaitMessage.deletable && this.display.awaitMessage != this.display.requestMessage) await this.display.awaitMessage.delete();
 		if (this.message.deletable) await this.message.delete();
+		if (this.display.previousDisplay) await this.display.previousDisplay.remove();
 	}
     
 	update() {

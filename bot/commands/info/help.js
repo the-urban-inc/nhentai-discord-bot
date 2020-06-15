@@ -1,4 +1,5 @@
 const { Command } = require('discord-akairo');
+const { MessageEmbed } = require('discord.js');
 const { PREFIX } = process.env;
 
 module.exports = class HelpCommand extends Command {
@@ -33,7 +34,7 @@ module.exports = class HelpCommand extends Command {
 			examples: [],
 			fields: []
 		}, command.description);
-		const embed = this.client.util.embed()
+		const embed = new MessageEmbed()
 			.setTitle(`\`${command.prefix || PREFIX}${command.aliases[0]} ${description.usage}\``)
             .addField('Description', description.content)
             .addField('Category', command.category);
@@ -47,7 +48,7 @@ module.exports = class HelpCommand extends Command {
 	}
 
 	async execCommandList(message) {
-		const embed = this.client.util.embed()
+		const embed = new MessageEmbed()
 			.setColor(0xFFAC33)
 			.addField('Command List',
 				[
@@ -63,6 +64,6 @@ module.exports = class HelpCommand extends Command {
 			}[category.id];
 			if (title) embed.addField(title, `\`${category.map(cmd => cmd.aliases[0]).join('` `')}\``);
 		}
-		return message.channel.send({embed});
+		return message.channel.send({ embed });
 	}
 };

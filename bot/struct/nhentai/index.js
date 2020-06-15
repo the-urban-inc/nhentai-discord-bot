@@ -29,11 +29,13 @@ module.exports = class nClient {
 	}
 
 	async g(id) {
-		const details = await parseDetailsHTML(`${this.baseURL}/g/${id}/`);
-		return details ? new Gallery(details) : details;
+		let details = await parseDetailsHTML(`${this.baseURL}/g/${id}/`);
+		let comments = await getHTML(`${this.baseURL}/api/gallery/${id}/comments`);
+		details = (details && comments) ? details : undefined;
+		return details ? new Gallery({ ...details, comments }) : details;
     }
     
-	search(keyword, page = 1, sort = 'date') {
+	search(keyword, page = 1, sort = 'recent') {
 		let query = Qs.stringify({
 			q: keyword,
 			page,
@@ -53,38 +55,38 @@ module.exports = class nClient {
 		return parseDetailsHTML(`${this.baseURL}/random/`);
 	}
 
-	tag(name, page = 1, sort = 'date') {
+	tag(name, page = 1, sort = 'recent') {
 		let query = Qs.stringify({
 			page
 		});
-		return parseListHTML(`${this.baseURL}/tag/${name.replace(' ','-')}/${sort=='date'?'':sort}?${query}`);
+		return parseListHTML(`${this.baseURL}/tag/${name.replace(' ','-')}/${sort=='recent'?'':sort}?${query}`);
 	}
 
-	artist(name, page = 1, sort = 'date') {
+	artist(name, page = 1, sort = 'recent') {
 		let query = Qs.stringify({
 			page
 		});
-		return parseListHTML(`${this.baseURL}/artist/${name.replace(' ','-')}/${sort=='date'?'':sort}?${query}`);
+		return parseListHTML(`${this.baseURL}/artist/${name.replace(' ','-')}/${sort=='recent'?'':sort}?${query}`);
 	}
 
-	character(name, page = 1, sort = 'date') {
+	character(name, page = 1, sort = 'recent') {
 		let query = Qs.stringify({
 			page
 		});
-		return parseListHTML(`${this.baseURL}/character/${name.replace(' ','-')}/${sort=='date'?'':sort}?${query}`);
+		return parseListHTML(`${this.baseURL}/character/${name.replace(' ','-')}/${sort=='recent'?'':sort}?${query}`);
 	}
 
-	parody(name, page = 1, sort = 'date') {
+	parody(name, page = 1, sort = 'recent') {
 		let query = Qs.stringify({
 			page
 		});
-		return parseListHTML(`${this.baseURL}/parody/${name.replace(' ','-')}/${sort=='date'?'':sort}?${query}`);
+		return parseListHTML(`${this.baseURL}/parody/${name.replace(' ','-')}/${sort=='recent'?'':sort}?${query}`);
 	}
 
-	group(name, page = 1, sort = 'date') {
+	group(name, page = 1, sort = 'recent') {
 		let query = Qs.stringify({
 			page
 		});
-		return parseListHTML(`${this.baseURL}/group/${name.replace(' ','-')}/${sort=='date'?'':sort}?${query}`);
+		return parseListHTML(`${this.baseURL}/group/${name.replace(' ','-')}/${sort=='recent'?'':sort}?${query}`);
 	}
 };
