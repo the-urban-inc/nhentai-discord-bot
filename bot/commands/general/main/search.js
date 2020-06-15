@@ -26,7 +26,7 @@ module.exports = class SearchCommand extends Command {
                 id: 'sort',
                 match: 'option',
                 flag: ['--sort=', '-s='],
-                default: 'date'
+                default: 'recent'
             }],
             cooldown: 3000
 		});
