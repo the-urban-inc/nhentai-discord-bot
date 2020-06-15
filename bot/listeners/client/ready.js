@@ -15,8 +15,8 @@ module.exports = class ReadyListener extends Listener {
         this.client.setTimeout(() => { this.client.setInterval(async () => {
             let code = '177013';
             const data = await this.client.nhentai.random().then(data => data).catch(err => this.client.logger.error(err));
-            code = (data ? data.id : code);
+            code = (data ? data.id.toString() : code);
             this.client.user.setActivity(code, { type: 'WATCHING' });
-        }, 60000); }, 10000);
+        }, 30000); }, 10000);
     }
 };
