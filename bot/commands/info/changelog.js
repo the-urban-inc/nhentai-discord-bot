@@ -1,10 +1,10 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 const { Octokit } = require('@octokit/rest');
-const { NPM_PACKAGE_REPO_URL, NPM_PACKAGE_VERSION } = process.env;
+const { npm_package_repository_url, npm_package_version } = process.env;
 
 const client = new Octokit({
-    userAgent: `nhentai v${NPM_PACKAGE_VERSION}`
+    userAgent: `nhentai v${npm_package_version}`
 });
 
 module.exports = class ChangelogCommand extends Command {
@@ -22,8 +22,7 @@ module.exports = class ChangelogCommand extends Command {
 	}
 
 	async exec(message) {
-		if (!NPM_PACKAGE_REPO_URL || !NPM_PACKAGE_VERSION) return message.channel.send(this.client.embeds('error', 'Owner hasn\'t specified the Github parameters yet.'));
-		const [repo, owner] = NPM_PACKAGE_REPO_URL.split('/').filter(a => a).reverse()
+		const [repo, owner] = npm_package_repository_url.split('/').filter(a => a).reverse()
         const { data } = await client.repos.listCommits({
             repo: repo.replace('.git', ''), owner, per_page: 10
         });
