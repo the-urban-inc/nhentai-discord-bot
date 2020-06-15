@@ -50,15 +50,9 @@ Copy or Rename `.env.example` to `.env` and fill out the values:
 ```
 PREFIX = 'Insert your desired prefix here'
 DISCORD_TOKEN = 'Insert your bot's token here'
-INVITE = 'Invite link for your bot. It is recommended to give the bot permissions relating to managing messages'
 OWNER = 'Your Discord user ID'
-GITHUB_USERNAME = 'Your Github Username'
-GITHUB_PASSWORD = 'Your Github Password'
-NHENTAI_GITHUB_REPO_USERNAME = 'The Github Username for the owner of the repo'
-NHENTAI_GITHUB_REPO_NAME = 'The Github repo name'
 TWITTER_API = 'Your Twitter API key'
 TWITTER_SECRET = 'Your Twitter secret'
-PATREON = 'Your Patreon'
 MONGODB_URI = 'URL of MongoDB server'
 ```
 

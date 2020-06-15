@@ -31,7 +31,7 @@ module.exports = class HomeCommand extends Command {
         
         if (page == 1) {
             const popularNow = data.results.slice(0, 5);
-            const displayPopular = this.client.embeds('display').useCustomFooters()
+            const displayPopular = this.client.embeds('display').useCustomFooters().useMultipleDisplay(true);
             for (const [idx, doujin] of popularNow.entries()) {
                 displayPopular.addPage(new MessageEmbed()
                     .setTitle(`${he.decode(doujin.title)}`)
@@ -44,7 +44,7 @@ module.exports = class HomeCommand extends Command {
             const displayPopularHandler = await displayPopular.run(message, await message.channel.send('Searching ...\n\n`🔥` **Popular Now**'));
             
             const newUploads = data.results.slice(5);
-            const displayNew = this.client.embeds('display').useCustomFooters().useMultipleDisplay(displayPopularHandler)
+            const displayNew = this.client.embeds('display').useCustomFooters().useMultipleDisplay(displayPopularHandler);
             for (const [idx, doujin] of newUploads.entries()) {
                 displayNew.addPage(new MessageEmbed()
                     .setTitle(`${he.decode(doujin.title)}`)

@@ -8,4 +8,4 @@ COPY bot/ bot/
 RUN apk add --no-cache git
 RUN npm install
 
-CMD node bot/index
+CMD npm start
