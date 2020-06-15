@@ -10,17 +10,13 @@ module.exports = class ReadyListener extends Listener {
     }
 
     exec() {
-        const activities = [{
-            'text': 'your commands',
-            'type': 'LISTENING'
-        },{
-            'text': `177013`,
-            'type': 'WATCHING'
-        }];
         this.client.logger.info(`[READY] Logged in as ${this.client.user.tag}! ID: ${this.client.user.id}`);
-        this.client.setInterval(() => {
-            const activity = activities[Math.floor(Math.random()*activities.length)];
-            this.client.user.setActivity(activity.text, { type: activity.type });
-        }, 60000);
+        this.client.user.setActivity('your commands', { type: 'LISTENING' });
+        this.client.setTimeout(() => { this.client.setInterval(async () => {
+            let code = '177013';
+            const data = await this.client.nhentai.random().then(data => data).catch(err => this.client.logger.error(err));
+            code = (data ? data.id : code);
+            this.client.user.setActivity(code, { type: 'WATCHING' });
+        }, 60000); }, 10000);
     }
 };
