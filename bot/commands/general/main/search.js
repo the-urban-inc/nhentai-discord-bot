@@ -38,7 +38,6 @@ module.exports = class SearchCommand extends Command {
         if (!['recent', 'popular-today', 'popular-week', 'popular'].includes(sort)) return message.channel.send(this.client.embeds('error', 'Invalid sort method provided. Available methods are: `recent`, `popular-today`, `popular-week`, `popular`'));
 		const data = await this.client.nhentai.search(text, page, sort).then(data => data).catch(err => this.client.logger.error(err));
         if (!data) return message.channel.send(this.client.embeds('error'));
-        if (!data.num_results) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
         if (!page || page < 1 || page > data.num_pages) return message.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
         const display = this.client.embeds('display').useCustomFooters()
         for (const [idx, doujin] of data.results.entries()) {
