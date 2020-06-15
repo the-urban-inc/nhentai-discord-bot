@@ -1,7 +1,11 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
-const fetch = require('node-superfetch');
-const { GITHUB_USERNAME, GITHUB_PASSWORD, NHENTAI_GITHUB_REPO_USERNAME, NHENTAI_GITHUB_REPO_NAME } = process.env;
+const { Octokit } = require('@octokit/rest');
+const { NPM_PACKAGE_REPO_URL, NPM_PACKAGE_VERSION } = process.env;
+
+const client = new Octokit({
+    userAgent: `nhentai v${NPM_PACKAGE_VERSION}`
+});
 
 module.exports = class ChangelogCommand extends Command {
 	constructor() {
@@ -18,19 +22,23 @@ module.exports = class ChangelogCommand extends Command {
 	}
 
 	async exec(message) {
-		if (!GITHUB_USERNAME || !GITHUB_PASSWORD || !NHENTAI_GITHUB_REPO_USERNAME || !NHENTAI_GITHUB_REPO_NAME) return message.channel.send(this.client.embeds('error', 'Owner hasn\'t specified the Github parameters yet.'));
-		const { body } = await fetch
-			.get(`https://api.github.com/repos/${NHENTAI_GITHUB_REPO_USERNAME}/${NHENTAI_GITHUB_REPO_NAME}/commits`)
-			.set({ Authorization: `Basic ${this.client.extensions.base64(`${GITHUB_USERNAME}:${GITHUB_PASSWORD}`)}` });
-		const commits = body.slice(0, 10);
-		const embed = new MessageEmbed()
-			.setTitle(`[${NHENTAI_GITHUB_REPO_NAME}:master] Latest ${commits.length} commits`)
-			.setURL(`https://github.com/${NHENTAI_GITHUB_REPO_USERNAME}/${NHENTAI_GITHUB_REPO_NAME}/commits/master`)
-			.setDescription(commits.map(commit => {
-                const hash = `[\`${commit.sha.slice(0, 7)}\`](${commit.html_url})`;
-                const text = commit.commit.message.split('\n')[0];
-				return `${hash} ${text.length < 50 ? text : this.client.extensions.shorten(text, 50)} - ${commit.author.login}`;
-			}).join('\n'));
+		if (!NPM_PACKAGE_REPO_URL || !NPM_PACKAGE_VERSION) return message.channel.send(this.client.embeds('error', 'Owner hasn\'t specified the Github parameters yet.'));
+		const [repo, owner] = NPM_PACKAGE_REPO_URL.split('/').filter(a => a).reverse()
+        const { data } = await client.repos.listCommits({
+            repo: repo.replace('.git', ''), owner, per_page: 10
+        });
+        const embed = new MessageEmbed()
+            .setTitle(`[${repo}:master] Latest ${data.length} commit(s)`)
+            .setURL(`https://github.com/${owner}/${repo}/commits/master`)
+            .setDescription(
+                data.map(({ html_url, sha, commit: { message }, committer: { login } }) => {
+                    message = message.split('\n').filter(a => a)[0];
+                    message = message.length > 55 ? message.slice(0, 55) + '...' : message;
+                    return (
+                        `[\`${sha.slice(0, 7)}\`](${html_url}) ${message} - ${login}`
+                    )
+                }).join('\n')
+            )
 		return message.channel.send({ embed });
 	}
 };

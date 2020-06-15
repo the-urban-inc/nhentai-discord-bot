@@ -1,6 +1,7 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 const he = require('he');
+const User = require('../../../models/user');
 
 module.exports = class GroupCommand extends Command {
 	constructor() {
@@ -9,7 +10,7 @@ module.exports = class GroupCommand extends Command {
 			aliases: ['group'],
 			description: {
                 content: 'Searches nhentai for given group.',
-                usage: '<text> [--page=pagenum] [--sort=(date/popular)]',
+                usage: '<text> [--page=pagenum] [--sort=(recent/popular-today/popular-week/popular)]',
                 examples: ['lolicon', 'rape -p=2', 'ahegao -s=popular']
             },
             split: 'sticky',
@@ -26,7 +27,7 @@ module.exports = class GroupCommand extends Command {
                 id: 'sort',
                 match: 'option',
                 flag: ['--sort=', '-s='],
-                default: 'date'
+                default: 'recent'
             }],
             cooldown: 3000
 		});
@@ -34,13 +35,46 @@ module.exports = class GroupCommand extends Command {
 
 	async exec(message, { text, page, sort }) {
         if (!text) return message.channel.send(this.client.embeds('error', 'Group name is not specified.'));
-        page = parseInt(page);
-        if (sort !== 'date' && sort !== 'popular') return message.channel.send(this.client.embeds('error', 'Invalid sort method provided. Available methods are: `date` and `popular`'));
+        page = parseInt(page, 10);
+        if (['recent', 'popular-today', 'popular-week', 'popular'].includes(sort)) return message.channel.send(this.client.embeds('error', 'Invalid sort method provided. Available methods are: `recent`, `popular-today`, `popular-week`, `popular`'));
 		const data = await this.client.nhentai.group(text.toLowerCase(), page, sort).then(data => data).catch(err => this.client.logger.error(err));
         if (!data) return message.channel.send(this.client.embeds('error', 'An unexpected error has occurred. Are you sure this is an existing group?'));
-        if (!data.num_pages || !data.results.length) return message.channel.send(this.client.embeds('error', 'Found nothing.'));
         if (!page || page < 1 || page > data.num_pages) return messsage.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
-        const display = this.client.embeds('display').useCustomFooters()
+        
+        await User.findOne({
+            userID: message.author.id
+        }, async (err, user) => {
+            if (err) {
+                failed = true;
+                return this.client.logger.error(err);
+            }
+            if (!user) {
+                const newUser = new User({
+                    userID: message.author.id,
+                    history: {
+                        group: [{
+                            id: text.toLowerCase(),
+                            recent: Date.now()
+                        }]
+                    }
+                });
+                newUser.save().catch(err => {
+                    failed = true;
+                    return this.client.logger.error(err);
+                });
+            } else {
+                user.history.group.push({
+                    id: text.toLowerCase(),
+                    recent: Date.now()
+                });
+                user.save().catch(err => {
+                    failed = true;
+                    return this.client.logger.error(err);
+                });
+            }
+        });
+
+        const display = this.client.embeds('display').useCustomFooters();
         for (const [idx, doujin] of data.results.entries()) {
             display.addPage(new MessageEmbed()
                 .setTitle(`${he.decode(doujin.title)}`)
