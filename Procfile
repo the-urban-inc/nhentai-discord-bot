@@ -1,2 +1,2 @@
-web: node bot/index
-worker: node bot/index
+web: npm start
+worker: npm start
