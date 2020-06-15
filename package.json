@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "As you can guess from the name, I'm a bot that focuses on NSFW content.",
   "main": "bot/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/t41y0u/nhentai-discord-bot"
+  },
   "dependencies": {
     "@octokit/rest": "^18.0.0",
     "axios": "^0.19.0",
@@ -31,7 +35,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node bot/index.js"
   },
   "engines": {
     "node": "^11.13.0"

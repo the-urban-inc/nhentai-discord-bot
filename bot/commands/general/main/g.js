@@ -135,7 +135,7 @@ module.exports = class GCommand extends Command {
         info.addField('Pages', `**\`${doujin.num_pages}\`**`);
         info.addField('Uploaded', moment(doujin.upload_date * 1000).fromNow());
 
-        const displayDoujin = this.client.embeds('display').setGID(doujin.id).setInfoPage(info);
+        const displayDoujin = this.client.embeds('display').setGID(doujin.id).setInfoPage(info).useMultipleDisplay(true);
         if (auto) displayDoujin.useAutoMode();
         doujin.getPages().forEach(page => displayDoujin.addPage(new MessageEmbed().setImage(page).setTimestamp()));
         const displayDoujinHandler = await displayDoujin.run(message, await message.channel.send('Searching for doujin ...'));
@@ -152,7 +152,7 @@ module.exports = class GCommand extends Command {
         }
         const displayRelatedHandler = await displayRelated.run(message, await message.channel.send('**More Like This**'));
 
-        const displayComments = this.client.embeds('display').useCustomFooters().useMultipleDisplay(displayRelatedHandler)
+        const displayComments = this.client.embeds('display').useCustomFooters().useMultipleDisplay(displayRelatedHandler);
         for (const [idx, comment] of doujin.comments.entries()) {
             displayComments.addPage(new MessageEmbed()
                 .setAuthor(`${he.decode(comment.poster.username)}`, `https://i5.nhentai.net/${comment.poster.avatar_url}`)
