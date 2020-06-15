@@ -2,7 +2,7 @@ const { Command } = require('discord-akairo');
 const { MessageEmbed, version } = require('discord.js');
 const moment = require('moment');
 const nhentai = require('../../../package');
-const { INVITE, NHENTAI_GITHUB_REPO_USERNAME, NHENTAI_GITHUB_REPO_NAME } = process.env;
+const { INVITE, PATREON, NHENTAI_GITHUB_REPO_USERNAME, NHENTAI_GITHUB_REPO_NAME } = process.env;
 const source = NHENTAI_GITHUB_REPO_NAME && NHENTAI_GITHUB_REPO_USERNAME;
 
 module.exports = class AboutCommand extends Command {
@@ -23,7 +23,7 @@ module.exports = class AboutCommand extends Command {
 		const embed = new MessageEmbed()
             .setThumbnail(this.client.user.displayAvatarURL())
 			.setTitle(`Hey ${message.author.username}, I'm ${this.client.user.tag}!`)
-            .setDescription(`${nhentai.description}`)
+            .setDescription(`${nhentai.description}\nIf you want to support me, feel free to leave a donation [here](${PATREON}). Even $1 means a lot to me.`)
             .addField('❯\u2000\Version', nhentai.version, true)
             .addField('❯\u2000\Users', this.client.users.size, true)
             .addField('❯\u2000\Invite link', INVITE ? `[Click here](${INVITE})` : 'No invite link provided.', true)

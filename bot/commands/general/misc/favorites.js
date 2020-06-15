@@ -37,7 +37,8 @@ module.exports = class FavoritesCommand extends Command {
                 let msg = await message.channel.send('Fetching favorites ... The longer your favorites list is, the more time you have to wait ...');
                 const display = this.client.embeds('display');
                 for (let i = 0, a = user.favorites; i < a.length; i++) {
-                    const doujin = await this.client.nhentai.g(a[i]).then(doujin => doujin).catch(err => this.client.logger.error(err));
+                    const code = a[i].replace(/ .*/,'');
+                    const doujin = await this.client.nhentai.g(code).then(doujin => doujin).catch(err => this.client.logger.error(err));
                     if (!doujin) return message.channel.send(this.client.embeds('error'));
                     const info = new MessageEmbed()
                         .setAuthor(he.decode(doujin.title.english), this.client.icon, `https://nhentai.net/g/${doujin.id}`)
