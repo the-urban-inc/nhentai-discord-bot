@@ -35,9 +35,10 @@ module.exports = class SearchCommand extends Command {
 	async exec(message, { text, page, sort }) {
         if (!text) return message.channel.send(this.client.embeds('error', 'Search text is not specified.'));
         page = parseInt(page, 10);
-        if (!['recent', 'popular-today', 'popular-week', 'popular'].includes(sort)) return message.channel.send(this.client.embeds('error', 'Invalid sort method provided. Available methods are: `recent`, `popular-today`, `popular-week`, `popular`'));
+        if (!['recent', 'popular-today', 'popular-week', 'popular'].includes(sort)) return message.channel.send(this.client.embeds('error', 'Invalid sort method provided. Available methods are: `recent`, `popular-today`, `popular-week`, `popular`.'));
 		const data = await this.client.nhentai.search(text, page, sort).then(data => data).catch(err => this.client.logger.error(err));
         if (!data) return message.channel.send(this.client.embeds('error'));
+        if (!data.results.length) return message.channel.send(this.client.embeds('error', 'No results found.'));
         if (!page || page < 1 || page > data.num_pages) return message.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
         const display = this.client.embeds('display').useCustomFooters()
         for (const [idx, doujin] of data.results.entries()) {
