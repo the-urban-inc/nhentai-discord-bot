@@ -68,7 +68,7 @@ function list(html) {
 
 	let addon = {};
 
-	if ($('meta[name=description]').length > 0) addon.num_results = parseInt($('meta[name=description]').attr('content').match(/Read ([0-9,]+).*/)[1].replace(',', ''), 10) || 0;
+	if ($('meta[name=description]').length > 0 && !$('title').text().trim().startsWith('nhentai')) addon.num_results = parseInt($('meta[name=description]').attr('content').match(/Read ([0-9,]+).*/)[1].replace(',', ''), 10) || 0;
 	else if ($('#content>h1').length > 0) addon.num_results = parseInt($('#content>h1').text().replace(',', ''), 10) || 0;
 
 	if ($('.pagination').length > 0) addon.num_pages = parseInt($(`.pagination>${$('.pagination>.last').length > 0 ? '.last' : '.pagecurrent'}`).attr('href').match(/.*page=([0-9]+).*/)[1], 10) || 0;

@@ -39,6 +39,7 @@ module.exports = class CharacterCommand extends Command {
         if (!['recent', 'popular-today', 'popular-week', 'popular'].includes(sort)) return message.channel.send(this.client.embeds('error', 'Invalid sort method provided. Available methods are: `recent`, `popular-today`, `popular-week`, `popular`.'));
 		const data = await this.client.nhentai.character(text.toLowerCase(), page, sort).then(data => data).catch(err => this.client.logger.error(err));
         if (!data) return message.channel.send(this.client.embeds('error', 'An unexpected error has occurred. Are you sure this is an existing character?'));
+        if (!data.results.length) return message.channel.send(this.client.embeds('error', 'No results, sorry.'));
         if (!page || page < 1 || page > data.num_pages) return message.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
         
         await User.findOne({
