@@ -29,10 +29,11 @@ module.exports = class nClient {
 	}
 
 	async g(id) {
-		let details = await parseDetailsHTML(`${this.baseURL}/g/${id}/`);
+		let details = await getHTML(`${this.baseURL}/api/gallery/${id}`);
+		let related = await parseDetailsHTML(`${this.baseURL}/g/${id}/`);
 		let comments = await getHTML(`${this.baseURL}/api/gallery/${id}/comments`);
-		details = (details && comments) ? details : undefined;
-		return details ? new Gallery({ ...details, comments }) : details;
+		details = (details && related && comments) ? details : undefined;
+		return details ? new Gallery({ ...details, ...related, comments }) : details;
     }
     
 	search(keyword, page = 1, sort = 'recent') {
@@ -51,8 +52,12 @@ module.exports = class nClient {
 		return parseListHTML(`${this.baseURL}/?${query}`);
 	}
 
-	random() {
-		return parseDetailsHTML(`${this.baseURL}/random/`);
+	async random() {
+		let related = await parseDetailsHTML(`${this.baseURL}/random/`);
+		let details = await getHTML(`${this.baseURL}/api/gallery/${related.galleryID}`);
+		let comments = await getHTML(`${this.baseURL}/api/gallery/${related.galleryID}`);
+		details = (details && related && comments) ? details : undefined;
+		return details ? new Gallery({ ...details, ...related, comments }) : details;
 	}
 
 	tag(name, page = 1, sort = 'recent') {
