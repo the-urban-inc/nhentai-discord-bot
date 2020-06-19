@@ -39,7 +39,7 @@ module.exports = class CharacterCommand extends Command {
         if (!['recent', 'popular-today', 'popular-week', 'popular'].includes(sort)) return message.channel.send(this.client.embeds('error', 'Invalid sort method provided. Available methods are: `recent`, `popular-today`, `popular-week`, `popular`.'));
 		const data = await this.client.nhentai.character(text.toLowerCase(), page, sort).then(data => data).catch(err => this.client.logger.error(err));
         if (!data) return message.channel.send(this.client.embeds('error', 'An unexpected error has occurred. Are you sure this is an existing character?'));
-        if (!page || page < 1 || page > data.num_pages) return messsage.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
+        if (!page || page < 1 || page > data.num_pages) return message.channel.send(this.client.embeds('error', 'Page number is not an integer or is out of range.'));
         
         await User.findOne({
             userID: message.author.id
@@ -81,7 +81,7 @@ module.exports = class CharacterCommand extends Command {
                 .setURL(`https://nhentai.net/g/${doujin.id}`)
                 .setDescription(`**ID** : ${doujin.id}\u2000•\u2000**Language** : ${this.client.flag[doujin.language] || 'N/A'}`)
                 .setImage(doujin.thumbnail.s)
-                .setFooter(`Doujin ${idx + 1} of ${data.results.length} • Page ${page} of ${data.num_pages || 1}`)
+                .setFooter(`Doujin ${idx + 1} of ${data.results.length} • Page ${page} of ${data.num_pages || 1} • ${data.num_results} doujin(s)`)
                 .setTimestamp(), doujin.id)
         }
         return display.run(message, await message.channel.send('Searching ...'));

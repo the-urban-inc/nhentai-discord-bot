@@ -17,6 +17,6 @@ module.exports = class DestroyCommand extends Command {
 
     exec(message, { force }) {
         if (force) return process.exit(0);
-        return message.send('Disconnecting bot...').then(() => this.client.destroy());
+        return message.channel.send('Disconnecting bot...').then(() => this.client.destroy());
     }
 };

@@ -30,15 +30,10 @@ async function details(html) {
 		});
 	});
 
-	let json =  $('script').filter(function() {
-		return $(this).html().trim().includes('window._gallery = JSON.parse("');
-	}).html().trim().replace(/\\u0022/g, '"');
-	let doujin = JSON.parse(json.substring(30, json.length - 3));
-	// For consistency such as https://nhentai.net/g/66/
-	if (typeof doujin.id == 'string') doujin.id = parseInt(doujin.id, 10);
+	let galleryID = parseInt($('#gallery_id').text().substring(1), 10);
 
-	return { 
-		...doujin,
+	return {
+		galleryID,
 		related
 	};
 }
@@ -72,8 +67,11 @@ function list(html) {
 	});
 
 	let addon = {};
-	if ($('#content>h2').length > 0) addon.num_results = parseInt($('#content>h2').html().replace(',', '')) || 0;
-	if ($('.pagination').length > 0) addon.num_pages = parseInt(Qs.parse($(`.pagination>${$('.pagination>.last').length>0?'.last':'.current'}`).attr('href').substring(1)).page);
+
+	if ($('meta[name=description]').length > 0) addon.num_results = parseInt($('meta[name=description]').attr('content').match(/Read ([0-9,]+).*/)[1].replace(',', ''), 10) || 0;
+	else if ($('#content>h1').length > 0) addon.num_results = parseInt($('#content>h1').text().replace(',', ''), 10) || 0;
+
+	if ($('.pagination').length > 0) addon.num_pages = parseInt($(`.pagination>${$('.pagination>.last').length > 0 ? '.last' : '.pagecurrent'}`).attr('href').match(/.*page=([0-9]+).*/)[1], 10) || 0;
 
 	return {
 		...addon,
