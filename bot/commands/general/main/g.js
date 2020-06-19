@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, MessageAttachment } = require('discord.js');
 const he = require('he');
 const moment = require('moment');
 const Server = require('../../../models/server');
@@ -122,6 +122,7 @@ module.exports = class GCommand extends Command {
         doujin.tags.forEach(tag => {
             if (!tags.has(tag.type)) tags.set(tag.type, []);
             let a = tags.get(tag.type); a.push(`**\`${tag.name}\`**\`(${tag.count.toLocaleString()})\``);
+            // let a = tags.get(tag.type); a.push(`**\`[${tag.name}\`**|\`${tag.count.toLocaleString()}]\``);
             tags.set(tag.type, a);
         });
         if (tags.has('parody')) info.addField('Parodies', this.client.extensions.gshorten(tags.get('parody')));
@@ -133,6 +134,7 @@ module.exports = class GCommand extends Command {
         if (tags.has('category')) info.addField('Categories', this.client.extensions.gshorten(tags.get('category')));
         // info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
         info.addField('Pages', `**\`${doujin.num_pages}\`**`);
+        // info.addField('Pages', `**\`[${doujin.num_pages}]\`**`);
         info.addField('Uploaded', moment(doujin.upload_date * 1000).fromNow());
 
         const displayDoujin = this.client.embeds('display').setGID(doujin.id).setInfoPage(info).useMultipleDisplay(true);
@@ -152,6 +154,7 @@ module.exports = class GCommand extends Command {
         }
         const displayRelatedHandler = await displayRelated.run(message, await message.channel.send('**More Like This**'));
 
+        if (!doujin.comments.length) return;
         const displayComments = this.client.embeds('display').useCustomFooters().useMultipleDisplay(displayRelatedHandler);
         for (const [idx, comment] of doujin.comments.entries()) {
             displayComments.addPage(new MessageEmbed()

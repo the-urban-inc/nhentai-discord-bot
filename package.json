@@ -36,7 +36,8 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node bot/index.js"
+    "start": "node bot/index.js",
+    "devstart": "nodemon bot/index.js"
   },
   "engines": {
     "node": "^11.13.0"
