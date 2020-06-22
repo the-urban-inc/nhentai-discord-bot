@@ -149,6 +149,10 @@ module.exports = class Util {
         return text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"); 
     }
 
+    /**
+     * Shorten a `string[]` to conform to 1024-character limit
+     * @param {string[]}} tags 
+     */
     static gshorten(tags) {
         let res = '';
         for (const tag of tags) res += (res.length + tag.length + 1 <= 1020 ? tag + ' ' : '');
