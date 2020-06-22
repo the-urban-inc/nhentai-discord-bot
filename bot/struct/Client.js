@@ -3,27 +3,17 @@ const { MessageEmbed } = require('discord.js');
 const path = require('path');
 const nClient = require('./nhentai/index');
 const RichDisplay = require('../utils/richDisplay');
+const log = require('../utils/logger');
 const fetch = require('node-fetch');
 const NekosLifeAPI = require('nekos.life');
 const LolisLifeAPI = require('lolis.life');
-const { DISCORD_TOKEN, PREFIX, OWNER } = process.env;
+const { DISCORD_TOKEN, PREFIX } = process.env;
 
 module.exports = class Client extends AkairoClient {
     constructor() {
-        super({ownerID: OWNER}, {
+        super({}, {
 			disableEveryone: true,
 			disabledEvents: ['TYPING_START']
-        });
-
-        this.commandHandler = new CommandHandler(this, {
-            directory: path.join(__dirname, '..', 'commands'),
-            aliasReplacement: /-/g,
-            prefix: PREFIX,
-            allowMention: true,
-            defaultCooldown: 3000,
-            ignoreCooldownID: OWNER,
-            blockBots: true,
-            automateCategories: true,
         });
 
         this.inhibitorHandler = new InhibitorHandler(this, { directory: path.join(__dirname, '..', 'inhibitors') });
@@ -104,8 +94,18 @@ module.exports = class Client extends AkairoClient {
     }
 
     setup() {
-        this.commandHandler.useInhibitorHandler(this.inhibitorHandler);
-        this.commandHandler.useListenerHandler(this.listenerHandler);
+        this.commandHandler = new CommandHandler(this, {
+            directory: path.join(__dirname, '..', 'commands'),
+            aliasReplacement: /-/g,
+            prefix: PREFIX,
+            allowMention: true,
+            defaultCooldown: 3000,
+            blockBots: true,
+            automateCategories: true,
+        })
+            .useInhibitorHandler(this.inhibitorHandler)
+            .useListenerHandler(this.listenerHandler)
+            .loadAll();
 
         this.listenerHandler.setEmitters({
             commandHandler: this.commandHandler,
@@ -114,7 +114,6 @@ module.exports = class Client extends AkairoClient {
             process: process
         });
 
-        this.commandHandler.loadAll();
         this.inhibitorHandler.loadAll();
         this.listenerHandler.loadAll();
     }
@@ -122,5 +121,9 @@ module.exports = class Client extends AkairoClient {
     async start() { 
         await this.mongoose.init();
         await this.login(DISCORD_TOKEN); 
+        // fill in the owner details
+        let owner = (await this.fetchApplication()).owner.id;
+        this.ownerID = this.commandHandler.ignoreCooldown = owner;
+        log.info(`[READY] Fetched application profile. Setting owner ID to ${owner}.`)
     }
 };
