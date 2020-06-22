@@ -37,7 +37,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node bot/index.js",
-    "devstart": "nodemon bot/index.js"
+    "devstart": "nodemon bot/index.js",
+    "wipe": "node scripts/wipe.js"
   },
   "engines": {
     "node": "^11.13.0"
