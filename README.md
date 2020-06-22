@@ -41,7 +41,7 @@ cd nhentai-discord-bot
 npm install
 ```
 
-After installation finishes you can use `node bot/index.js` to start the bot.
+After installation finishes you can use `npm start` to start the bot.
 
 # Configuration
 
