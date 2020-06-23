@@ -17,8 +17,8 @@
     "common-tags": "^1.8.0",
     "cookie-parser": "^1.4.4",
     "debug": "^4.1.1",
-    "discord-akairo": "github:discord-akairo/discord-akairo",
-    "discord.js": "github:discordjs/discord.js",
+    "discord-akairo": "^8.0.0",
+    "discord.js": "^12.2.0",
     "dotenv": "^8.0.0",
     "express": "^4.17.1",
     "he": "^1.2.0",
@@ -41,7 +41,7 @@
     "wipe": "node scripts/wipe.js"
   },
   "engines": {
-    "node": "^11.13.0"
+    "node": ">=11.13.0"
   },
   "keywords": [],
   "author": "",
