@@ -12,7 +12,7 @@
     "axios": "^0.19.0",
     "axios-https-proxy-fix": "^0.17.1",
     "booru": "^2.0.5",
-    "chalk": "^2.4.2",
+    "chalk": "^4.1.0",
     "cheerio": "^1.0.0-rc.3",
     "common-tags": "^1.8.0",
     "cookie-parser": "^1.4.4",
@@ -31,13 +31,20 @@
     "node-fetch": "^2.6.0",
     "node-superfetch": "^0.1.9",
     "pug": "^2.0.4",
-    "qs": "^6.9.1"
+    "qs": "^6.9.1",
+    "ts-node": "^8.10.2",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^3.9.5"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/cheerio": "^0.22.18",
+    "@types/mongoose": "^5.7.27",
+    "@types/node": "^14.0.13"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node bot/index.js",
-    "devstart": "nodemon bot/index.js",
+    "start": "ts-node -r tsconfig-paths/register bot/index.js",
+    "devstart": "nodemon -r tsconfig-paths/register -r ts-node/register bot/index.js",
     "wipe": "node scripts/wipe.js"
   },
   "engines": {
