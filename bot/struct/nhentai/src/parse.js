@@ -34,7 +34,7 @@ async function details(html) {
 
 	return {
 		galleryID,
-		related
+		related,
 	};
 }
 
@@ -73,9 +73,11 @@ function list(html) {
 
 	if ($('.pagination').length > 0) addon.num_pages = parseInt($(`.pagination>${$('.pagination>.last').length > 0 ? '.last' : '.pagecurrent'}`).attr('href').match(/.*page=([0-9]+).*/)[1], 10) || 0;
 
+	let [tagId] = $('.tag').attr('class').split(' ').filter(a => a.match(/(\d)+/));
 	return {
 		...addon,
-		results
+		results,
+		tagId: +tagId.replace('tag-', '') || null
 	};
 }
 
