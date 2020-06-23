@@ -12,6 +12,8 @@ wipeLeaderboard = async () => {
         character: [],
         group: []
     } } }, { multi: true });
+    // disconnect after done
+    require('mongoose').disconnect();
 }
 
 wipeLeaderboard();
