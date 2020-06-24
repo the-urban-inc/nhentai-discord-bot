@@ -32,6 +32,7 @@
     "node-superfetch": "^0.1.9",
     "pug": "^2.0.4",
     "qs": "^6.9.1",
+    "set-interval": "https://github.com/cipherallies/SetIntervalJS/archive/8b5e7e07892217bd0eadbcdd3edafc9921ebc2d3.tar.gz",
     "ts-node": "^8.10.2",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^3.9.5"
