@@ -59,7 +59,7 @@ export = class extends Command {
                 'info',
                 `✅ You are now registered for updates.\n**Tag**: \`${tag}\` (${
                     _.tagId
-                }) | **Type**: \`${type}\``
+                }) | **Type**: \`${type}\`\nIt may take a while before you start receiving updates.`
             )
         )
     }

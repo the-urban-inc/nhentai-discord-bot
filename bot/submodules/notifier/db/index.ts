@@ -7,7 +7,8 @@ const log = new componentLog(`Notifier/Database`)
 m.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     autoIndex: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useFindAndModify: false
 });
 m.connection
     .on('connected', () => log.success(`Connected to ${chalk.bgBlue.yellowBright(m.connection.host)}.`))
