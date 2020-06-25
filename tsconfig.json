@@ -4,7 +4,7 @@
         "lib": [
             "ES2019.Array"
         ],
-        "allowJs": false,
+        "allowJs": true,
         "alwaysStrict": true,
         "declaration": false,
         "listEmittedFiles": true,
