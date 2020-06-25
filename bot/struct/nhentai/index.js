@@ -15,7 +15,7 @@ async function parseDetailsHTML(url) {
 
 async function parseListHTML(url) {
 	const list = await getHTML(url).catch(err => {
-		if (err.response.status == 404) return logger.error('Parameter Error');
+		if (err.response.status === 404) return logger.error('Parameter Error');
 		else return logger.error(err);
 	});
 	if (!list) return undefined;

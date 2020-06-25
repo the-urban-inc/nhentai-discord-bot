@@ -1,4 +1,4 @@
-TYPE = {
+const TYPE = {
 	j: 'jpg',
 	p: 'png',
 	g: 'gif'

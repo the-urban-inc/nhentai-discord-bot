@@ -3,6 +3,8 @@ import { componentLog } from '@notifier/utils/logger';
 import { EventEmitter } from "events";
 import cc from 'cheerio';
 import ax from 'axios';
+import { check } from './check';
+import { dispatch } from './dispatch';
 
 export default class Watcher extends EventEmitter {
     private watch = new Set<number>();
@@ -45,6 +47,7 @@ export default class Watcher extends EventEmitter {
             )
             return this;
         }
+
         this.log.info(`The latest doujin code is ${this.last}. Caching.`)
         if (this.watch.size === 0) {
             this.log.warning(`No tags to be watched for. I will not start.`)
@@ -52,8 +55,12 @@ export default class Watcher extends EventEmitter {
             this.ints.start(
                 async () => {
                     let _ = await this.getCode();
-                    if (this.last !== _)
-                        this.log.info(`The latest code is now ${_}, from the last of ${this.last}.`)
+                    if (this.last !== _) {
+                        this.log.info(`The latest code is now ${_}, from the last of ${this.last}.`);
+                        let out = await check(this.last + 1, _, this.watch);
+                        this.last = _;
+                        dispatch(out);
+                    }
                     else
                         this.log.info(`No new doujin.`)
                     this.last = _;

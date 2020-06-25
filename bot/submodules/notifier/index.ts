@@ -6,7 +6,7 @@ import { model as _m, Model } from 'mongoose';
 import { WatchRecordSchema, WatchRecordDocument } from "./db/models/record";
 import w from './watcher';
 
-const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument>;
+export const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument>;
 const log = new componentLog('Notifier/Main');
 
 (async () => {
