@@ -38,13 +38,17 @@ async function details(html) {
 	};
 }
 
+/**
+ * parse into lists
+ * @param {String} html 
+ */
 function list(html) {
 	const $ = Cheerio.load(html, {
 		decodeEntities: false
 	});
 
-	let results = [];
-	$('.gallery').each((i, e) => {
+	
+	let results = $('.gallery').toArray().map((e, i) => {
 		let $this = $(e);
 		let $thumb = $this.find('.cover>img');
 
@@ -54,7 +58,7 @@ function list(html) {
 		else if (dataTags.includes('12227')) language = 'english';
 		else if (dataTags.includes('29963')) language = 'chinese';
 
-		results.push({
+		return {
 			id: /(?<=\/g\/).+(?=\/)/.exec($this.find('.cover').attr('href'))[0],
 			title: $this.find('.caption').html(),
 			language,
@@ -63,7 +67,7 @@ function list(html) {
 				w: $thumb.attr('width'),
 				h: $thumb.attr('height')
 			}
-		});
+		};
 	});
 
 	let addon = {};
@@ -73,11 +77,11 @@ function list(html) {
 
 	if ($('.pagination').length > 0) addon.num_pages = parseInt($(`.pagination>${$('.pagination>.last').length > 0 ? '.last' : '.pagecurrent'}`).attr('href').match(/.*page=([0-9]+).*/)[1], 10) || 0;
 
-	let [tagId] = $('.tag').attr('class').split(' ').filter(a => a.match(/(\d)+/));
+	let tagId = $('.tag')?.attr('class')?.split(' ').filter(a => a.match(/(\d)+/));
 	return {
 		...addon,
 		results,
-		tagId: +tagId.replace('tag-', '') || null
+		tagId: +(tagId || [])[0]?.replace('tag-', '') || null
 	};
 }
 
