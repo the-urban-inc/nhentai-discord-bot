@@ -1,6 +1,9 @@
 import { Client, MessageEmbed } from 'discord.js';
 import { model } from './';
 import type { check } from './check';
+import { componentLog } from '@notifier/utils/logger'
+
+const log = new componentLog(`Notifier/Dispatcher`);
 
 type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
 type _ = ThenArg<ReturnType<typeof check>>
@@ -40,8 +43,16 @@ export async function dispatch (_ : _){
                     new MessageEmbed()
                         .setTitle(`${d.title.english}`)
                         .setURL(`https://nhentai.net/g/${d.id}`)
-                        .setDescription(`with tag **${d.tags.get(tagId)}**`)
-                );
+                        .setDescription(`ID : [\`${d.id}\`]${
+                            `(https://nhentai.net/g/${d.id})`
+                        } | Matching tag : **${d.tags.get(tagId)}**`)
+                        .setImage(`https://t.nhentai.net/galleries/${d.media_id}/thumb.jpg`)
+                ).then(
+                    m => log.success(
+                        `Notified user ${user.username} (${user.id}) of doujin ${d.id}.`
+                        + `\nMessage ID : ${m.id}`
+                    )
+                )
             })
         })
     })
