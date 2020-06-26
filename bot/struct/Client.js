@@ -95,7 +95,13 @@ module.exports = class Client extends AkairoClient {
     }
 
     setup() {
-        this.notifier = fork(`${__dirname}/../submodules/notifier/index.ts`);
+        this.notifier = fork(
+            `${__dirname}/../submodules/notifier/index`,
+            [
+                "-r", "tsconfig-paths/register",
+                "-r", "ts-node/register"
+            ]
+        );
         this.commandHandler = new CommandHandler(this, {
             directory: path.join(__dirname, '..', 'commands'),
             aliasReplacement: /-/g,
