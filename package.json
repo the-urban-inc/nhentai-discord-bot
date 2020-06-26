@@ -35,16 +35,14 @@
     "set-interval": "https://github.com/cipherallies/SetIntervalJS/archive/8b5e7e07892217bd0eadbcdd3edafc9921ebc2d3.tar.gz",
     "ts-node": "^8.10.2",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "^3.9.5"
-  },
-  "devDependencies": {
+    "typescript": "^3.9.5",
     "@types/cheerio": "^0.22.18",
     "@types/mongoose": "^5.7.27",
     "@types/node": "^14.0.13"
   },
+  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node -r tsconfig-paths/register bot/index.js",
+    "start": "node -r ts-node/register -r tsconfig-paths/register bot/index.js",
     "devstart": "nodemon -r tsconfig-paths/register -r ts-node/register bot/index.js",
     "wipe": "node scripts/wipe.js"
   },
