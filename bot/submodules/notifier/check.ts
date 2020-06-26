@@ -20,6 +20,7 @@ export async function check (from : number, to : number, filter: Set<number>) {
             }
             let out = _.data as {
                 id: number;
+                media_id: string;
                 title: { english: string, japanese: string, pretty: string };
                 tags: {
                     id: number; type: string; name: string; count: number;

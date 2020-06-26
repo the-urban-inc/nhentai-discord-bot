@@ -57,6 +57,7 @@ export default class Watcher extends EventEmitter {
                     let _ = await this.getCode();
                     if (this.last !== _) {
                         this.log.info(`The latest code is now ${_}, from the last of ${this.last}.`);
+                        this.log.info(`Dispatching event.`)
                         let out = await check(this.last + 1, _, this.watch);
                         this.last = _;
                         dispatch(out);
