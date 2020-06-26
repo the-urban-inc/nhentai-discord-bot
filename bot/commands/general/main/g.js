@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-const { MessageEmbed, MessageAttachment } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 const he = require('he');
 const moment = require('moment');
 const Server = require('../../../models/server');
@@ -40,7 +40,9 @@ module.exports = class GCommand extends Command {
 
         // any error
         let undefinedError = () => 
-            this.message.channel.send(this.display.client.embeds('error'));
+            message.channel.send(
+                this.err('An unexpected error has occurred. Are you sure this is an existing doujin?')
+            );
 
         // points increase
         const min = 30, max = 50;
@@ -49,41 +51,44 @@ module.exports = class GCommand extends Command {
         let title = he.decode(doujin.title.english),
             { id, tags, num_pages, upload_date, comments, related } = doujin,
             date = Date.now();
-        try {
-            // history record
-            let serverHistory = { 
-                author: message.author.tag, id, title, date
-            };
-            let server = await Server.findOne({ serverID: message.guild.id }).exec();
-            if (!server) {
-                await new Server({
-                    serverID: message.guild.id,
-                    recent: [serverHistory]
-                }).save();
-            } else {
-                server.recent.push(serverHistory);
-                await server.save();
-            }
 
-            // user record
-            let userHistory = { id, title, date };
-            let user = await User.findOne({ userID: message.author.id });
-            if (!user) {
-                await new User({
-                    userID: message.author.id,
-                    history: { g: [userHistory] },
-                    points: inc
-                }).save()
-            } else {
-                if (!user.history.g.find(x => x.id === id))
-                    user.points = (user.points || 0) + inc;
-                // inc if new doujin
-                user.history.g.push(userHistory);
-                user.save();
+        if (message.guild) {
+            try {
+                // history record
+                let serverHistory = { 
+                    author: message.author.tag, id, title, date
+                };
+                let server = await Server.findOne({ serverID: message.guild.id }).exec();
+                if (!server) {
+                    await new Server({
+                        serverID: message.guild.id,
+                        recent: [serverHistory]
+                    }).save();
+                } else {
+                    server.recent.push(serverHistory);
+                    await server.save();
+                }
+    
+                // user record
+                let userHistory = { id, title, date };
+                let user = await User.findOne({ userID: message.author.id });
+                if (!user) {
+                    await new User({
+                        userID: message.author.id,
+                        history: { g: [userHistory] },
+                        points: inc
+                    }).save()
+                } else {
+                    if (!user.history.g.find(x => x.id === id))
+                        user.points = (user.points || 0) + inc;
+                    // inc if new doujin
+                    user.history.g.push(userHistory);
+                    user.save();
+                }
+            } catch (err) {
+                undefinedError();
+                return client.logger.error(err);
             }
-        } catch (err) {
-            undefinedError();
-            return client.logger.error(err);
         }
 
         const info = new MessageEmbed()
