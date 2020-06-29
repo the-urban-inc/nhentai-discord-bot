@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "lib": [
+            "ES2019.Array"
+        ],
+        "allowJs": true,
+        "alwaysStrict": true,
+        "declaration": false,
+        "listEmittedFiles": true,
+        "noImplicitAny": true,
+        "outDir": "dist/",
+        "types": [
+            "node"
+        ],
+        "target": "ES6",
+        "esModuleInterop": true,
+        "emitDecoratorMetadata": false,
+        "downlevelIteration": true,
+        "paths": {
+            "@notifier/utils/*": [
+                "bot/submodules/notifier/utils/*"
+            ]
+        },
+        "baseUrl": "."
+    },
+    "include": [
+        "bot/submodules/notifier/**/*"
+    ]
+}

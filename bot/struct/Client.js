@@ -7,6 +7,7 @@ const log = require('../utils/logger');
 const fetch = require('node-fetch');
 const NekosLifeAPI = require('nekos.life');
 const LolisLifeAPI = require('lolis.life');
+const { fork } = require('child_process');
 const { DISCORD_TOKEN, PREFIX } = process.env;
 
 module.exports = class Client extends AkairoClient {
@@ -94,6 +95,13 @@ module.exports = class Client extends AkairoClient {
     }
 
     setup() {
+        this.notifier = fork(
+            `${__dirname}/../submodules/notifier/index`,
+            [
+                "-r", "tsconfig-paths/register",
+                "-r", "ts-node/register"
+            ]
+        );
         this.commandHandler = new CommandHandler(this, {
             directory: path.join(__dirname, '..', 'commands'),
             aliasReplacement: /-/g,
