@@ -14,7 +14,7 @@ export default class Watcher extends EventEmitter {
     private last : number;
     private log = new componentLog('Notifier/Watcher');
     
-    private interval = 5000;
+    private interval = 1800 * 1000;
 
     async setWatch(s : Set<number>) {
         this.watch = s;
