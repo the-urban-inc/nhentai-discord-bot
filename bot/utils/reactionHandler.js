@@ -32,8 +32,8 @@ class ReactionHandler extends ReactionCollector {
 		if (emojis.length) this._queueEmojiReactions(emojis.slice());
 		else return this._stop();
 
-		this.on('collect', (reaction, user) => {
-			this.resetTimer({ idle: 300000 });
+		this.on('collect', async (reaction, user) => {
+			await this.resetTimer({ idle: 300000 });
 			reaction.users.remove(user);
 			this[this.methodMap.get(reaction.emoji.id || reaction.emoji.name)](user);
 		});
