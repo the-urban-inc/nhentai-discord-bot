@@ -33,9 +33,9 @@ class ReactionHandler extends ReactionCollector {
 		else return this._stop();
 
 		this.on('collect', (reaction, user) => {
+			this.resetTimer({ idle: 300000 });
 			reaction.users.remove(user);
 			this[this.methodMap.get(reaction.emoji.id || reaction.emoji.name)](user);
-			this.resetTimer({ idle: 300000 });
 		});
 
 		this.on('end', () => {
@@ -144,12 +144,12 @@ class ReactionHandler extends ReactionCollector {
 	
 	async remove() {
 		if (this.automode) clearInterval(this.automode);
-		if (this.display.awaitMessage.deletable && !this.display.awaitMessage.deleted && this.display.awaitMessage != this.display.requestMessage) await this.display.awaitMessage.delete();
-		if (this.message.deletable && !this.message.deleted) await this.message.delete();
+		if (this.display.awaitMessage.deletable && this.display.awaitMessage != this.display.requestMessage) await this.display.awaitMessage.delete();
+		if (this.message.deletable) await this.message.delete();
 		if (this.display.previousDisplay) {
 			// await this.display.previousDisplay.remove();
 		} else {
-			if (this.display.requestMessage.deletable && !this.display.requestMessage.deleted) await this.display.requestMessage.delete();
+			if (this.display.requestMessage.deletable) await this.display.requestMessage.delete();
 		}
 	}
     
