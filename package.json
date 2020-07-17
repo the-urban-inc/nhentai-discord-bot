@@ -43,7 +43,7 @@
   "devDependencies": {},
   "scripts": {
     "start": "node -r ts-node/register -r tsconfig-paths/register bot/index.js",
-    "devstart": "nodemon -r tsconfig-paths/register -r ts-node/register bot/index.js",
+    "devstart": "nodemon -r tsconfig-paths/register -r ts-node/register --inspect bot/index.js",
     "wipe": "node scripts/wipe.js"
   },
   "engines": {
