@@ -1,7 +1,7 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class Loli extends Command {
+module.export = class Loli extends Command {
     constructor() {
         super('loli', {
             category: 'images',

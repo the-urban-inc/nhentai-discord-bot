@@ -2,7 +2,7 @@ const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 const User = require('../../../models/user');
 
-module.exports = class ProfileCommand extends Command {
+module.export = class ProfileCommand extends Command {
 	constructor() {
 		super('profile', {
             category: 'general',
