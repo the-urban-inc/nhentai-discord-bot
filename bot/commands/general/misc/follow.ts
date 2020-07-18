@@ -3,7 +3,7 @@ import { Message } from 'discord.js';
 
 const cat = [ 'tag', 'artist', 'character', 'parody', 'group', 'language' ];
 
-export = class extends Command {
+export class FollowCommand extends Command {
     constructor() {
         super('follow', {
             category: 'general',
