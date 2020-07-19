@@ -11,7 +11,7 @@ module.exports = class ParodyCommand extends Command {
 			description: {
                 content: 'Searches nhentai for given parody.',
                 usage: '<text> [--page=pagenum] [--sort=(recent/popular-today/popular-week/popular)]',
-                examples: ['lolicon', 'rape -p=2', 'ahegao -s=popular']
+                examples: ['kono subarashii sekai ni syukufuku o', 'fate grand order -p=2', 'azur lane -s=popular']
             },
             split: 'sticky',
             args: [{

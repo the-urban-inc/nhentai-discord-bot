@@ -24,7 +24,7 @@ module.exports = class AboutCommand extends Command {
 			.setTitle(`Hey ${message.author.username}, I'm ${this.client.user.tag}!`)
             .setDescription(`${npm_package_description}`)
             .addField('❯\u2000\Version', npm_package_version, true)
-            .addField('❯\u2000\Users', this.client.users.size, true)
+            .addField('❯\u2000\Users', this.client.users.cache.size, true)
             .addField('❯\u2000\Invite link', `[Click here](${
                 await this.client.generateInvite([
                     'MANAGE_MESSAGES', 'SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY', 'USE_EXTERNAL_EMOJIS'

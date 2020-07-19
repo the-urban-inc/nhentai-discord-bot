@@ -10,7 +10,7 @@ module.exports = class ReloadCommand extends Command {
             args: [{
                 id: 'category',
                 default: 'general'
-            },{
+            }, {
                 id: 'type',
                 type: [
                     ['command', 'cmd', 'c'], 

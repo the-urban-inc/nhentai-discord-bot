@@ -11,7 +11,7 @@ module.exports = class GroupCommand extends Command {
 			description: {
                 content: 'Searches nhentai for given group.',
                 usage: '<text> [--page=pagenum] [--sort=(recent/popular-today/popular-week/popular)]',
-                examples: ['lolicon', 'rape -p=2', 'ahegao -s=popular']
+                examples: ['sugar berry syrup', 'athome shuka -p=2', '50on -s=popular']
             },
             split: 'sticky',
             args: [{

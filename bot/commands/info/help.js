@@ -53,9 +53,10 @@ module.exports = class HelpCommand extends Command {
 			.addField('Command List',
 				[
 					'This is a list of commands.',
-					`To view details for a command, do \`${PREFIX}help <command>\`.`
-				]);
+					`To view details for a command, run \`${PREFIX}help <command>\`.`,
+				])
 		for (const category of this.handler.categories.values()) {
+			if (message.author.id != this.client.ownerID) continue;
 			const title = {
 				general: 'General',
 				images: 'Images',
@@ -64,6 +65,22 @@ module.exports = class HelpCommand extends Command {
 			}[category.id];
 			if (title) embed.addField(title, `\`${category.map(cmd => cmd.aliases[0]).join('` `')}\``);
 		}
+		embed.addField('Command Guide', 
+		[
+			'- <> : Required',
+			'- [] : Optional',
+			'- () : Choose 1'
+		]);
+		embed.addField('Emote Guide', 
+		[
+			'- ⏪ ⏩ : Jump to first/last page',
+			'- ◀ ▶ : Jump to previous/next page',
+			'- ↗️ : Jump to specified page',
+			'- ℹ️ : Jump to info page',
+			`- 🇦 ⏹ : Turn on/off auto browsing mode (add --auto to use this feature in ${PREFIX}g and ${PREFIX}random command)`,
+			'- ❤️ : Add doujin to favourites',
+			'- 🗑 : Delete bot message'
+		]);
 		return message.channel.send({ embed });
 	}
 };

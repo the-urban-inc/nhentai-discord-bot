@@ -10,8 +10,8 @@ module.exports = class RandomCommand extends Command {
 			aliases: ['random'],
 			description: {
                 content: 'Random doujin.',
-                usage: '',
-                examples: ['']
+                usage: '[--auto]',
+                examples: ['', '--auto']
             },
             args: [{
                 id: 'auto',

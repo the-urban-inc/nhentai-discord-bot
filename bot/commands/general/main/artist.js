@@ -11,7 +11,7 @@ module.exports = class ArtistCommand extends Command {
 			description: {
                 content: 'Searches nhentai for given artist.',
                 usage: '<text> [--page=pagenum] [--sort=(recent/popular-today/popular-week/popular)]',
-                examples: ['hiten', 'hiten -p=2', 'hiten -s=popular']
+                examples: ['hiten', 'meganei -p=2', 'jorori -s=popular']
             },
             split: 'sticky',
             args: [{

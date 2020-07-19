@@ -2,6 +2,7 @@ const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
 const he = require('he');
 const { search, BooruError } = require('booru');
+const { PREFIX } = process.env;
 
 const protocolAndDomainRE = /^(?:\w+:)?\/\/(\S+)$/;
 const localhostDomainRE = /^localhost[\:?\d]*(?:[^\:?\d]\S*)?$/
@@ -24,7 +25,7 @@ module.exports = class Booru extends Command {
             aliases: ['booru'],
             channel: 'guild',
             description: {
-                content: 'Fetch images from multiple booru sites by tags.',
+                content: `Fetch images from multiple booru sites by tags.\nRun ${PREFIX}booru for list of supported pages.`,
                 usage: '<site> <tags>',
                 examples: ['danbooru neko', 'gelbooru kitsune']
             },

@@ -11,7 +11,7 @@ module.exports = class TagCommand extends Command {
 			description: {
                 content: 'Searches nhentai for given tag.',
                 usage: '<text> [--page=pagenum] [--sort=(recent/popular-today/popular-week/popular)]',
-                examples: ['lolicon', 'rape -p=2', 'ahegao -s=popular']
+                examples: ['lolicon', 'yuri -p=2', 'nakadashi -s=popular']
             },
             split: 'sticky',
             args: [{

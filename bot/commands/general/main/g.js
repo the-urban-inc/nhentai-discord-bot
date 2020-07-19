@@ -12,8 +12,8 @@ module.exports = class GCommand extends Command {
 			aliases: ['g', 'get', 'doujin'],
 			description: {
                 content: 'Searches for a code on nhentai.',
-                usage: '<code>',
-                examples: ['177013']
+                usage: '<code> [--auto]',
+                examples: ['177013', '265918 --auto']
             },
             args: [{
                 id: 'code',
