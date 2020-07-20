@@ -33,7 +33,6 @@ class ReactionHandler extends ReactionCollector {
 		else return this._stop();
 
 		this.on('collect', async (reaction, user) => {
-			await this.resetTimer({ idle: 300000 });
 			reaction.users.remove(user);
 			this[this.methodMap.get(reaction.emoji.id || reaction.emoji.name)](user);
 		});
