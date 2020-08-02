@@ -3,11 +3,11 @@ import { Message } from 'discord.js';
 
 const cat = [ 'tag', 'artist', 'character', 'parody', 'group', 'language' ];
 
-export = class FollowCommand extends Command {
+export = class UnfollowCommand extends Command {
     constructor() {
-        super('follow', {
+        super('unfollow', {
             category: 'general',
-            aliases: ['follow'],
+            aliases: ['unfollow'],
             description: {
                 content: 'Follow a tag & get notified over DM when something new gets published.',
                 usage: '[type] [tag]',
@@ -53,13 +53,13 @@ export = class FollowCommand extends Command {
         };
 
         // dispatch event to subprocess
-        (this.client as any).notifier.send({ tag: _.tagId, userId: m.author.id, op: 0 });
+        (this.client as any).notifier.send({ tag: _.tagId, userId: m.author.id, op: 1 });
         m.channel.send(
             (this.client as any).embeds(
                 'info',
-                `✅ You are now registered for updates.\n**Tag**: \`${tag}\` (${
+                `✅ You are now de-registered for updates.\n**Tag**: \`${tag}\` (${
                     _.tagId
-                }) | **Type**: \`${type}\`\nIt may take a while before you start receiving updates.`
+                }) | **Type**: \`${type}\`\nIt may take a while before you stop receiving updates.`
             )
         )
     }
