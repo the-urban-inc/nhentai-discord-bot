@@ -34,7 +34,7 @@ export default class Watcher extends EventEmitter {
 
     private async getCode() {
         let _ = (await ax.get('https://nhentai.net/')).data;
-        return +/(\d)+/g.exec(cc.load(_)(`div.gallery > a.cover`).attr('href'))[0];
+        return +/(\d)+/g.exec(cc.load(_)(`div.gallery > a.cover`).slice(5).attr('href'))[0];
     }
 
     async start() {
