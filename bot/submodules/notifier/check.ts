@@ -13,7 +13,7 @@ export async function check (from : number, to : number, filter: Set<number>) {
     return (await Promise.all(
         Array(to - from + 1).fill(0).map((_, i) => from + i).map(async (c, i) => {
             let url = `https://nhentai.net/api/gallery/${c}`;
-            await new Promise(r => setTimeout(r, i * 1200));
+            await new Promise(r => setTimeout(r, i * 5500));
             let _ = await ax.get(url, { validateStatus: () => true });
             if (_.status !== 200) {
                 log.error(`Fetching ${url} failed : status was ${_.status}`);
