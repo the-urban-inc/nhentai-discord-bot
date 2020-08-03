@@ -41,7 +41,9 @@
     "tsconfig-paths": "^3.9.0",
     "typescript": "^3.9.5"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "husky": "^4.2.5"
+  },
   "scripts": {
     "start": "node -r ts-node/register -r tsconfig-paths/register bot/index.js",
     "wipe": "node scripts/wipe.js"

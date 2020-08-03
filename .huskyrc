@@ -1,0 +1,5 @@
+{
+    "hooks": {
+        "commit-msg": "if [[ $(git show -s --format=%s) == $(cat $HUSKY_GIT_PARAMS) ]]; then echo 'Your last commit message is identical to this commit message!'; exit 1; fi"
+    }
+}
