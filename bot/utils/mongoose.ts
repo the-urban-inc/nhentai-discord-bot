@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { Logger } from './logger';
 
-export = {
-    init: () => {
+export class Mongoose {
+    static async init() {
         mongoose.connect(process.env.MONGODB_URI, {
             useNewUrlParser: true,
             autoIndex: true,

@@ -1,8 +1,8 @@
-import { Message, MessageEmbed, CollectorFilter, ReactionCollector, User as DiscordUser } from 'discord.js';
-import { IUser, User } from '../models/user';
+import { Message, CollectorFilter, ReactionCollector, User as DiscordUser } from 'discord.js';
+import { IUser, User } from '@nhentai/models/user';
 import { RichDisplay, RichOptions } from './richDisplay';
 import { Logger } from './Logger';
-import UnhandledRejectionListener from 'bot/listeners/process/unhandledRejection';
+import { Embeds } from './embeds';
 
 export class ReactionHandler extends ReactionCollector {
 	display: RichDisplay
@@ -49,7 +49,7 @@ export class ReactionHandler extends ReactionCollector {
 
 		this.on('collect', async (reaction, user) => {
 			reaction.users.remove(user);
-			this[this.methodMap.get(reaction.emoji.id || reaction.emoji.name)](user);
+			this[this.methodMap.get(reaction.emoji.id || reaction.emoji.name) as keyof ReactionHandler](user);
 		});
 
 		this.on('end', () => {
@@ -82,7 +82,7 @@ export class ReactionHandler extends ReactionCollector {
 	async jump(user: DiscordUser) {
 		if (this.awaiting) return;
 		this.awaiting = true;
-		const message = await this.message.channel.send(this.display.client.embeds('info', this.promptJump));
+		const message = await this.message.channel.send(Embeds.info(this.promptJump));
 		const collected = await this.message.channel.awaitMessages(mess => mess.author === user, { max: 1, time: this.time });
 		this.awaiting = false;
 		await message.delete();
@@ -98,7 +98,7 @@ export class ReactionHandler extends ReactionCollector {
 	async auto(user: DiscordUser) {
 		if (this.awaiting) return;
 		this.awaiting = true;
-		const message = await this.message.channel.send(this.display.client.embeds('info', this.promptAuto));
+		const message = await this.message.channel.send(Embeds.info(this.promptAuto));
 		const collected = await this.message.channel.awaitMessages(mess => mess.author === user, { max: 1, time: this.time });
 		this.awaiting = false;
 		await message.delete();
@@ -109,7 +109,7 @@ export class ReactionHandler extends ReactionCollector {
 		this.automode = setInterval(() => {
 			if (this.currentPage >= this.display.pages.length - 1) {
 				clearInterval(this.automode);
-				return this.message.channel.send(this.display.client.embeds('info', 'Reached last page. Stopping auto session.')).then(message => message.delete({ timeout: 5000 }));
+				return this.message.channel.send(Embeds.info('Reached last page. Stopping auto session.')).then(message => message.delete({ timeout: 5000 }));
 			}
 			this.currentPage++;
 			this.update();
@@ -123,8 +123,8 @@ export class ReactionHandler extends ReactionCollector {
 	async pause() {
 		if (this.automode) {
 			clearInterval(this.automode);
-			return this.message.channel.send(this.display.client.embeds('info', 'Stopped current auto session.')).then(message => message.delete({ timeout: 5000 }));
-		} else return this.message.channel.send(this.display.client.embeds('info', 'There\'s no existing auto session. Nothing happened.')).then(message => message.delete({ timeout: 5000 }));
+			return this.message.channel.send(Embeds.info('Stopped current auto session.')).then(message => message.delete({ timeout: 5000 }));
+		} else return this.message.channel.send(Embeds.info('There\'s no existing auto session. Nothing happened.')).then(message => message.delete({ timeout: 5000 }));
 	}
 
 	async love() {
@@ -152,8 +152,8 @@ export class ReactionHandler extends ReactionCollector {
                 return user.save().catch(err => { Logger.error(err); failed = true; });
             }
 		});
-		if (!failed) return this.message.channel.send(this.display.client.embeds('info', adding ? `Added ${id} to favorites.` : `Removed ${id} from favorites.`)).then(message => message.delete({ timeout: 5000 }));
-		return this.message.channel.send(this.display.client.embeds('error'));
+		if (!failed) return this.message.channel.send(Embeds.info(adding ? `Added ${id} to favorites.` : `Removed ${id} from favorites.`)).then(message => message.delete({ timeout: 5000 }));
+		return this.message.channel.send(Embeds.error());
 	}
 	
 	async remove() {
@@ -177,13 +177,13 @@ export class ReactionHandler extends ReactionCollector {
 		super.stop();
 	}
     
-	async _queueEmojiReactions(emojis: Array<string>): any {
+	async _queueEmojiReactions(emojis: Array<string>) {
 		if (this.message.deleted) return this._stop();
 		if (this.ended) return this.message.reactions.removeAll();
 		await this.message.react(emojis.shift());
-		if (emojis.length) return this._queueEmojiReactions(emojis);
+		if (emojis.length) { this._queueEmojiReactions(emojis); return; }
 		this.reactionsDone = true;
-		return null;
+		return;
 	}
 
 }

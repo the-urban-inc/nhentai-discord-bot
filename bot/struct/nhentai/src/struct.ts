@@ -4,7 +4,7 @@ interface Page {
     h: number
 }
 
-interface Tag {
+export interface Tag {
     id: number,
     type: string,
     name: string,

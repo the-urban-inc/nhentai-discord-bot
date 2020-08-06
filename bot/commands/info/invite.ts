@@ -1,7 +1,7 @@
-const { Command } = require('discord-akairo');
-const { MessageEmbed } = require('discord.js');
+import { Command } from 'discord-akairo';
+import { Message, MessageEmbed } from 'discord.js';
 
-module.exports = class InviteCommand extends Command {
+export class InviteCommand extends Command {
 	constructor() {
 		super('invite', {
             category: 'info',
@@ -15,7 +15,7 @@ module.exports = class InviteCommand extends Command {
 		});
 	}
 
-	async exec(message) {
+	async exec(message: Message) {
 		const [repo, owner] = process.env.npm_package_repository_url.split('/').filter(a => a).reverse()
 		const embed = new MessageEmbed().setDescription(`[Here](${
 			await this.client.generateInvite([

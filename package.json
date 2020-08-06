@@ -36,15 +36,15 @@
     "qs": "^6.9.1",
     "queue-ts": "^0.1.0",
     "set-interval": "https://github.com/cipherallies/SetIntervalJS/archive/8b5e7e07892217bd0eadbcdd3edafc9921ebc2d3.tar.gz",
-    "ts-node": "^8.10.2",
-    "tsconfig-paths": "^3.9.0",
-    "typescript": "^3.9.5"
+    "tsconfig-paths": "^3.9.0"
   },
   "devDependencies": {
-    "husky": "^4.2.5"
+    "husky": "^4.2.5",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
   },
   "scripts": {
-    "start": "node -r ts-node/register -r tsconfig-paths/register bot/index.js",
+    "start": "ts-node -r ts-node/register -r tsconfig-paths/register bot/index.ts",
     "wipe": "node scripts/wipe.js"
   },
   "engines": {

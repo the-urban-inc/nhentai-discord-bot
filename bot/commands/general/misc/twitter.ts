@@ -1,12 +1,16 @@
-const { Command } = require('discord-akairo');
-const { MessageEmbed } = require('discord.js');
-const axios = require('axios');
-const moment = require('moment');
+import { Command } from 'discord-akairo';
+import { Message, MessageEmbed } from 'discord.js';
+import axios, { AxiosError } from 'axios';
+import moment from 'moment';
+import { Logger } from '@nhentai/utils/logger';
+import { Embeds } from '@nhentai/utils/embeds';
 const { TWITTER_API_KEY, TWITTER_SECRET } = process.env;
 
-const icon = 'https://vgy.me/8tgKd0.png';
+const ICON = 'https://vgy.me/8tgKd0.png';
 
-module.exports = class TwitterCommand extends Command {
+export class TwitterCommand extends Command {
+    token: string;
+
 	constructor() {
 		super('twitter', {
             category: 'general',
@@ -19,21 +23,21 @@ module.exports = class TwitterCommand extends Command {
             cooldown: 3000
         });
 
-        this.token = null;
+        this.token = '';
     }
 
-	async exec(message) {
+	async exec(message: Message) {
         if (!this.token) await this.fetchToken();
         const data = await axios({
             url: 'https://api.twitter.com/1.1/users/show.json?screen_name=fuckmaou',
             headers: { 'Authorization': `Bearer ${this.token}` }
         }).then((res) => res.data).catch(async (err) => {
-            if (error.statusCode === 401) await this.fetchToken();
-            else this.client.logger.error(err);
+            if (err.statusCode === 401) await this.fetchToken();
+            else Logger.error(err);
         });
-        if (!data) return message.channel.send(this.client.embeds('error'));
+        if (!data) return message.channel.send(Embeds.error());
         let embed = new MessageEmbed()
-            .setAuthor('Latest Tweet', icon)
+            .setAuthor('Latest Tweet', ICON)
             .setTitle(`${data.name} (@${data.screen_name})`)
             .setURL(`https://twitter.com/${data.screen_name}`)
             .setDescription(data.status.text)

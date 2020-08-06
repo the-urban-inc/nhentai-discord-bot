@@ -103,7 +103,7 @@ export class RichDisplay {
 		return this;
 	}
 
-	async run(requestMessage: Message, awaitMessage: Message, filter: Array<string>, options?: RichOptions) {
+	async run(requestMessage: Message, awaitMessage: Message, filter?: Array<string>, options?: RichOptions) {
 		if (!this.footered) this._footer();
 		const emojis = this._determineEmojis(
 			[],

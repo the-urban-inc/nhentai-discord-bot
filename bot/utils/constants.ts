@@ -10,13 +10,13 @@ export const PERMISSIONS = {
 
 export const ICON = 'https://i.imgur.com/7WX63G3.png';
 
-export const FLAG_EMOJI = {
+export const FLAG_EMOJIS = {
     'chinese': ':flag_cn:',
     'english': ':flag_gb:',
     'japanese': ':flag_jp:'
 };
 
-export const NEKOSLIFE_TAG = {
+export const NEKOSLIFE_TAGS = {
     'anal': ['anal'],
     'avatar': ['avatar'],
     'blowjob': ['bJ', 'blowJob'],
@@ -39,7 +39,7 @@ export const NEKOSLIFE_TAG = {
     'yuri': ['yuri', 'eroYuri', 'lesbian']
 };
 
-export const NEKOBOT_TAG = {
+export const NEKOBOT_TAGS = {
     'anal': ['hanal'],
     'ass': ['hass'],
     'hentai': ['hentai'],

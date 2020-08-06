@@ -1,4 +1,16 @@
-import { model, Schema } from 'mongoose';
+import { model, Document, Schema } from 'mongoose';
+
+interface Recent {
+    author: string,
+    id: string,
+    title: string,
+    date: number
+}
+
+export interface IServer extends Document {
+    serverID: string,
+    recent: Array<Recent>
+}
 
 const serverSchema = new Schema({
     serverID: String,
@@ -6,8 +18,8 @@ const serverSchema = new Schema({
         author: String,
         id: String,
         title: String, 
-        date: Date 
+        date: Number
     }],
 });
 
-export = model('Server', serverSchema);
+export const Server = model<IServer>('Server', serverSchema);

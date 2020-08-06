@@ -1,6 +1,6 @@
 const { Command } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
-const User = require('../../../models/user');
+const User = require('../models/user');
 
 module.export = class ProfileCommand extends Command {
 	constructor() {

@@ -1,8 +1,8 @@
-const { Command } = require('discord-akairo');
-const { MessageEmbed } = require('discord.js');
+import { Command } from 'discord-akairo';
+import { Message, MessageEmbed } from 'discord.js';
 const { PREFIX } = process.env;
 
-module.exports = class HelpCommand extends Command {
+export class HelpCommand extends Command {
 	constructor() {
 		super('help', {
 			aliases: ['help', 'halp', 'h'],
@@ -11,7 +11,7 @@ module.exports = class HelpCommand extends Command {
 			description: {
 				content: 'Displays a list of commands or information about a command.',
 				usage: '[command]',
-				examples: ['', 'osu', 'baka']
+				examples: ['', 'g', 'booru']
 			},
 			args: [{
 				id: 'command',
@@ -26,7 +26,7 @@ module.exports = class HelpCommand extends Command {
 		});
 	}
 
-	exec(message, { command }) {
+	exec(message: Message, { command }: { command: Command }) {
 		if (!command) return this.execCommandList(message);
 		const description = Object.assign({
 			content: 'No description available.',
@@ -47,7 +47,7 @@ module.exports = class HelpCommand extends Command {
 		return message.channel.send({ embed });
 	}
 
-	async execCommandList(message) {
+	async execCommandList(message: Message) {
 		const embed = new MessageEmbed()
 			.setColor(0xFFAC33)
 			.addField('Command List',
@@ -57,12 +57,13 @@ module.exports = class HelpCommand extends Command {
 				])
 		for (const category of this.handler.categories.values()) {
 			if (message.author.id != this.client.ownerID) continue;
-			const title = {
+			const titleList = {
 				general: 'General',
 				images: 'Images',
 				info: 'Info',
 				owner: 'Owner',
-			}[category.id];
+			};
+			const title = titleList[category.id as keyof typeof titleList];
 			if (title) embed.addField(title, `\`${category.map(cmd => cmd.aliases[0]).join('` `')}\``);
 		}
 		embed.addField('Command Guide', 

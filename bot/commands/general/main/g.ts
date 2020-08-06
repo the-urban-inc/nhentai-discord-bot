@@ -1,11 +1,17 @@
-const { Command } = require('discord-akairo');
-const { MessageEmbed } = require('discord.js');
-const he = require('he');
-const moment = require('moment');
-const Server = require('../../../models/server');
-const User = require('../../../models/user');
+import { Command } from 'discord-akairo';
+import { Message, MessageEmbed } from 'discord.js';
+import he from 'he';
+import moment from 'moment';
+import { NhentaiClient } from '@nhentai/struct/Client';
+import { Tag } from '@nhentai/struct/nhentai/src/struct';
+import { gshorten } from '@nhentai/utils/extensions';
+import { Embeds } from '@nhentai/utils/embeds';
+import { Logger } from '@nhentai/utils/logger';
+import { ICON, FLAG_EMOJIS } from '@nhentai/utils/constants';
+import { Server } from '@nhentai/models/server';
+import { User } from '@nhentai/models/user';
 
-module.exports = class GCommand extends Command {
+export class GCommand extends Command {
 	constructor() {
 		super('g', {
             category: 'general',
@@ -28,20 +34,15 @@ module.exports = class GCommand extends Command {
 		});
     }
 
-    err(s) {
-        return client.embeds('error', s)
-    }
-
-	async exec(message, { code, auto }) {
-        let client = this.client;
-        if (!code) return message.channel.send(this.err('Code is not specified.'));
-        const doujin = await client.nhentai.g(code).catch(err => client.logger.error(err));
-        if (!doujin) return message.channel.send(this.err('An unexpected error has occurred. Are you sure this is an existing doujin?'));
+	async exec(message: Message, { code, auto }: { code: string, auto: boolean }) {
+        if (!code) return message.channel.send(Embeds.error('Code is not specified.'));
+        const doujin = await (this.client as NhentaiClient).nhentai.g(code).catch(err => Logger.error(err));
+        if (!doujin) return message.channel.send(Embeds.error('An unexpected error has occurred. Are you sure this is an existing doujin?'));
 
         // any error
         let undefinedError = () => 
             message.channel.send(
-                this.err('An unexpected error has occurred. Are you sure this is an existing doujin?')
+                Embeds.error('An unexpected error has occurred. Are you sure this is an existing doujin?')
             );
 
         // points increase
@@ -77,7 +78,7 @@ module.exports = class GCommand extends Command {
                         userID: message.author.id,
                         history: { g: [userHistory] },
                         points: inc
-                    }).save()
+                    }).save();
                 } else {
                     if (!user.history.g.find(x => x.id === id))
                         user.points = (user.points || 0) + inc;
@@ -87,18 +88,18 @@ module.exports = class GCommand extends Command {
                 }
             } catch (err) {
                 undefinedError();
-                return client.logger.error(err);
+                return Logger.error(err);
             }
         }
 
         const info = new MessageEmbed()
-            .setAuthor(title, client.icon, `https://nhentai.net/g/${id}`)
+            .setAuthor(title, ICON, `https://nhentai.net/g/${id}`)
             .setThumbnail(doujin.getCoverThumbnail())
             .setFooter(`ID : ${id}${auto ? '• React with 🇦 to start an auto session' : ''}`)
             .setTimestamp();
             
         let t = new Map();
-        tags.forEach(tag => {
+        tags.forEach((tag: Tag) => {
             let a = t.get(tag.type) || [];
             a.push(`**\`${tag.name}\`**\`(${tag.count.toLocaleString()})\``);
             t.set(tag.type, a);
@@ -116,7 +117,7 @@ module.exports = class GCommand extends Command {
         .forEach(
             ([key, fieldName]) => 
                 t.has(key)
-                && info.addField(fieldName, client.extensions.gshorten(t.get(key)))
+                && info.addField(fieldName, gshorten(t.get(key)))
         )
 
         // info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
@@ -124,18 +125,18 @@ module.exports = class GCommand extends Command {
         // info.addField('Pages', `**\`[${doujin.num_pages}]\`**`);
             .addField('Uploaded', moment(upload_date * 1000).fromNow());
 
-        const displayDoujin = client.embeds('display').setGID(id).setInfoPage(info).useMultipleDisplay(true);
+        const displayDoujin = Embeds.display(this.client as NhentaiClient).setGID(id).setInfoPage(info);
         if (auto) displayDoujin.useAutoMode();
-        doujin.getPages().forEach(page => displayDoujin.addPage(new MessageEmbed().setImage(page).setTimestamp()));
+        doujin.getPages().forEach((page: string) => displayDoujin.addPage(new MessageEmbed().setImage(page).setTimestamp()));
         const displayDoujinHandler = await displayDoujin.run(message, await message.channel.send('Searching for doujin ...'));
 
-        const displayRelated = client.embeds('display').useCustomFooters().useMultipleDisplay(displayDoujinHandler);
+        const displayRelated = Embeds.display(this.client as NhentaiClient).useCustomFooters().useMultipleDisplay(displayDoujin);
         for (const [idx, { title, id, language, thumbnail }] of related.entries()) {
             displayRelated.addPage(
                 new MessageEmbed()
                     .setTitle(`${he.decode(title)}`)
                     .setURL(`https://nhentai.net/g/${id}`)
-                    .setDescription(`**ID** : ${id}\u2000•\u2000**Language** : ${client.flag[language] || 'N/A'}`)
+                    .setDescription(`**ID** : ${id}\u2000•\u2000**Language** : ${FLAG_EMOJIS[language as keyof typeof FLAG_EMOJIS] || 'N/A'}`)
                     .setImage(thumbnail.s)
                     .setFooter(`Doujin ${idx + 1} of ${related.length}`)
                     .setTimestamp(),
@@ -145,7 +146,7 @@ module.exports = class GCommand extends Command {
         const displayRelatedHandler = await displayRelated.run(message, await message.channel.send('**More Like This**'));
 
         if (!comments.length) return;
-        const displayComments = client.embeds('display').useCustomFooters().useMultipleDisplay(displayRelatedHandler);
+        const displayComments = Embeds.display(this.client as NhentaiClient).useCustomFooters().useMultipleDisplay(displayRelated);
         for (const [idx, { poster: { username, avatar_url }, body, post_date }] of comments.entries()) {
             displayComments.addPage(new MessageEmbed()
                 .setAuthor(`${he.decode(username)}`, `https://i5.nhentai.net/${avatar_url}`)

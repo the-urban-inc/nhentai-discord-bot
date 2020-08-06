@@ -20,6 +20,15 @@
         "paths": {
             "@notifier/utils/*": [
                 "bot/submodules/notifier/utils/*"
+            ],
+            "@nhentai/utils/*": [
+                "bot/utils/*"
+            ],
+            "@nhentai/models/*": [
+                "bot/models/*"
+            ],
+            "@nhentai/struct/*": [
+                "bot/struct/*"
             ]
         },
         "baseUrl": "."

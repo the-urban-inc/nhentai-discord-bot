@@ -1,5 +1,6 @@
 import { Command } from 'discord-akairo';
 import { Message } from 'discord.js';
+import { Embeds } from '@nhentai/utils/embeds';
 
 const cat = [ 'tag', 'artist', 'character', 'parody', 'group', 'language' ];
 
@@ -30,13 +31,9 @@ export = class FollowCommand extends Command {
 
     async exec(m: Message, { tag, type } : { tag: string, type: string }) {
         if (!tag)
-            return m.channel.send(
-                (this.client as any).embeds('error', 'No tag was given.')
-            )
+            return m.channel.send(Embeds.error('No tag was given.'))
         if (!cat.includes(type))
-            return m.channel.send(
-                (this.client as any).embeds('error', 'Invalid tag type.')
-            )
+            return m.channel.send(Embeds.error('Invalid tag type.'))
         // resolve tags
         let _ = null;
         try {
@@ -44,19 +41,13 @@ export = class FollowCommand extends Command {
             // for some damn reason the code doesn't throw
             if (!_) throw '';
         } catch {
-            return m.channel.send(
-                (this.client as any).embeds(
-                    'error',
-                    'Error loading tag. Please, confirm whether the tag really exists.'
-                )
-            )
+            return m.channel.send(Embeds.error('Error loading tag. Please, confirm whether the tag really exists.'))
         };
 
         // dispatch event to subprocess
         (this.client as any).notifier.send({ tag: _.tagId, userId: m.author.id, op: 0 });
         m.channel.send(
-            (this.client as any).embeds(
-                'info',
+            Embeds.info(
                 `✅ You are now registered for updates.\n**Tag**: \`${tag}\` (${
                     _.tagId
                 }) | **Type**: \`${type}\`\nIt may take a while before you start receiving updates.`

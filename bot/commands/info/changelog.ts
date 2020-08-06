@@ -1,13 +1,13 @@
-const { Command } = require('discord-akairo');
-const { MessageEmbed } = require('discord.js');
-const { Octokit } = require('@octokit/rest');
+import { Command } from 'discord-akairo';
+import { Message, MessageEmbed } from 'discord.js';
+import { Octokit } from '@octokit/rest';
 const { npm_package_repository_url, npm_package_version } = process.env;
 
 const client = new Octokit({
     userAgent: `nhentai v${npm_package_version}`
 });
 
-module.exports = class ChangelogCommand extends Command {
+export class ChangelogCommand extends Command {
 	constructor() {
 		super('changelog', {
             category: 'info',
@@ -21,7 +21,7 @@ module.exports = class ChangelogCommand extends Command {
 		});
 	}
 
-	async exec(message) {
+	async exec(message: Message) {
 		const [repo, owner] = npm_package_repository_url.split('/').filter(a => a).reverse()
         const { data } = await client.repos.listCommits({
             repo: repo.replace('.git', ''), owner, per_page: 10
