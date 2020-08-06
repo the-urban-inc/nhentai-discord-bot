@@ -1,6 +1,6 @@
-const { model, Schema } = require('mongoose');
+import { model, Schema } from 'mongoose';
 
-const serverSchema = Schema({
+const serverSchema = new Schema({
     serverID: String,
     recent: [{ 
         author: String,
@@ -10,4 +10,4 @@ const serverSchema = Schema({
     }],
 });
 
-module.exports = model('Server', serverSchema);
+export = model('Server', serverSchema);

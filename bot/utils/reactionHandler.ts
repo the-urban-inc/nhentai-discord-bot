@@ -1,9 +1,24 @@
-const { MessageEmbed, ReactionCollector } = require('discord.js');
-const User = require('../models/user');
-const logger = require('./logger');
+import { Message, MessageEmbed, CollectorFilter, ReactionCollector, User as DiscordUser } from 'discord.js';
+import { IUser, User } from '../models/user';
+import { RichDisplay, RichOptions } from './richDisplay';
+import { Logger } from './Logger';
+import UnhandledRejectionListener from 'bot/listeners/process/unhandledRejection';
 
-class ReactionHandler extends ReactionCollector {
-	constructor(message, filter, options, display, emojis) {
+export class ReactionHandler extends ReactionCollector {
+	display: RichDisplay
+	methodMap: Map<string, string>
+	options: RichOptions
+	currentPage: number
+	promptJump: string
+	promptAuto: string
+	time: number
+	awaiting: boolean
+	selection: Promise<Function>
+	resolve: any
+	reject: any
+	reactionsDone: boolean
+	automode: any
+	constructor(message: Message, filter: CollectorFilter, options: RichOptions, display: RichDisplay, emojis: Array<string>) {
 		super(message, filter, options);
 
 		this.display = display;
@@ -16,11 +31,11 @@ class ReactionHandler extends ReactionCollector {
 
 		this.promptAuto = this.options.prompt || 'Starting auto session.\nHow many seconds would you prefer me waiting in between pages?';
 
-		this.time = typeof this.options.time === 'number' ? this.options.time : 30000;
+		this.time = this.options.time || 30000;
 
 		this.awaiting = false;
 
-		this.selection = this.display.emojis.zero ? new Promise((resolve, reject) => {
+		this.selection = (this.display.emojis as any).zero ? new Promise((resolve, reject) => {
 			this.reject = reject;
 			this.resolve = resolve;
 		}) : Promise.resolve(null);
@@ -30,7 +45,7 @@ class ReactionHandler extends ReactionCollector {
 		this.automode = null;
 
 		if (emojis.length) this._queueEmojiReactions(emojis.slice());
-		else return this._stop();
+		else this._stop();
 
 		this.on('collect', async (reaction, user) => {
 			reaction.users.remove(user);
@@ -64,7 +79,7 @@ class ReactionHandler extends ReactionCollector {
 		this.update();
 	}
 
-	async jump(user) {
+	async jump(user: DiscordUser) {
 		if (this.awaiting) return;
 		this.awaiting = true;
 		const message = await this.message.channel.send(this.display.client.embeds('info', this.promptJump));
@@ -80,7 +95,7 @@ class ReactionHandler extends ReactionCollector {
 		}
 	}
 
-	async auto(user) {
+	async auto(user: DiscordUser) {
 		if (this.awaiting) return;
 		this.awaiting = true;
 		const message = await this.message.channel.send(this.display.client.embeds('info', this.promptAuto));
@@ -118,14 +133,14 @@ class ReactionHandler extends ReactionCollector {
 		let failed = false, adding = false;
 		await User.findOne({
             userID: this.display.requestMessage.author.id
-        }, (err, user) => {
-            if (err) { logger.error(err); failed = true; return; }
+        }, (err: Error, user: IUser) => {
+            if (err) { Logger.error(err); failed = true; return; }
             if (!user) {
                 const newUser = new User({
                     userID: this.display.requestMessage.author.id,
                     favorites: [`${id} ${name}`]
                 });
-				newUser.save().catch(err => { logger.error(err); failed = true; });
+				newUser.save().catch(err => { Logger.error(err); failed = true; });
 				adding = true;
             } else {
 				if (user.favorites.includes(`${id} ${name}`)) {
@@ -134,7 +149,7 @@ class ReactionHandler extends ReactionCollector {
 					user.favorites.push(`${id} ${name}`); 
 					adding = true; 
 				}
-                return user.save().catch(err => { logger.error(err); failed = true; });
+                return user.save().catch(err => { Logger.error(err); failed = true; });
             }
 		});
 		if (!failed) return this.message.channel.send(this.display.client.embeds('info', adding ? `Added ${id} to favorites.` : `Removed ${id} from favorites.`)).then(message => message.delete({ timeout: 5000 }));
@@ -162,7 +177,7 @@ class ReactionHandler extends ReactionCollector {
 		super.stop();
 	}
     
-	async _queueEmojiReactions(emojis) {
+	async _queueEmojiReactions(emojis: Array<string>): any {
 		if (this.message.deleted) return this._stop();
 		if (this.ended) return this.message.reactions.removeAll();
 		await this.message.react(emojis.shift());

@@ -25,6 +25,6 @@
         "baseUrl": "."
     },
     "include": [
-        "bot/submodules/notifier/**/*"
+        "bot/**/*"
     ]
 }

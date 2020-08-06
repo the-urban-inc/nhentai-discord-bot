@@ -1,13 +1,13 @@
-const Cheerio = require('cheerio');
-const Qs = require('qs');
+import Cheerio from 'cheerio';
+import { DoujinThumbnail } from './struct';
 
-async function details(html) {
+export async function details(html: string) {
 	const $ = Cheerio.load(html, {
 		decodeEntities: false,
 		xmlMode: false
 	});
 
-	let related = [];
+	let related: Array<DoujinThumbnail>;
 	$('.gallery').each((i, e) => {
 		let $this = $(e);
 		let $thumb = $this.find('.cover>img');
@@ -30,19 +30,14 @@ async function details(html) {
 		});
 	});
 
-	let galleryID = parseInt($('#gallery_id').text().substring(1), 10);
-
-	return {
-		galleryID,
-		related,
-	};
+	return related;
 }
 
 /**
  * parse into lists
  * @param {String} html 
  */
-function list(html) {
+export function list(html: string) {
 	const $ = Cheerio.load(html, {
 		decodeEntities: false
 	});
@@ -70,7 +65,10 @@ function list(html) {
 		};
 	});
 
-	let addon = {};
+	let addon = {
+		num_results: 0,
+		num_pages: 0
+	};
 
 	if ($('meta[name=description]').length > 0 && !$('title').text().trim().startsWith('nhentai')) addon.num_results = parseInt($('meta[name=description]').attr('content').match(/Read ([0-9,]+).*/)[1].replace(',', ''), 10) || 0;
 	else if ($('#content>h1').length > 0) addon.num_results = parseInt($('#content>h1').text().replace(',', ''), 10) || 0;

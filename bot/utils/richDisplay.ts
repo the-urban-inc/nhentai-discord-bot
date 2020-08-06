@@ -1,9 +1,46 @@
-const { MessageEmbed: Embed } = require('discord.js');
-const ReactionHandler = require('./reactionHandler');
+import { Message, MessageEmbed, MessageReaction, User } from 'discord.js';
+import { NhentaiClient } from '../struct/Client';
+import { ReactionHandler } from './reactionHandler';
 
-module.exports = class RichDisplay {
+export class RichEmojis {
+	first: '⏪'
+	back: '◀'
+	forward: '▶'
+	last: '⏩'
+	jump: '↗️'
+	info: 'ℹ️'
+	auto: '🇦'
+	pause: '⏹'
+	love: '❤️'
+	remove: '🗑'
+};
 
-	constructor(client, embed = new Embed()) {
+interface RichPage {
+	id: string,
+	embed: MessageEmbed
+}
+
+export interface RichOptions {
+	startPage: number,
+	prompt: string,
+	time: number
+}
+
+export class RichDisplay {
+
+	client: NhentaiClient
+	embedTemplate: MessageEmbed
+	pages: Array<RichPage>
+	infoPage: MessageEmbed
+	gid: string
+	requestMessage: Message
+	awaitMessage: Message
+	emojis: RichEmojis
+	previousDisplay: RichDisplay
+	automode: boolean
+	footered: boolean
+
+	constructor(client: NhentaiClient, embed = new MessageEmbed()) {
 		this.client = client;
 
 		this.embedTemplate = embed;
@@ -17,19 +54,6 @@ module.exports = class RichDisplay {
 		this.requestMessage = null;
 		this.awaitMessage = null;
 
-		this.emojis = {
-			first: '⏪',
-			back: '◀',
-			forward: '▶',
-			last: '⏩',
-			jump: '↗️',
-			info: 'ℹ️',
-			auto: '🇦',
-			pause: '⏹',
-			love: '❤️',
-			remove: '🗑'
-		};
-
 		this.previousDisplay = null;
 
 		this.automode = false;
@@ -38,10 +62,10 @@ module.exports = class RichDisplay {
 	}
 
 	get template() {
-		return new Embed(this.embedTemplate);
+		return new MessageEmbed(this.embedTemplate);
 	}
 
-	setEmojis(emojis) {
+	setEmojis(emojis: object) {
 		Object.assign(this.emojis, emojis);
 		return this;
 	}
@@ -56,17 +80,17 @@ module.exports = class RichDisplay {
 		return this;
 	}
 
-	setGID(id) {
+	setGID(id: string) {
 		this.gid = id;
 		return this;
 	}
 
-	useMultipleDisplay(display) {
+	useMultipleDisplay(display: RichDisplay) {
 		this.previousDisplay = display;
 		return this;
 	}
 
-	addPage(embed, id = null) {
+	addPage(embed: MessageEmbed, id = '') {
 		this.pages.push({ 
 			id: id,
 			embed: this._handlePageGeneration(embed) 
@@ -74,26 +98,26 @@ module.exports = class RichDisplay {
 		return this;
 	}
 
-	setInfoPage(embed) {
+	setInfoPage(embed: MessageEmbed) {
 		this.infoPage = this._handlePageGeneration(embed);
 		return this;
 	}
 
-	async run(requestMessage, awaitMessage, options = []) {
+	async run(requestMessage: Message, awaitMessage: Message, filter: Array<string>, options?: RichOptions) {
 		if (!this.footered) this._footer();
 		const emojis = this._determineEmojis(
 			[],
-			!(options.includes('remove')),
-			!(options.includes('firstLast')),
-			!(options.includes('love')),
-			(options.includes('images'))
+			!(filter.includes('remove')),
+			!(filter.includes('firstLast')),
+			!(filter.includes('love')),
+			(filter.includes('images'))
 		);
 		this.requestMessage = requestMessage;
 		this.awaitMessage = awaitMessage;
 		let msg = await requestMessage.channel.send(this.infoPage || this.pages[options.startPage || 0].embed);
 		return new ReactionHandler(
 			msg,
-			(reaction, user) => emojis.includes(reaction.emoji.id || reaction.emoji.name) && user !== awaitMessage.client.user,
+			(reaction: MessageReaction, user: User) => emojis.includes(reaction.emoji.id || reaction.emoji.name) && user !== awaitMessage.client.user,
 			options,
 			this,
 			emojis
@@ -105,7 +129,7 @@ module.exports = class RichDisplay {
 		// if (this.infoPage) this.infoPage.setFooter('General Info');
 	}
 
-	_determineEmojis(emojis, remove, firstLast, love, images) {
+	_determineEmojis(emojis: Array<string>, remove: boolean, firstLast: boolean, love: boolean, images: boolean) {
 		if (images) {
 			emojis.push(this.emojis.remove);
 			return emojis;
@@ -121,12 +145,12 @@ module.exports = class RichDisplay {
 		return emojis;
 	}
 
-	_handlePageGeneration(cb) {
+	_handlePageGeneration(cb: unknown) {
 		if (typeof cb === 'function') {
 			// eslint-disable-next-line callback-return
 			const page = cb(this.template);
-			if (page instanceof Embed) return page;
-		} else if (cb instanceof Embed) {
+			if (page instanceof MessageEmbed) return page;
+		} else if (cb instanceof MessageEmbed) {
 			return cb;
 		}
 		throw new Error('Expected a MessageEmbed or Function returning a MessageEmbed');

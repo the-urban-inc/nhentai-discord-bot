@@ -7,6 +7,8 @@ const axiosDefaultConfig = {
     }
 };
 
-const axiosProxy = require('axios-https-proxy-fix').create(axiosDefaultConfig);
+import axios from 'axios-https-proxy-fix';
 
-module.exports = (url) => axiosProxy.get(url).then(ret => ret.data); 
+axios.create(axiosDefaultConfig);
+
+module.exports = (url: string) => axios.get(url).then(ret => ret.data); 
