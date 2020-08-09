@@ -1,13 +1,13 @@
 import getHTML from './src/get';
 import * as Parse from './src/parse';
 import { Gallery } from './src/gallery';
-import logger from '../../utils/logger';
+import { Logger } from '../../utils/logger';
 import qs from 'qs';
 
 async function parseDetailsHTML(url: string) {
 	const data = await getHTML(url).catch(err => {
-		if (err.response.status == 404) return logger.error('Doujin Not Found');
-		else return logger.error(err);
+		if (err.response.status == 404) return Logger.error('Doujin Not Found');
+		else return Logger.error(err);
 	});
 	if (!data) return undefined;
 	return { 
@@ -18,8 +18,8 @@ async function parseDetailsHTML(url: string) {
 
 async function parseListHTML(url: string) {
 	const list = await getHTML(url).catch(err => {
-		if (err.response.status === 404) return logger.error('Parameter Error');
-		else return logger.error(err);
+		if (err.response.status === 404) return Logger.error('Parameter Error');
+		else return Logger.error(err);
 	});
 	if (!list) return undefined;
 	return Parse.list(list.details);

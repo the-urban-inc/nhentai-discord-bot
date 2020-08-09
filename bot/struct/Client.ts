@@ -33,8 +33,7 @@ export class NhentaiClient extends AkairoClient {
         this.notifier = fork(
             `${__dirname}/../submodules/notifier/index`,
             [
-                "-r", "tsconfig-paths/register",
-                "-r", "ts-node/register"
+                "-r", "tsconfig-paths/register"
             ]
         );
         this.commandHandler
