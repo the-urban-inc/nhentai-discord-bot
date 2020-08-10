@@ -1,5 +1,5 @@
 import { Message, MessageEmbed, MessageReaction, User } from 'discord.js';
-import { NhentaiClient } from '../struct/Client';
+import { NhentaiClient } from '@nhentai/struct/Client';
 import { ReactionHandler } from './reactionHandler';
 
 export class RichEmojis {

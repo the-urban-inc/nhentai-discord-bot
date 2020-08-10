@@ -1,7 +1,7 @@
 import getHTML from './src/get';
 import * as Parse from './src/parse';
 import { Gallery } from './src/gallery';
-import { Logger } from '../../utils/logger';
+import { Logger } from '@nhentai/utils/logger';
 import qs from 'qs';
 
 async function parseDetailsHTML(url: string) {

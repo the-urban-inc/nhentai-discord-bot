@@ -1,5 +1,5 @@
 import { MessageEmbed } from 'discord.js';
-import { NhentaiClient } from 'bot/struct/Client';
+import { NhentaiClient } from '@nhentai/struct/Client';
 import { RichDisplay } from '@nhentai/utils/richDisplay';
 
 export class Embeds {

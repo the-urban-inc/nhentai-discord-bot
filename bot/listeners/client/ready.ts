@@ -1,5 +1,5 @@
 import { Listener } from 'discord-akairo';
-import { NhentaiClient } from 'bot/struct/Client';
+import { NhentaiClient } from '@nhentai/struct/Client';
 import { Logger } from '@nhentai/utils/logger';
 const { PREFIX } = process.env;
 

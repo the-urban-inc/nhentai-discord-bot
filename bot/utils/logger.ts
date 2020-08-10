@@ -1,4 +1,4 @@
-import chalk, { Chalk } from 'chalk';
+import chalk from 'chalk';
 import moment from 'moment';
 import util from 'util';
 

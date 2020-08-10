@@ -1,7 +1,7 @@
 import { Message, CollectorFilter, ReactionCollector, User as DiscordUser } from 'discord.js';
 import { IUser, User } from '@nhentai/models/user';
 import { RichDisplay, RichOptions } from './richDisplay';
-import { Logger } from './Logger';
+import { Logger } from './logger';
 import { Embeds } from './embeds';
 
 export class ReactionHandler extends ReactionCollector {
