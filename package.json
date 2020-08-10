@@ -39,12 +39,18 @@
     "tsconfig-paths": "^3.9.0"
   },
   "devDependencies": {
+    "@types/ws": "^7.2.6",
+    "@zerollup/ts-transform-paths": "^1.7.18",
     "husky": "^4.2.5",
+    "rimraf": "^3.0.2",
     "ts-node": "^8.10.2",
+    "ttypescript": "^1.5.10",
     "typescript": "^3.9.7"
   },
   "scripts": {
-    "start": "ts-node -r tsconfig-paths/register bot/index.ts",
+    "build": "rimraf dist/ && ttsc",
+    "start": "node dist/index.js",
+    "start:dev": "ts-node --compiler ttypescript bot/index.ts",
     "wipe": "node scripts/wipe.js"
   },
   "engines": {
