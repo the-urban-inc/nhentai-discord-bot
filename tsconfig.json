@@ -1,44 +1,34 @@
 {
     "compilerOptions": {
+        "lib": ["ES2019.Array"],
+        "target": "es6",
         "module": "commonjs",
-        "lib": [
-            "ES2019.Array"
-        ],
-        "allowJs": true,
+        "sourceMap": true,
         "alwaysStrict": true,
         "declaration": false,
         "listEmittedFiles": true,
-        "noImplicitAny": true,
-        "outDir": "dist/",
-        "types": [
-            "node"
-        ],
-        "target": "ES6",
         "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "strictPropertyInitialization": false,
+        "outDir": "build",
+        "types": ["node"],
         "emitDecoratorMetadata": false,
         "downlevelIteration": true,
         "paths": {
-            "@notifier/utils/*": [
-                "bot/submodules/notifier/utils/*"
-            ],
-            "@nhentai/utils/*": [
-                "bot/utils/*"
-            ],
-            "@nhentai/models/*": [
-                "bot/models/*"
-            ],
-            "@nhentai/struct/*": [
-                "bot/struct/*"
-            ]
+            "@notifier/utils/*": ["src/submodules/notifier/utils/*"],
+            "@nhentai/utils/*": ["src/utils/*"],
+            "@nhentai/models/*": ["src/models/*"],
+            "@nhentai/struct/*": ["src/struct/*"]
         },
         "plugins": [
             {
                 "transform": "@zerollup/ts-transform-paths"
             }
         ],
-        "baseUrl": "."
+        "baseUrl": ".",
+        "rootDir": "."
     },
-    "include": [
-        "bot/**/*"
-    ]
+    "include": ["src/**/*"]
 }
