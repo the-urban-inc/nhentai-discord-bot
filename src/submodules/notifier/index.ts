@@ -1,14 +1,13 @@
 import { config } from 'dotenv'; config();
 import type { User } from 'discord.js';
 import './db';
-import { componentLog } from '@notifier/utils/logger';
+import log from '@nhentai/utils/logger'
 import { model as _m, Model } from 'mongoose';
 import { WatchRecordSchema, WatchRecordDocument } from "./db/models/record";
 import w from './watcher';
 import { Queue } from 'queue-ts';
 
 export const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument>;
-const log = new componentLog('Notifier/Main');
 enum OP {
     ADD = 0,
     REMOVE = 1

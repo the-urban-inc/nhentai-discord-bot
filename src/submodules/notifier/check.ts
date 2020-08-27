@@ -1,7 +1,5 @@
 import ax from 'axios';
-import { componentLog } from '@notifier/utils/logger';
-
-const log = new componentLog('Notifier/Execution');
+import log from '@nhentai/utils/logger';
 
 /**
  * Categorize into tags
