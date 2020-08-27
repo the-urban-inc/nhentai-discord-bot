@@ -1,7 +1,7 @@
 import Command from '@nhentai/struct/bot/Command';
 import { Message } from 'discord.js';
 import moment from 'moment';
-import { IServer, Server } from '@nhentai/models/server';
+import { Server } from '@nhentai/models/server';
 
 export default class extends Command {
     constructor() {

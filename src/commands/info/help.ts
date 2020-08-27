@@ -40,7 +40,9 @@ export default class extends Command {
         const embed = this.client.util
             .embed()
             .setTimestamp()
-            .setTitle(`${PREFIX}${command} ${command.description.usage ? command.description.usage : ''}`)
+            .setTitle(
+                `${PREFIX}${command} ${command.description.usage ? command.description.usage : ''}`
+            )
             .setDescription(command.description.content ?? 'No description specified.');
 
         if (clientPermissions)
@@ -91,13 +93,17 @@ export default class extends Command {
         for (const [category, commands] of this.client.commandHandler.categories) {
             const title = TitleList[category as keyof typeof TitleList];
             const publicCommands =
-                message.author.id === this.client.ownerID ? commands : commands.filter(c => !c.ownerOnly);
+                message.author.id === this.client.ownerID
+                    ? commands
+                    : commands.filter(c => !c.ownerOnly);
             const embed = this.client.util.embed().setTitle(title);
             publicCommands.forEach(command => {
                 if (SpecialCommands.includes(command.id)) {
                     command.aliases.forEach(a => {
                         embed.addField(
-                            `${PREFIX}${a} ${command.description.usage ? command.description.usage : ''}`,
+                            `${PREFIX}${a} ${
+                                command.description.usage ? command.description.usage : ''
+                            }`,
                             `Searches nhentai for specified ${a}`
                         );
                     });
@@ -112,8 +118,13 @@ export default class extends Command {
             });
             display.addPage(embed);
         }
-        return display.run(await message.channel.send('Loading command list...'), {
-            time: 300000,
-        });
+        return display.run(
+            this.client,
+            message,
+            await message.channel.send('Loading command list...'),
+            {
+                time: 300000,
+            }
+        );
     }
 }

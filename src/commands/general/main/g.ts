@@ -44,10 +44,11 @@ export default class extends Command {
                 max = 50;
             const inc = Math.floor(Math.random() * (max - min)) + min;
 
-            let title = he.decode(doujin.title.english),
-                { id, tags, num_pages, upload_date, comments, related } = doujin,
+            let { tags, num_pages, upload_date } = doujin.details,
+                { comments, related } = doujin,
                 date = Date.now();
-
+            let title = he.decode(doujin.details.title.english),
+                id = doujin.details.id.toString();
             if (message.guild) {
                 // history record
                 let serverHistory = {
@@ -127,7 +128,11 @@ export default class extends Command {
                 .forEach((page: string) =>
                     displayDoujin.addPage(new MessageEmbed().setImage(page).setTimestamp())
                 );
-            await displayDoujin.run(await message.channel.send('Searching for doujin ...'));
+            await displayDoujin.run(
+                this.client,
+                message,
+                await message.channel.send('Searching for doujin ...')
+            );
 
             const displayRelated = this.client.embeds.richDisplay().useCustomFooters();
             for (const [idx, { title, id, language, thumbnail }] of related.entries()) {
@@ -146,7 +151,11 @@ export default class extends Command {
                     id
                 );
             }
-            await displayRelated.run(await message.channel.send('**More Like This**'));
+            await displayRelated.run(
+                this.client,
+                message,
+                await message.channel.send('**More Like This**')
+            );
 
             if (!comments.length) return;
             const displayComments = this.client.embeds
@@ -171,7 +180,11 @@ export default class extends Command {
                         )
                 );
             }
-            return displayComments.run(await message.channel.send('`💬` **Comments**'));
+            return displayComments.run(
+                this.client,
+                message,
+                await message.channel.send('`💬` **Comments**')
+            );
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));

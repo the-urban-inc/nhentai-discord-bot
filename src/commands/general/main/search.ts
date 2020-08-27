@@ -61,11 +61,12 @@ export default class extends Command {
                     )
                 );
             let pageNum = parseInt(page, 10);
-            const data = await this.client.nhentai
-                .search(text, pageNum, sort);
+            const data = await this.client.nhentai.search(text, pageNum, sort);
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
                 return message.channel.send(
-                    this.client.embeds.clientError('Page number is not an integer or is out of range.')
+                    this.client.embeds.clientError(
+                        'Page number is not an integer or is out of range.'
+                    )
                 );
             if (!data.results.length)
                 return message.channel.send(this.client.embeds.clientError('No results found.'));
@@ -90,7 +91,7 @@ export default class extends Command {
                     doujin.id
                 );
             }
-            return display.run(await message.channel.send('Searching ...'));
+            return display.run(this.client, message, await message.channel.send('Searching ...'));
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));

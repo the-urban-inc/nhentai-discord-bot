@@ -1,7 +1,7 @@
 import Command from '@nhentai/struct/bot/Command';
 import { Message, MessageEmbed, GuildMember } from 'discord.js';
 import he from 'he';
-import { IUser, User } from '@nhentai/models/user';
+import { User } from '@nhentai/models/user';
 import { Tag } from '@nhentai/struct/nhentai/src/struct';
 import { ICON } from '@nhentai/utils/constants';
 
@@ -48,16 +48,14 @@ export default class extends Command {
                 for (let i = 0, a = user.favorites; i < a.length; i++) {
                     const code = a[i].replace(/ .*/, '');
                     const doujin = await this.client.nhentai.g(code);
-                    const info = new MessageEmbed()
-                        .setAuthor(
-                            he.decode(doujin.title.english),
-                            ICON,
-                            `https://nhentai.net/g/${doujin.id}`
-                        )
+                    const { title, id, tags } = doujin.details;
+                    const info = this.client.util
+                        .embed()
+                        .setAuthor(he.decode(title.english), ICON, `https://nhentai.net/g/${id}`)
                         .setThumbnail(doujin.getCoverThumbnail())
                         .setTimestamp();
                     let t = new Map();
-                    doujin.tags.forEach((tag: Tag) => {
+                    tags.forEach((tag: Tag) => {
                         let a = t.get(tag.type) || [];
                         a.push(`**\`${tag.name}\`**\`(${tag.count.toLocaleString()})\``);
                         t.set(tag.type, a);
@@ -73,11 +71,12 @@ export default class extends Command {
                         ['category', 'Categories'],
                     ].forEach(
                         ([key, fieldName]) =>
-                            t.has(key) && info.addField(fieldName, this.client.util.gshorten(t.get(key)))
+                            t.has(key) &&
+                            info.addField(fieldName, this.client.util.gshorten(t.get(key)))
                     );
-                    display.addPage(info, doujin.id);
+                    display.addPage(info, id.toString());
                 }
-                return display.run(await msg.edit('Done.'));
+                return display.run(this.client, message, await msg.edit('Done.'));
             }
         } catch (err) {
             this.client.logger.error(err);

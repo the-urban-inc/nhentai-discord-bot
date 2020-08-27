@@ -105,7 +105,7 @@ export default class extends Command {
                     .richDisplay({ image: true })
                     .addPage(embed)
                     .useCustomFooters()
-                    .run(await message.channel.send('Searching ...'));
+                    .run(this.client, message, await message.channel.send('Searching ...'));
             })
             .catch(err => {
                 this.client.logger.error(err);

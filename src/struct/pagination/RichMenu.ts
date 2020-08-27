@@ -7,6 +7,7 @@ import { Message } from 'discord.js';
 import { Cache } from './Cache';
 import { ReactionMethods, ReactionHandler, ReactionHandlerOptions } from './ReactionHandler';
 import { RichDisplay, RichDisplayOptions } from './RichDisplay';
+import { NhentaiClient } from '@nhentai/struct/bot/Client';
 
 const choiceMethods = [
     ReactionMethods.One,
@@ -55,13 +56,13 @@ export class RichMenu extends RichDisplay {
         return this;
     }
 
-    async run(message: Message, options: ReactionHandlerOptions = {}): Promise<ReactionHandler> {
+    async run(client: NhentaiClient, requestMessage: Message, message: Message, options: ReactionHandlerOptions = {}): Promise<ReactionHandler> {
         if (this.choices.length < choiceMethods.length) {
             for (let i = this.choices.length; i < choiceMethods.length; i++)
                 this._emojis.delete(choiceMethods[i]);
         }
         if (!this.paginated) this.paginate();
-        return super.run(message, options);
+        return super.run(client, requestMessage, message, options);
     }
 
     private paginate(): null {

@@ -1,18 +1,16 @@
 import Command from '@nhentai/struct/bot/Command';
 import { Message, MessageEmbed } from 'discord.js';
 import he from 'he';
-import { IUser, User } from '@nhentai/models/user';
-import { FLAG_EMOJIS, SORT_METHODS } from '@nhentai/utils/constants';
+import { User } from '@nhentai/models/user';
+import { FLAG_EMOJIS, SORT_METHODS, TAGS } from '@nhentai/utils/constants';
 
 export default class extends Command {
     constructor() {
         super('tag', {
             category: 'general',
-            aliases: ['artist', 'character', 'group', 'parody', 'tag', 'language'],
+            aliases: ['tag', 'artist', 'character', 'parody', 'group', 'language'],
             description: {
-                usage: `[--page=pagenum] [--sort=(${SORT_METHODS.join(
-                    '/'
-                )})]`,
+                usage: `[--page=pagenum] [--sort=(${SORT_METHODS.join('/')})]`,
             },
             args: [
                 {
@@ -42,7 +40,7 @@ export default class extends Command {
         { text, page, sort }: { text: string; page: string; sort: string }
     ) {
         try {
-            const tag = message.util.parsed.alias as keyof IUser['history'];
+            const tag = message.util.parsed.alias as typeof TAGS[number];
             if (!text)
                 return message.channel.send(
                     this.client.embeds.clientError(
@@ -78,7 +76,7 @@ export default class extends Command {
                     history: {
                         [tag]: [
                             {
-                                id: data.tagID,
+                                id: data.tagId,
                                 title: text.toLowerCase(),
                                 date: Date.now(),
                             },
@@ -88,7 +86,7 @@ export default class extends Command {
                 newUser.save();
             } else {
                 user.history[tag].push({
-                    id: data.tagID,
+                    id: data.tagId,
                     title: text.toLowerCase(),
                     date: Date.now(),
                 });
@@ -116,7 +114,7 @@ export default class extends Command {
                     doujin.id
                 );
             }
-            return display.run(await message.channel.send('Searching ...'));
+            return display.run(this.client, message, await message.channel.send('Searching ...'));
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));

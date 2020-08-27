@@ -1,6 +1,6 @@
 import Command from '@nhentai/struct/bot/Command';
 import { Message } from 'discord.js';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import moment from 'moment';
 const { TWITTER_API_KEY, TWITTER_SECRET } = process.env;
 

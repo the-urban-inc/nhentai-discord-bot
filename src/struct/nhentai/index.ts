@@ -4,97 +4,127 @@ import { Gallery } from './src/gallery';
 import qs from 'qs';
 
 async function parseDetailsHTML(url: string) {
-	const data = await getHTML(url).catch(err => {
-		if (err.response.status == 404) throw new Error('Doujin Not Found');
-		else throw err;
-	});
-	if (!data) throw new Error('No results found.');
-	return { 
-		id: parseInt(data.id),
-		related: await Parse.details(data.details)
-	};
+    const data = await getHTML(url).catch(err => {
+        throw err;
+    });
+    if (!data) throw new Error('No results found.');
+    return {
+        id: parseInt(data.id[1], 10),
+        related: await Parse.details(data.details),
+    };
 }
 
 async function parseListHTML(url: string) {
-	const list = await getHTML(url).catch(err => {
-		if (err.response.status === 404) throw new Error('Parameter Error');
-		else throw err;
-	});
-	if (!list) throw new Error('No results found.');
-	return Parse.list(list.details);
+    const list = await getHTML(url).catch(err => {
+        throw err;
+    });
+    if (!list) throw new Error('No results found.');
+    return Parse.list(list.details);
 }
 
 export class nhentaiClient {
-	baseURL: string;
+    baseURL: string;
 
-	constructor(baseURL = 'https://nhentai.net') {
-		this.baseURL = baseURL;
-	}
-
-	async g(id: string) {
-		let details = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
-		let related = (await parseDetailsHTML(`${this.baseURL}/g/${id}/`)).related;
-		let comments = (await getHTML(`${this.baseURL}/api/gallery/${id}/comments`)).details;
-		details = (details && related && comments) ? details : undefined;
-		return details ? new Gallery(details, related, comments) : details;
+    constructor(baseURL = 'https://nhentai.net') {
+        this.baseURL = baseURL;
     }
-    
-	search(keyword: string, page = 1, sort = 'recent') {
-		let query = qs.stringify({
-			q: keyword,
-			page,
-			sort
-		});
-		return parseListHTML(`${this.baseURL}/search/?${query}`);
-	}
 
-	homepage(page = 1) {
-		let query = qs.stringify({
-			page
-		});
-		return parseListHTML(`${this.baseURL}/?${query}`);
-	}
+    async g(id: string) {
+        let details = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
+        let related = (await parseDetailsHTML(`${this.baseURL}/g/${id}/`)).related;
+        let comments = (await getHTML(`${this.baseURL}/api/gallery/${id}/comments`)).details;
+        if (!details || !related || !comments) throw new Error('Scraping failed');
+        return new Gallery(details, related, comments);
+    }
 
-	async random() {
-		let random = await parseDetailsHTML(`${this.baseURL}/random/`);
-		let details = (await getHTML(`${this.baseURL}/api/gallery/${random.id}`)).details;
-		let comments = (await getHTML(`${this.baseURL}/api/gallery/${random.id}`)).details;
-		details = (details && random && comments) ? details : undefined;
-		return details ? new Gallery(details, random.related, comments) : details;
-	}
+    search(keyword: string, page = 1, sort = 'recent') {
+        let query = qs.stringify({
+            q: keyword,
+            page,
+            sort,
+        });
+        return parseListHTML(`${this.baseURL}/search/?${query}`);
+    }
 
-	tag(name: string, page = 1, sort = 'recent') {
-		let query = qs.stringify({
-			page
-		});
-		return parseListHTML(`${this.baseURL}/tag/${name.replace(' ','-')}/${sort=='recent'?'':sort}?${query}`);
-	}
+    homepage(page = 1) {
+        let query = qs.stringify({
+            page,
+        });
+        return parseListHTML(`${this.baseURL}/?${query}`);
+    }
 
-	artist(name: string, page = 1, sort = 'recent') {
-		let query = qs.stringify({
-			page
-		});
-		return parseListHTML(`${this.baseURL}/artist/${name.replace(' ','-')}/${sort=='recent'?'':sort}?${query}`);
-	}
+    async random() {
+		let { id, related } = await parseDetailsHTML(`${this.baseURL}/random/`);
+		if (!id || isNaN(id)) throw new Error('Invalid ID'); 
+        let details = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
+		let comments = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
+		if (!details || !related || !comments) throw new Error('Scraping failed');
+        return new Gallery(details, related, comments);
+    }
 
-	character(name: string, page = 1, sort = 'recent') {
-		let query = qs.stringify({
-			page
-		});
-		return parseListHTML(`${this.baseURL}/character/${name.replace(' ','-')}/${sort=='recent'?'':sort}?${query}`);
-	}
+    tag(name: string, page = 1, sort = 'recent') {
+        let query = qs.stringify({
+            page,
+        });
+        return parseListHTML(
+            `${this.baseURL}/tag/${name.replace(/ /g, '-')}/${
+                sort == 'recent' ? '' : sort
+            }?${query}`
+        );
+    }
 
-	parody(name: string, page = 1, sort = 'recent') {
-		let query = qs.stringify({
-			page
-		});
-		return parseListHTML(`${this.baseURL}/parody/${name.replace(' ','-')}/${sort=='recent'?'':sort}?${query}`);
-	}
+    artist(name: string, page = 1, sort = 'recent') {
+        let query = qs.stringify({
+            page,
+        });
+        return parseListHTML(
+            `${this.baseURL}/artist/${name.replace(/ /g, '-')}/${
+                sort == 'recent' ? '' : sort
+            }?${query}`
+        );
+    }
 
-	group(name: string, page = 1, sort = 'recent') {
-		let query = qs.stringify({
-			page
-		});
-		return parseListHTML(`${this.baseURL}/group/${name.replace(' ','-')}/${sort=='recent'?'':sort}?${query}`);
-	}
-};
+    character(name: string, page = 1, sort = 'recent') {
+        let query = qs.stringify({
+            page,
+        });
+        return parseListHTML(
+            `${this.baseURL}/character/${name.replace(/ /g, '-')}/${
+                sort == 'recent' ? '' : sort
+            }?${query}`
+        );
+    }
+
+    parody(name: string, page = 1, sort = 'recent') {
+        let query = qs.stringify({
+            page,
+        });
+        return parseListHTML(
+            `${this.baseURL}/parody/${name.replace(/ /g, '-')}/${
+                sort == 'recent' ? '' : sort
+            }?${query}`
+        );
+    }
+
+    group(name: string, page = 1, sort = 'recent') {
+        let query = qs.stringify({
+            page,
+        });
+        return parseListHTML(
+            `${this.baseURL}/group/${name.replace(/ /g, '-')}/${
+                sort == 'recent' ? '' : sort
+            }?${query}`
+        );
+    }
+
+    language(name: string, page = 1, sort = 'recent') {
+        let query = qs.stringify({
+            page,
+        });
+        return parseListHTML(
+            `${this.baseURL}/language/${name.replace(/ /g, '-')}/${
+                sort == 'recent' ? '' : sort
+            }?${query}`
+        );
+    }
+}

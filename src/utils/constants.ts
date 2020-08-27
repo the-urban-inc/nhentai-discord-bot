@@ -18,7 +18,7 @@ export const FLAG_EMOJIS = {
 
 export const SORT_METHODS = ['recent', 'popular-today', 'popular-week', 'popular'];
 
-export const TAGS = ['tag', 'artist', 'character', 'parody', 'group', 'language'];
+export const TAGS = ['tag', 'artist', 'character', 'parody', 'group', 'language'] as const;
 
 export const NEKOSLIFE_TAGS = {
     'anal': ['anal'],

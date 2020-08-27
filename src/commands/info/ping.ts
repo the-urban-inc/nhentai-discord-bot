@@ -6,7 +6,7 @@ export default class extends Command {
         super('ping', {
             aliases: ['ping', 'hello'],
             description: {
-                content: 'Pings Amaterasu.',
+                content: 'Pings Nhentai.',
                 examples: [''],
             },
         });

@@ -22,7 +22,7 @@ export default class extends Listener {
                     .random()
                     .then(data => data)
                     .catch(err => this.client.logger.error(err));
-                code = data ? data.id.toString() : code;
+                code = data ? data.details.id.toString() : code;
                 this.client.user.setActivity(`${code} • ${PREFIX}help`, { type: 'WATCHING' });
             }, 300000);
         }, 10000);

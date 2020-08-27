@@ -6,12 +6,13 @@
 import { Message, MessageEmbed as Embed } from 'discord.js';
 import { Cache } from './Cache';
 import { ReactionMethods, ReactionHandlerOptions, ReactionHandler } from './ReactionHandler';
+import { NhentaiClient } from '@nhentai/struct/bot/Client';
 
 type EmbedOrCallback = Embed | ((embed: Embed) => Embed);
 
-interface Page { 
-    embed: Embed,
-    id?: string,
+interface Page {
+    embed: Embed;
+    id?: string;
 }
 
 export interface RichDisplayOptions {
@@ -54,7 +55,7 @@ export class RichDisplay {
         }
         if (!(options.jump ?? true)) this._emojis.delete(ReactionMethods.Jump);
         if (!(options.remove ?? true)) this._emojis.delete(ReactionMethods.Remove);
-        if (!(options.auto ?? true)) {
+        if (!(options.auto ?? false)) {
             this._emojis.delete(ReactionMethods.Auto);
             this._emojis.delete(ReactionMethods.Pause);
         }
@@ -65,23 +66,28 @@ export class RichDisplay {
         }
     }
 
-    async run(message: Message, options: ReactionHandlerOptions = {}): Promise<ReactionHandler> {
+    async run(
+        client: NhentaiClient,
+        requestMessage: Message,
+        message: Message,
+        options: ReactionHandlerOptions = {}
+    ): Promise<ReactionHandler> {
         if (!this.infoPage) this._emojis.delete(ReactionMethods.Info);
         if (!this._footered) this.footer();
 
         let msg: Message;
         if (message.editable) {
             await message.edit('', {
-                embed: this.pages[options.startPage || 0].embed,
+                embed: this.infoPage ?? this.pages[options.startPage ?? 0].embed,
             });
             msg = message;
         } else {
             msg = await message.channel.send('', {
-                embed: this.pages[options.startPage || 0].embed,
+                embed: this.infoPage ?? this.pages[options.startPage ?? 0].embed,
             });
         }
 
-        return new ReactionHandler(msg, options, this, this._emojis);
+        return new ReactionHandler(client, requestMessage, msg, options, this, this._emojis);
     }
 
     setEmojis(emojis: Record<ReactionMethods, string>): this {
@@ -106,7 +112,7 @@ export class RichDisplay {
 
     setGID(id: string): this {
         this.gid = id;
-		return this;
+        return this;
     }
 
     useCustomFooters(): this {
@@ -115,9 +121,9 @@ export class RichDisplay {
     }
 
     addPage(embed: EmbedOrCallback, id?: string): this {
-        this.pages.push({ 
+        this.pages.push({
             embed: this.resolveEmbedOrCallback(embed),
-            id: id
+            id: id,
         });
         return this;
     }
@@ -136,7 +142,6 @@ export class RichDisplay {
             this.pages[i - 1].embed.setFooter(
                 `${this.footerPrefix}${i} of ${this.pages.length}${this.footerSuffix}`
             );
-        if (this.infoPage) this.infoPage.setFooter('ℹ');
     }
 
     private resolveEmbedOrCallback(embed: EmbedOrCallback): Embed {

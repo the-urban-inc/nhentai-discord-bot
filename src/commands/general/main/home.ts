@@ -61,6 +61,8 @@ export default class extends Command {
                     );
                 }
                 await displayPopular.run(
+                    this.client,
+                    message,
                     await message.channel.send('Searching ...\n\n`🔥` **Popular Now**')
                 );
 
@@ -87,7 +89,11 @@ export default class extends Command {
                         doujin.id
                     );
                 }
-                return displayNew.run(await message.channel.send('`🧻` **New Uploads**'));
+                return displayNew.run(
+                    this.client,
+                    message,
+                    await message.channel.send('`🧻` **New Uploads**')
+                );
             }
 
             const display = this.client.embeds.richDisplay().useCustomFooters();
@@ -111,7 +117,7 @@ export default class extends Command {
                     doujin.id
                 );
             }
-            return display.run(await message.channel.send('Searching ...'));
+            return display.run(this.client, message, await message.channel.send('Searching ...'));
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));

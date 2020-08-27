@@ -27,7 +27,7 @@ export default class extends Command {
         })
     }
 
-    async exec(message: Message, { tag, type } : { tag: string, type: string }) {
+    async exec(message: Message, { tag, type } : { tag: string, type: typeof TAGS[number] }) {
         if (!tag)
             return message.channel.send(
                 this.client.embeds.clientError('No tag was speficied.')

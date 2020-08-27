@@ -7,7 +7,7 @@ export async function details(html: string) {
 		xmlMode: false
 	});
 
-	let related: Array<DoujinThumbnail>;
+	let related: Array<DoujinThumbnail> = [];
 	$('.gallery').each((i, e) => {
 		let $this = $(e);
 		let $thumb = $this.find('.cover>img');
