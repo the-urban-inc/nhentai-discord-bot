@@ -9,7 +9,7 @@ interface Recent {
 
 export interface IServer extends Document {
     serverID: string,
-    recent: Array<Recent>
+    recent: Recent[]
 }
 
 const serverSchema = new Schema({

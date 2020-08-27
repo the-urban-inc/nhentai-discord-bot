@@ -76,7 +76,7 @@ export default class extends Command {
                     history: {
                         [tag]: [
                             {
-                                id: data.tagId,
+                                id: data.tagId.toString(),
                                 title: text.toLowerCase(),
                                 date: Date.now(),
                             },
@@ -86,7 +86,7 @@ export default class extends Command {
                 newUser.save();
             } else {
                 user.history[tag].push({
-                    id: data.tagId,
+                    id: data.tagId.toString(),
                     title: text.toLowerCase(),
                     date: Date.now(),
                 });

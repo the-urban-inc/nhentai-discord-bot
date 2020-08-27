@@ -1,32 +1,33 @@
 import { model, Document, Schema } from 'mongoose';
 
 interface Tag {
-    id: string,
-    title: string,
-    date?: number
+    id: string;
+    title: string;
+    date?: number;
 }
 
 export interface IUser extends Document {
-    userID: string,
-    favorites: Array<string>,
+    userID: string;
+    favorites: string[];
     blacklists: {
-        tag: Array<Tag>,
-        artist: Array<Tag>,
-        parody: Array<Tag>,
-        character: Array<Tag>,
-        group: Array<Tag>,
-        language: Array<Tag>,
-        category: Array<Tag>
-    },
-    points: number,
+        tag: Tag[];
+        artist: Tag[];
+        parody: Tag[];
+        character: Tag[];
+        group: Tag[];
+        language: Tag[];
+        category: Tag[];
+    };
+    points: number;
     history: {
-        g: Array<Tag>,
-        tag: Array<Tag>,
-        artist: Array<Tag>,
-        parody: Array<Tag>,
-        character: Array<Tag>,
-        group: Array<Tag>
-    }
+        g: Tag[];
+        tag: Tag[];
+        artist: Tag[];
+        parody: Tag[];
+        character: Tag[];
+        group: Tag[];
+        language: Tag[];
+    };
 }
 
 const userSchema = new Schema({
@@ -39,7 +40,7 @@ const userSchema = new Schema({
         character: [],
         group: [],
         language: [],
-        category: []
+        category: [],
     },
     points: Number,
     history: {
@@ -48,8 +49,9 @@ const userSchema = new Schema({
         artist: [],
         parody: [],
         character: [],
-        group: []
-    }
+        group: [],
+        language: [],
+    },
 });
 
 export const User = model<IUser>('User', userSchema);
