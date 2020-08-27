@@ -3,7 +3,7 @@
         "lib": ["ES2019.Array"],
         "target": "es6",
         "module": "commonjs",
-        "sourceMap": true,
+        "sourceMap": false,
         "alwaysStrict": true,
         "declaration": false,
         "listEmittedFiles": true,
