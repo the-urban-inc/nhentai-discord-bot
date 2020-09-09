@@ -1,11 +1,11 @@
 import Command from '@nhentai/struct/bot/Command';
-import { Message, MessageEmbed } from 'discord.js';
+import { Message } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
-import { Tag } from '@nhentai/struct/nhentai/src/struct';
-import { ICON, FLAG_EMOJIS } from '@nhentai/utils/constants';
-import { Server } from '@nhentai/models/server';
 import { User } from '@nhentai/models/user';
+import { Blacklist } from '@nhentai/models/tag';
+import { Gallery, Tag } from '@nhentai/struct/nhentai/src/struct';
+import { ICON, FLAG_EMOJIS } from '@nhentai/utils/constants';
 
 export default class extends Command {
     constructor() {
@@ -13,8 +13,9 @@ export default class extends Command {
             category: 'general',
             aliases: ['g', 'get', 'doujin'],
             description: {
-                content: 'Searches for a code on nhentai.',
-                usage: '<code> [--auto]',
+                content:
+                    'Searches for a code on nhentai.\nRun with `--more` to include `More Like This` and `Comments`.',
+                usage: '<code> [--more] [--auto]',
                 examples: ['177013', '265918 --auto'],
             },
             args: [
@@ -24,79 +25,86 @@ export default class extends Command {
                     match: 'text',
                 },
                 {
+                    id: 'more',
+                    match: 'flag',
+                    flag: ['-m', '--more'],
+                },
+                {
                     id: 'auto',
                     match: 'flag',
                     flag: ['-a', '--auto'],
                 },
             ],
-            cooldown: 3000,
         });
     }
 
-    async exec(message: Message, { code, auto }: { code: string; auto: boolean }) {
+    anonymous = true;
+    blacklists: Blacklist[] = [];
+
+    async before(message: Message) {
+        try {
+            const user = await User.findOne({ userID: message.author.id }).exec();
+            this.blacklists = user.blacklists;
+            this.anonymous = user.anonymous;
+        } catch (err) {
+            this.client.logger.error(err);
+            return message.channel.send(this.client.embeds.internalError(err));
+        }
+    }
+
+    async exec(
+        message: Message,
+        { code, more, auto }: { code: string; more: boolean; auto: boolean }
+    ) {
         if (!code)
             return message.channel.send(this.client.embeds.clientError('Code is not specified.'));
         try {
-            const doujin = await this.client.nhentai.g(code);
+            const doujin: Gallery = await this.client.nhentai.g(code, more);
 
             // points increase
             const min = 30,
                 max = 50;
             const inc = Math.floor(Math.random() * (max - min)) + min;
 
-            let { tags, num_pages, upload_date } = doujin.details,
-                { comments, related } = doujin,
+            let { tags, num_pages, upload_date } = doujin.details;
+            let id = doujin.details.id.toString(),
+                title = he.decode(doujin.details.title.english),
                 date = Date.now();
-            let title = he.decode(doujin.details.title.english),
-                id = doujin.details.id.toString();
-            if (message.guild) {
-                // history record
-                let serverHistory = {
-                    author: message.author.tag,
-                    id,
-                    title,
-                    date,
-                };
-                let server = await Server.findOne({ serverID: message.guild.id }).exec();
-                if (!server) {
-                    await new Server({
-                        serverID: message.guild.id,
-                        recent: [serverHistory],
-                    }).save();
-                } else {
-                    server.recent.push(serverHistory);
-                    await server.save();
-                }
+            let history = {
+                id,
+                type: 'g',
+                name: title,
+                author: message.author.id,
+                guild: message.guild.id,
+                date,
+            };
 
-                // user record
-                let userHistory = { id, title, date };
-                let user = await User.findOne({ userID: message.author.id });
-                if (!user) {
-                    await new User({
-                        userID: message.author.id,
-                        history: { g: [userHistory] },
-                        points: inc,
-                    }).save();
-                } else {
-                    if (!user.history.g.find(x => x.id === id))
-                        user.points = (user.points || 0) + inc;
-                    // inc if new doujin
-                    user.history.g.push(userHistory);
-                    user.save();
+            if (message.guild && !this.anonymous) {
+                await this.client.db.Server.history(message, history);
+                await this.client.db.User.history(message, history);
+                const leveledUp = await this.client.db.XP.save('add', 'exp', message, inc);
+                if (leveledUp) {
+                    message.channel
+                        .send(this.client.embeds.info('Congratulations! You have leveled up!'))
+                        .then(message => message.delete({ timeout: 10000 }));
                 }
             }
 
-            const info = new MessageEmbed()
+            const info = this.client.util
+                .embed()
                 .setAuthor(title, ICON, `https://nhentai.net/g/${id}`)
                 .setThumbnail(doujin.getCoverThumbnail())
                 .setFooter(`ID : ${id}${auto ? '• React with 🇦 to start an auto session' : ''}`)
                 .setTimestamp();
 
             let t = new Map();
-            tags.forEach((tag: Tag) => {
-                let a = t.get(tag.type) || [];
-                a.push(`**\`${tag.name}\`**\`(${tag.count.toLocaleString()})\``);
-                t.set(tag.type, a);
+            tags.forEach(tag => {
+                const { id, type, name, count } = tag;
+                let a = t.get(type) || [];
+                let s = `**\`${name}\`**\`(${count.toLocaleString()})\``;
+                if (this.blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
+                a.push(s);
+                t.set(type, a);
             });
 
             [
@@ -121,12 +129,12 @@ export default class extends Command {
 
             const displayDoujin = this.client.embeds
                 .richDisplay({ auto: auto })
-                .setGID(id)
+                .setInfo({ id, type: 'g', name: title })
                 .setInfoPage(info);
             doujin
                 .getPages()
                 .forEach((page: string) =>
-                    displayDoujin.addPage(new MessageEmbed().setImage(page).setTimestamp())
+                    displayDoujin.addPage(this.client.util.embed().setImage(page).setTimestamp())
                 );
             await displayDoujin.run(
                 this.client,
@@ -134,10 +142,13 @@ export default class extends Command {
                 await message.channel.send('Searching for doujin ...')
             );
 
+            if (!more) return;
+            const { comments, related } = doujin;
             const displayRelated = this.client.embeds.richDisplay().useCustomFooters();
             for (const [idx, { title, id, language, thumbnail }] of related.entries()) {
                 displayRelated.addPage(
-                    new MessageEmbed()
+                    this.client.util
+                        .embed()
                         .setTitle(`${he.decode(title)}`)
                         .setURL(`https://nhentai.net/g/${id}`)
                         .setDescription(
@@ -170,7 +181,8 @@ export default class extends Command {
                 },
             ] of comments.entries()) {
                 displayComments.addPage(
-                    new MessageEmbed()
+                    this.client.util
+                        .embed()
                         .setAuthor(`${he.decode(username)}`, `https://i5.nhentai.net/${avatar_url}`)
                         .setDescription(body)
                         .setFooter(

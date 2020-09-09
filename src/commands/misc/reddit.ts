@@ -8,14 +8,10 @@ const ICON =
 export default class extends Command {
     constructor() {
         super('reddit', {
-            category: 'general',
             aliases: ['reddit'],
             description: {
                 content: 'Random post on r/nhentai.',
-                usage: '',
-                examples: [''],
             },
-            cooldown: 3000,
         });
     }
 

@@ -27,24 +27,29 @@ export interface Choice {
 export class RichMenu extends RichDisplay {
     choices: Array<Choice> = [];
     private paginated = false;
+    options: RichDisplayOptions;
 
     constructor(options: RichDisplayOptions = {}) {
         super(options);
-
-        this._emojis = new Cache([
-            [ReactionMethods.First, '⏮'],
-            [ReactionMethods.Back, '◀'],
-            [ReactionMethods.One, '1️⃣'],
-            [ReactionMethods.Two, '2️⃣'],
-            [ReactionMethods.Three, '3️⃣'],
-            [ReactionMethods.Four, '4️⃣'],
-            [ReactionMethods.Five, '5️⃣'],
-            [ReactionMethods.Forward, '▶'],
-            [ReactionMethods.Last, '⏭'],
-            [ReactionMethods.Jump, '↗️'],
-            [ReactionMethods.Info, 'ℹ'],
-            [ReactionMethods.Remove, '🗑'],
-        ]);
+        this.options = options;
+        if (options.list ?? false) {
+            this._emojis.delete(ReactionMethods.Love);
+        } else {
+            this._emojis = new Cache([
+                [ReactionMethods.First, '⏮'],
+                [ReactionMethods.Back, '◀'],
+                [ReactionMethods.One, '1️⃣'],
+                [ReactionMethods.Two, '2️⃣'],
+                [ReactionMethods.Three, '3️⃣'],
+                [ReactionMethods.Four, '4️⃣'],
+                [ReactionMethods.Five, '5️⃣'],
+                [ReactionMethods.Forward, '▶'],
+                [ReactionMethods.Last, '⏭'],
+                [ReactionMethods.Jump, '↗️'],
+                [ReactionMethods.Info, 'ℹ'],
+                [ReactionMethods.Remove, '🗑'],
+            ]);
+        }
     }
 
     addPage(): never {
@@ -56,7 +61,12 @@ export class RichMenu extends RichDisplay {
         return this;
     }
 
-    async run(client: NhentaiClient, requestMessage: Message, message: Message, options: ReactionHandlerOptions = {}): Promise<ReactionHandler> {
+    async run(
+        client: NhentaiClient,
+        requestMessage: Message,
+        message: Message,
+        options: ReactionHandlerOptions = {}
+    ): Promise<ReactionHandler> {
         if (this.choices.length < choiceMethods.length) {
             for (let i = this.choices.length; i < choiceMethods.length; i++)
                 this._emojis.delete(choiceMethods[i]);
@@ -66,19 +76,23 @@ export class RichMenu extends RichDisplay {
     }
 
     private paginate(): null {
-        const page = this.pages.length;
+        const page = this.pages.length, l = this.options.list ?? 5;
         if (this.paginated) return null;
         super.addPage(embed => {
             for (
-                let i = 0, choice = this.choices[i + page * 5];
-                i + page * 5 < this.choices.length && i < 5;
-                i++, choice = this.choices[i + page * 5]
+                let i = 0, choice = this.choices[i + page * l];
+                i + page * l < this.choices.length && i < l;
+                i++, choice = this.choices[i + page * l]
             ) {
-                embed.addField(`[${i + 1}] ${choice.name}`, choice.body, choice.inline);
+                embed.addField(
+                    `[${this.options.list ?? false ? i + page * l + 1 : i + 1}] ${choice.name}`,
+                    choice.body,
+                    choice.inline
+                );
             }
             return embed;
         });
-        if (this.choices.length > (page + 1) * 5) return this.paginate();
+        if (this.choices.length > (page + 1) * l) return this.paginate();
         this.paginated = true;
         return null;
     }

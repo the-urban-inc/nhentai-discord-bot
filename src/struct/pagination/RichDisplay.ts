@@ -7,6 +7,7 @@ import { Message, MessageEmbed as Embed } from 'discord.js';
 import { Cache } from './Cache';
 import { ReactionMethods, ReactionHandlerOptions, ReactionHandler } from './ReactionHandler';
 import { NhentaiClient } from '@nhentai/struct/bot/Client';
+import { Blacklist } from '@nhentai/models/tag';
 
 type EmbedOrCallback = Embed | ((embed: Embed) => Embed);
 
@@ -22,13 +23,15 @@ export interface RichDisplayOptions {
     firstLast?: boolean;
     auto?: boolean;
     love?: boolean;
+    blacklist?: boolean;
     image?: boolean;
+    list?: number;
 }
 
 export class RichDisplay {
     pages: Array<Page> = [];
     infoPage: Embed | null = null;
-    gid: string | null = null;
+    info: Blacklist | null = null;
     _emojis: Cache<ReactionMethods, string> = new Cache();
     protected _template: Embed;
     protected _footered = false;
@@ -47,6 +50,7 @@ export class RichDisplay {
             .set(ReactionMethods.Auto, '🇦')
             .set(ReactionMethods.Pause, '⏹')
             .set(ReactionMethods.Love, '❤️')
+            .set(ReactionMethods.Blacklist, '🏴')
             .set(ReactionMethods.Remove, '🗑');
 
         if (!(options.firstLast ?? true)) {
@@ -60,6 +64,7 @@ export class RichDisplay {
             this._emojis.delete(ReactionMethods.Pause);
         }
         if (!(options.love ?? true)) this._emojis.delete(ReactionMethods.Love);
+        if (!(options.blacklist ?? false)) this._emojis.delete(ReactionMethods.Blacklist);
         if (options.image ?? false) {
             this._emojis.clear();
             this._emojis.set(ReactionMethods.Remove, '🗑');
@@ -110,8 +115,8 @@ export class RichDisplay {
         return this;
     }
 
-    setGID(id: string): this {
-        this.gid = id;
+    setInfo(info: Blacklist): this {
+        this.info = info;
         return this;
     }
 

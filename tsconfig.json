@@ -19,7 +19,7 @@
         "paths": {
             "@notifier/utils/*": ["src/submodules/notifier/utils/*"],
             "@nhentai/utils/*": ["src/utils/*"],
-            "@nhentai/models/*": ["src/models/*"],
+            "@nhentai/models/*": ["src/struct/db/models/*"],
             "@nhentai/struct/*": ["src/struct/*"]
         },
         "plugins": [

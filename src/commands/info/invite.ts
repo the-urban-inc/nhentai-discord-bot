@@ -10,7 +10,6 @@ export default class extends Command {
             description: {
                 content: 'Invite me to your server!',
             },
-            cooldown: 3000,
         });
     }
 

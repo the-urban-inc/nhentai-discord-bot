@@ -7,7 +7,6 @@ export default class extends Command {
             aliases: ['ping', 'hello'],
             description: {
                 content: 'Pings Nhentai.',
-                examples: [''],
             },
         });
     }

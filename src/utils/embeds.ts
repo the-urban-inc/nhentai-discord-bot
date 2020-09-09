@@ -22,7 +22,11 @@ export default class {
     static internalError(text: string) {
         return new MessageEmbed()
             .setColor('#ff0000')
-            .setDescription(`An unexpected error has occurred:\n\`\`\`${text}\`\`\``);
+            .setDescription(
+                `An unexpected error has occurred${
+                    text.length < 2000 ? `:\n\`\`\`${text}\`\`\`` : '.'
+                }`
+            );
     }
 
     static success() {

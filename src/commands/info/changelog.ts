@@ -14,10 +14,7 @@ export default class extends Command {
             aliases: ['changelog', 'updates', 'commits'],
             description: {
                 content: "Responds with the bot's latest 10 commits.",
-                usage: '',
-                examples: [''],
             },
-            cooldown: 3000,
         });
     }
 
@@ -40,6 +37,7 @@ export default class extends Command {
                     .map(({ html_url, sha, commit: { message }, committer: { login } }) => {
                         message = message.split('\n').filter(a => a)[0];
                         message = message.length > 55 ? message.slice(0, 55) + '...' : message;
+                        message = this.client.util.escapeMarkdown(message);
                         return `[\`${sha.slice(0, 7)}\`](${html_url}) ${message} - ${login}`;
                     })
                     .join('\n')

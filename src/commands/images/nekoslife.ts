@@ -19,7 +19,6 @@ export default class extends Command {
                     type: 'lowercase',
                 },
             ],
-            cooldown: 3000,
         });
     }
 

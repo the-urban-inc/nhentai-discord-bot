@@ -62,7 +62,6 @@ export default class extends Command {
                     default: '',
                 },
             ],
-            cooldown: 3000,
         });
     }
 

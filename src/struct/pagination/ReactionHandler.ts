@@ -12,7 +12,7 @@ import {
 import { Cache } from './Cache';
 import { RichDisplay } from './RichDisplay';
 import { RichMenu } from './RichMenu';
-import { User } from '@nhentai/models/user';
+import { User } from '@nhentai/struct/db/models/user';
 import { NhentaiClient } from '@nhentai/struct/bot/Client';
 
 export interface ReactionHandlerOptions extends ReactionCollectorOptions {
@@ -40,6 +40,7 @@ export const enum ReactionMethods {
     Auto = 'auto',
     Pause = 'pause',
     Love = 'love',
+    Blacklist = 'blacklist',
     Remove = 'remove',
     One = 'one',
     Two = 'two',
@@ -102,7 +103,7 @@ export class ReactionHandler {
                   this.#resolve = resolve;
               })
             : Promise.resolve(null);
-        this.#currentPage = options.startPage ?? 0;
+        this.#currentPage = options.startPage ?? (this.display.infoPage ? -1 : 0);
         this.run([...emojis.values()]);
         this.collector = this.message.createReactionCollector(() => true, options);
         this.collector.on('collect', async (reaction, user) => {
@@ -117,12 +118,15 @@ export class ReactionHandler {
         });
         this.collector.on('end', async () => {
             if (
+                this.message &&
                 !this.message.deleted &&
                 this.message.client.guilds.cache.has(this.message.guild!.id)
             ) {
                 try {
                     await this.message.reactions.removeAll();
                 } catch (error) {
+                    // Harmless error. Unable to fix for now
+                    if (error.code === 10008) return;
                     this.message.client.emit('error', error);
                 }
             }
@@ -264,35 +268,11 @@ export class ReactionHandler {
             }
             return Promise.resolve(false);
         })
-        .set(ReactionMethods.Love, async function (
-            this: ReactionHandler,
-            user: DiscordUser
-        ): Promise<boolean> {
+        .set(ReactionMethods.Love, async function (this: ReactionHandler): Promise<boolean> {
             try {
-                let id = this.display.gid || this.display.pages[this.#currentPage].id;
-                let name = this.display.gid
-                    ? this.display.infoPage.author.name
-                    : this.display.pages[this.#currentPage].embed.title;
-                let adding = false;
-                const dbUser = await User.findOne({
-                    userID: user.id,
-                }).exec();
-                if (!dbUser) {
-                    const newUser = new User({
-                        userID: user.id,
-                        favorites: [`${id} ${name}`],
-                    });
-                    newUser.save();
-                    adding = true;
-                } else {
-                    if (dbUser.favorites.includes(`${id} ${name}`)) {
-                        dbUser.favorites.splice(dbUser.favorites.indexOf(`${id} ${name}`), 1);
-                    } else {
-                        dbUser.favorites.push(`${id} ${name}`);
-                        adding = true;
-                    }
-                    dbUser.save();
-                }
+                let id = this.display.info.id || this.display.pages[this.#currentPage].id;
+                if (!id) return Promise.resolve(false);
+                const adding = await this.client.db.User.favorite(this.requestMessage, id);
                 this.message.channel
                     .send(
                         this.client.embeds.info(
@@ -307,12 +287,34 @@ export class ReactionHandler {
                 return true;
             }
         })
+        .set(ReactionMethods.Blacklist, async function (this: ReactionHandler): Promise<boolean> {
+            try {
+                const info = this.display.info;
+                if (!info) return Promise.resolve(false);
+                const { type, name } = info;
+                const adding = await this.client.db.User.blacklist(this.requestMessage, info);
+                this.message.channel
+                    .send(
+                        this.client.embeds.info(
+                            adding
+                                ? `Added ${type} \`${name}\` to blacklist.`
+                                : `Removed ${type} \`${name}\` from blacklist.`
+                        )
+                    )
+                    .then(message => message.delete({ timeout: 5000 }));
+                return Promise.resolve(false);
+            } catch (err) {
+                this.client.logger.error(err);
+                this.message.channel.send(this.client.embeds.internalError(err));
+                return true;
+            }
+        })
         .set(ReactionMethods.Remove, async function (this: ReactionHandler): Promise<boolean> {
-            this.stop();
+            this.collector.stop();
             if (this.#autoMode) clearInterval(this.#autoMode);
-            if (this.message.deletable) await this.message.delete();
-            if (this.requestMessage.deletable) await this.requestMessage.delete();
-            return Promise.resolve(false);
+            if (!this.message.deleted) await this.message.delete();
+            if (!this.requestMessage.deleted) await this.requestMessage.delete();
+            return true;
         })
         .set(ReactionMethods.One, function (this: ReactionHandler): Promise<boolean> {
             return this.choose(this.#currentPage * 5);

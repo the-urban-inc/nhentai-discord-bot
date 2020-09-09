@@ -1,5 +1,5 @@
 import Command from '@nhentai/struct/bot/Command';
-import { Message, MessageEmbed } from 'discord.js';
+import { Message } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
 import { Tag } from '@nhentai/struct/nhentai/src/struct';
@@ -11,31 +11,36 @@ export default class extends Command {
             category: 'general',
             aliases: ['random'],
             description: {
-                content: 'Random doujin.',
-                usage: '[--auto]',
-                examples: ['', '--auto'],
+                content:
+                    'Random doujin.\nRun with `--more` to include `More Like This` and `Comments`.',
+                usage: '[--more] [--auto]',
+                examples: ['', '--more', '--auto'],
             },
             args: [
+                {
+                    id: 'more',
+                    match: 'flag',
+                    flag: ['-m', '--more'],
+                },
                 {
                     id: 'auto',
                     match: 'flag',
                     flag: ['-a', '--auto'],
                 },
             ],
-            cooldown: 3000,
         });
     }
 
-    async exec(message: Message, { auto }: { auto: boolean }) {
+    async exec(message: Message, { more, auto }: { more: boolean; auto: boolean }) {
         try {
             const doujin = await this.client.nhentai.random();
 
-            let { tags, num_pages, upload_date } = doujin.details,
-                { comments, related } = doujin;
+            let { tags, num_pages, upload_date } = doujin.details;
             let title = he.decode(doujin.details.title.english),
                 id = doujin.details.id.toString();
 
-            const info = new MessageEmbed()
+            const info = this.client.util
+                .embed()
                 .setAuthor(title, ICON, `https://nhentai.net/g/${id}`)
                 .setThumbnail(doujin.getCoverThumbnail())
                 .setFooter(`ID : ${id}${auto ? '• React with 🇦 to start an auto session' : ''}`)
@@ -70,12 +75,12 @@ export default class extends Command {
 
             const displayDoujin = this.client.embeds
                 .richDisplay({ auto: auto })
-                .setGID(id)
+                .setInfo({ id, type: 'g', name: title })
                 .setInfoPage(info);
             doujin
                 .getPages()
                 .forEach((page: string) =>
-                    displayDoujin.addPage(new MessageEmbed().setImage(page).setTimestamp())
+                    displayDoujin.addPage(this.client.util.embed().setImage(page).setTimestamp())
                 );
             await displayDoujin.run(
                 this.client,
@@ -83,10 +88,13 @@ export default class extends Command {
                 await message.channel.send('Searching for doujin ...')
             );
 
+            if (!more) return;
+            const { comments, related } = doujin;
             const displayRelated = this.client.embeds.richDisplay().useCustomFooters();
             for (const [idx, { title, id, language, thumbnail }] of related.entries()) {
                 displayRelated.addPage(
-                    new MessageEmbed()
+                    this.client.util
+                        .embed()
                         .setTitle(`${he.decode(title)}`)
                         .setURL(`https://nhentai.net/g/${id}`)
                         .setDescription(
@@ -119,7 +127,8 @@ export default class extends Command {
                 },
             ] of comments.entries()) {
                 displayComments.addPage(
-                    new MessageEmbed()
+                    this.client.util
+                        .embed()
                         .setAuthor(`${he.decode(username)}`, `https://i5.nhentai.net/${avatar_url}`)
                         .setDescription(body)
                         .setFooter(

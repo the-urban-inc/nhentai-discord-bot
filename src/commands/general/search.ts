@@ -1,5 +1,5 @@
 import Command from '@nhentai/struct/bot/Command';
-import { Message, MessageEmbed } from 'discord.js';
+import { Message } from 'discord.js';
 import he from 'he';
 import { FLAG_EMOJIS, SORT_METHODS } from '@nhentai/utils/constants';
 
@@ -39,7 +39,6 @@ export default class extends Command {
                     default: 'recent',
                 },
             ],
-            cooldown: 3000,
         });
     }
 
@@ -52,6 +51,7 @@ export default class extends Command {
                 return message.channel.send(
                     this.client.embeds.clientError('Search text is not specified.')
                 );
+
             if (!SORT_METHODS.includes(sort))
                 return message.channel.send(
                     this.client.embeds.clientError(
@@ -60,20 +60,25 @@ export default class extends Command {
                         ).join(', ')}.`
                     )
                 );
+
             let pageNum = parseInt(page, 10);
             const data = await this.client.nhentai.search(text, pageNum, sort);
+
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
                 return message.channel.send(
                     this.client.embeds.clientError(
                         'Page number is not an integer or is out of range.'
                     )
                 );
+
             if (!data.results.length)
                 return message.channel.send(this.client.embeds.clientError('No results found.'));
+
             const display = this.client.embeds.richDisplay().useCustomFooters();
             for (const [idx, doujin] of data.results.entries()) {
                 display.addPage(
-                    new MessageEmbed()
+                    this.client.util
+                        .embed()
                         .setTitle(`${he.decode(doujin.title)}`)
                         .setURL(`https://nhentai.net/g/${doujin.id}`)
                         .setDescription(
@@ -83,9 +88,11 @@ export default class extends Command {
                         )
                         .setImage(doujin.thumbnail.s)
                         .setFooter(
-                            `Doujin ${idx + 1} of ${data.results.length} • Page ${page} of ${
+                            `Doujin ${idx + 1} of ${
+                                data.results.length
+                            }\u2000•\u2000Page ${page} of ${
                                 data.num_pages || 1
-                            } • Found ${data.num_results} result(s)`
+                            }\u2000•\u2000Found ${data.num_results} result(s)`
                         )
                         .setTimestamp(),
                     doujin.id

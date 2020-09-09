@@ -1,5 +1,6 @@
 import Command from '@nhentai/struct/bot/Command';
-import { Message, version } from 'discord.js';
+import { Message, version as DiscordVersion } from 'discord.js';
+import { version as AkairoVersion } from 'discord-akairo';
 import moment from 'moment';
 import { PERMISSIONS } from '@nhentai/utils/constants';
 const { npm_package_description, npm_package_version, npm_package_repository_url } = process.env;
@@ -11,10 +12,7 @@ export default class extends Command {
             aliases: ['about', 'info', 'information', 'stats'],
             description: {
                 content: 'Responds with detailed bot information.',
-                usage: '',
-                examples: [''],
             },
-            cooldown: 3000,
         });
     }
 
@@ -28,30 +26,27 @@ export default class extends Command {
             .setThumbnail(this.client.user.displayAvatarURL())
             .setTitle(`Hey ${message.author.username}, I'm ${this.client.user.tag}!`)
             .setDescription(`${npm_package_description}`)
-            .addField('❯\u2000Version', npm_package_version, true)
-            .addField('❯\u2000Users', this.client.users.cache.size, true)
-            .addField('❯\u2000Guilds', this.client.guilds.cache.size, true)
-            .addField(
-                '❯\u2000Invite link',
-                `[Click here](${await this.client.generateInvite(PERMISSIONS)})`,
-                true
-            )
-            .addField(
-                '❯\u2000Uptime',
-                `${moment.utc(this.client.uptime).format('DD')} day(s), ${moment
-                    .utc(this.client.uptime)
-                    .format('HH:mm:ss')}`,
-                true
-            )
-            .addField('❯\u2000Github', `[Click here](https://github.com/${owner}/${repo})`, true)
-            .addField('❯\u2000Node.js version', process.version, true)
-            .addField(
-                '❯\u2000Memory usage',
-                `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`,
-                true
-            )
-            .setFooter(`Made with Discord.js (v${version})`, 'https://vgy.me/ZlOMAx.png')
-            .setTimestamp();
+            .addField('❯ Discord', [
+                `• **Guilds** : ${this.client.guilds.cache.size}`,
+                `• **Channels** : ${this.client.channels.cache.size}`,
+                `• **Users** : ${this.client.users.cache.size}`,
+                `• **Invite Link** : [Click here](${await this.client.generateInvite(
+                    PERMISSIONS
+                )})`,
+            ])
+            .addField('❯ Technical', [
+                `• **Uptime** : ${
+                    this.client.uptime
+                        ? this.client.util.formatMilliseconds(this.client.uptime)
+                        : 'N/A'
+                }`,
+                `• **Version** : ${npm_package_version}`,
+                `• **Memory Usage** : ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`,
+                `• **Node.js** : ${process.version}`,
+                `• **Discord.js** : v${DiscordVersion}`,
+                `• **Akairo** : v${AkairoVersion}`,
+                `• **Github** : [Click here](https://github.com/${owner}/${repo})`,
+            ]);
         return message.channel.send({ embed });
     }
 }

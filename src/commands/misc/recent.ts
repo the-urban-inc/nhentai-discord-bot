@@ -1,17 +1,15 @@
 import Command from '@nhentai/struct/bot/Command';
 import { Message } from 'discord.js';
 import moment from 'moment';
-import { Server } from '@nhentai/models/server';
+import { Server } from '@nhentai/struct/db/models/server';
 
 export default class extends Command {
     constructor() {
         super('recent', {
-            category: 'general',
             aliases: ['recent'],
             description: {
                 content: "Stalking people's fetishes.",
             },
-            cooldown: 3000,
         });
     }
 
@@ -29,20 +27,14 @@ export default class extends Command {
                     return message.channel.send(
                         this.client.embeds.info('There are no recent calls in this server.')
                     );
-                let recent = server.recent;
-                recent.reverse();
-                recent = recent.slice(0, 5);
+                let recent = server.recent.reverse().slice(0, 5);
+                let _ = await Promise.all(recent.map(async (x) => {
+                    return `${(await this.client.users.fetch(x.author)).tag} : **\`${
+                        x.id
+                    }\`** \`${x.name}\` (${moment(x.date).fromNow()})`;
+                }));
                 return message.channel.send(
-                    this.client.embeds.info(
-                        recent
-                            .map(
-                                x =>
-                                    `${x.author} : **\`${x.id}\`** \`${x.title}\` (${moment(
-                                        x.date
-                                    ).fromNow()})`
-                            )
-                            .join('\n')
-                    )
+                    this.client.embeds.info(_.join('\n'))
                 );
             }
         } catch (err) {

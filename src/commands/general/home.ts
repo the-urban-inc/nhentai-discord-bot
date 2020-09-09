@@ -1,5 +1,5 @@
 import Command from '@nhentai/struct/bot/Command';
-import { Message, MessageEmbed } from 'discord.js';
+import { Message } from 'discord.js';
 import he from 'he';
 import { FLAG_EMOJIS } from '@nhentai/utils/constants';
 
@@ -21,7 +21,6 @@ export default class extends Command {
                     default: '1',
                 },
             ],
-            cooldown: 3000,
         });
     }
 
@@ -29,6 +28,7 @@ export default class extends Command {
         try {
             let pageNum = parseInt(page, 10);
             const data = await this.client.nhentai.homepage(pageNum);
+
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
                 return message.channel.send(
                     this.client.embeds.clientError(
@@ -41,7 +41,8 @@ export default class extends Command {
                 const displayPopular = this.client.embeds.richDisplay().useCustomFooters();
                 for (const [idx, doujin] of popularNow.entries()) {
                     displayPopular.addPage(
-                        new MessageEmbed()
+                        this.client.util
+                            .embed()
                             .setTitle(`${he.decode(doujin.title)}`)
                             .setURL(`https://nhentai.net/g/${doujin.id}`)
                             .setDescription(
@@ -52,9 +53,9 @@ export default class extends Command {
                             )
                             .setImage(doujin.thumbnail.s)
                             .setFooter(
-                                `Doujin ${idx + 1} of ${popularNow.length} • Page ${page} of ${
-                                    data.num_pages || 1
-                                }`
+                                `Doujin ${idx + 1} of ${
+                                    popularNow.length
+                                }\u2000•\u2000Page ${page} of ${data.num_pages || 1}`
                             )
                             .setTimestamp(),
                         doujin.id
@@ -70,7 +71,8 @@ export default class extends Command {
                 const displayNew = this.client.embeds.richDisplay().useCustomFooters();
                 for (const [idx, doujin] of newUploads.entries()) {
                     displayNew.addPage(
-                        new MessageEmbed()
+                        this.client.util
+                            .embed()
                             .setTitle(`${he.decode(doujin.title)}`)
                             .setURL(`https://nhentai.net/g/${doujin.id}`)
                             .setDescription(
@@ -99,7 +101,8 @@ export default class extends Command {
             const display = this.client.embeds.richDisplay().useCustomFooters();
             for (const [idx, doujin] of data.results.entries()) {
                 display.addPage(
-                    new MessageEmbed()
+                    this.client.util
+                        .embed()
                         .setTitle(`${he.decode(doujin.title)}`)
                         .setURL(`https://nhentai.net/g/${doujin.id}`)
                         .setDescription(

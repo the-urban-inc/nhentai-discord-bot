@@ -5,33 +5,32 @@ import { TAGS } from '@nhentai/utils/constants';
 export default class extends Command {
     constructor() {
         super('unfollow', {
-            category: 'general',
             aliases: ['unfollow'],
             description: {
-                content: 'Follow a tag & get notified over DM when something new gets published.',
+                content: 'Unfollow a tag & get notified over DM when something new gets published.',
                 usage: '[type] [tag]',
-                examples: ['tag story arc', 'language english']
+                examples: ['tag story arc', 'language english'],
             },
-            args: [{
-                id: 'type',
-                type: 'string',
-                match: 'phrase',
-                description: 'Tag type'
-            }, {
-                id: 'tag',
-                type: 'string',
-                match: 'rest',
-                description: 'Tag to follow'
-            }],
-            cooldown: 3000
-        })
+            args: [
+                {
+                    id: 'type',
+                    type: 'string',
+                    match: 'phrase',
+                    description: 'Tag type',
+                },
+                {
+                    id: 'tag',
+                    type: 'string',
+                    match: 'rest',
+                    description: 'Tag to follow',
+                },
+            ],
+        });
     }
 
-    async exec(message: Message, { tag, type } : { tag: string, type: typeof TAGS[number] }) {
+    async exec(message: Message, { tag, type }: { tag: string; type: typeof TAGS[number] }) {
         if (!tag)
-            return message.channel.send(
-                this.client.embeds.clientError('No tag was speficied.')
-            )
+            return message.channel.send(this.client.embeds.clientError('No tag was speficied.'));
         if (!TAGS.includes(type))
             return message.channel.send(
                 this.client.embeds.clientError(
@@ -39,15 +38,15 @@ export default class extends Command {
                         s => `\`${s}\``
                     ).join(', ')}.`
                 )
-            )
+            );
         // resolve tags
         let _ = null;
         try {
             _ = await this.client.nhentai[type](tag);
-        } catch(err) {
+        } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));
-        };
+        }
 
         // dispatch event to subprocess
         this.client.notifier.send({ tag: _.tagId, userId: message.author.id, op: 1 });
@@ -59,6 +58,6 @@ export default class extends Command {
                     _.tagId
                 })\nIt may take a while before you stop receiving updates.`
             )
-        )
+        );
     }
 }

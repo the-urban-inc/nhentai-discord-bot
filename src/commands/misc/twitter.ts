@@ -11,12 +11,10 @@ export default class extends Command {
 
     constructor() {
         super('twitter', {
-            category: 'general',
             aliases: ['twitter', 'tweet'],
             description: {
                 content: "Maou's latest tweet.",
             },
-            cooldown: 3000,
         });
 
         this.token = '';

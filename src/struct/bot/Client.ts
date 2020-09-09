@@ -1,5 +1,6 @@
 import { AkairoClient, CommandHandler, InhibitorHandler, ListenerHandler } from 'discord-akairo';
 import { nhentaiClient } from '../nhentai/index';
+import * as DB from '../db/index';
 import Logger from '@nhentai/utils/logger';
 import Embeds from '@nhentai/utils/embeds';
 import { NhentaiUtil } from '@nhentai/utils/utils';
@@ -11,9 +12,16 @@ const { DISCORD_TOKEN, PREFIX } = process.env;
 export class NhentaiClient extends AkairoClient {
     commandHandler = new CommandHandler(this, {
         directory: `${__dirname}/../../commands/`,
-        prefix: PREFIX,
+        prefix: async message => {
+            if (message.guild) {
+                const prefix = (await DB.Server.prefix(message, 'list')).map(pfx => pfx.id);
+                prefix.push(PREFIX);
+                return prefix;
+            }
+            return PREFIX;
+        },
         allowMention: true,
-        defaultCooldown: 3000,
+        defaultCooldown: 30000,
         blockBots: true,
         automateCategories: true,
         commandUtil: true,
@@ -26,6 +34,7 @@ export class NhentaiClient extends AkairoClient {
     });
 
     nhentai = new nhentaiClient();
+    db = DB;
     util: NhentaiUtil = new NhentaiUtil(this);
     embeds = Embeds;
     logger = Logger;

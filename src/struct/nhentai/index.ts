@@ -1,6 +1,6 @@
 import getHTML from './src/get';
 import * as Parse from './src/parse';
-import { Gallery } from './src/gallery';
+import { Gallery } from './src/struct';
 import qs from 'qs';
 
 async function parseDetailsHTML(url: string) {
@@ -29,12 +29,16 @@ export class nhentaiClient {
         this.baseURL = baseURL;
     }
 
-    async g(id: string) {
+    async g(id: string, more = false) {
         let details = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
-        let related = (await parseDetailsHTML(`${this.baseURL}/g/${id}/`)).related;
-        let comments = (await getHTML(`${this.baseURL}/api/gallery/${id}/comments`)).details;
-        if (!details || !related || !comments) throw new Error('Scraping failed');
-        return new Gallery(details, related, comments);
+        if (more) {
+            let related = (await parseDetailsHTML(`${this.baseURL}/g/${id}/`)).related;
+            let comments = (await getHTML(`${this.baseURL}/api/gallery/${id}/comments`)).details;
+            if (!related || !comments) throw new Error('Scraping failed');
+            return new Gallery(details, related, comments);
+        }
+        if (!details) throw new Error('Scraping failed');
+        return new Gallery(details);
     }
 
     search(keyword: string, page = 1, sort = 'recent') {
@@ -53,13 +57,17 @@ export class nhentaiClient {
         return parseListHTML(`${this.baseURL}/?${query}`);
     }
 
-    async random() {
-		let { id, related } = await parseDetailsHTML(`${this.baseURL}/random/`);
-		if (!id || isNaN(id)) throw new Error('Invalid ID'); 
+    async random(more = false) {
+        let { id, related } = await parseDetailsHTML(`${this.baseURL}/random/`);
+        if (!id || isNaN(id)) throw new Error('Invalid ID');
         let details = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
-		let comments = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
-		if (!details || !related || !comments) throw new Error('Scraping failed');
-        return new Gallery(details, related, comments);
+        if (more) {
+            let comments = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
+            if (!comments) throw new Error('Scraping failed');
+            return new Gallery(details, related, comments);
+        }
+        if (!details || !related) throw new Error('Scraping failed');
+        return new Gallery(details);
     }
 
     tag(name: string, page = 1, sort = 'recent') {
@@ -90,6 +98,17 @@ export class nhentaiClient {
         });
         return parseListHTML(
             `${this.baseURL}/character/${name.replace(/ /g, '-')}/${
+                sort == 'recent' ? '' : sort
+            }?${query}`
+        );
+    }
+
+    category(name: string, page = 1, sort = 'recent') {
+        let query = qs.stringify({
+            page,
+        });
+        return parseListHTML(
+            `${this.baseURL}/category/${name.replace(/ /g, '-')}/${
                 sort == 'recent' ? '' : sort
             }?${query}`
         );

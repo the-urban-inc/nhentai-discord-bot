@@ -5,7 +5,6 @@ import { TAGS } from '@nhentai/utils/constants';
 export default class extends Command {
     constructor() {
         super('follow', {
-            category: 'general',
             aliases: ['follow'],
             description: {
                 content: 'Follow a tag & get notified over DM when something new gets published.',
@@ -26,7 +25,6 @@ export default class extends Command {
                     description: 'Tag to follow',
                 },
             ],
-            cooldown: 3000,
         });
     }
 
