@@ -29,7 +29,7 @@
     "moment": "^2.24.0",
     "mongoose": "^5.8.6",
     "nekos.life": "^2.0.5",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "qs": "^6.9.1",
     "queue-ts": "^0.1.0",
     "set-interval": "https://github.com/cipherallies/SetIntervalJS/archive/8b5e7e07892217bd0eadbcdd3edafc9921ebc2d3.tar.gz",
