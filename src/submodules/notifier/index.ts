@@ -34,6 +34,7 @@ export const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument
                 }).then(done);
                 cache.add(m.tag);
                 await reset();
+                process.send({ tagId: m.tag, user: m.userId, action: 'add' });
             })
         else {
             if (new Set(_.user).has(m.userId))
@@ -44,6 +45,7 @@ export const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument
                     _.user = [...s];
                     _.save().then(done2);
                     await reset();
+                    process.send({ tagId: m.tag, user: m.userId, action: 'remove' });
                 });
             else
             // add
@@ -51,6 +53,7 @@ export const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument
                     _.user = [...new Set(_.user).add(m.userId)];
                     _.save().then(done);
                     await reset();
+                    process.send({ tagId: m.tag, user: m.userId, action: 'add' });
                 });
         }
     });
