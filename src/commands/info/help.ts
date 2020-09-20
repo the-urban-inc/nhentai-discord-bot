@@ -116,7 +116,7 @@ export default class extends Command {
                             `${PREFIX}${a} ${
                                 command.description.usage ? command.description.usage : ''
                             }`,
-                            `Searches nhentai for specified ${a}.`
+                            SPECIAL_COMMANDS[command.id].replace('@', a)
                         );
                     });
                 } else {

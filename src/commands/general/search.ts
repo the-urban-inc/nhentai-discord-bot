@@ -74,7 +74,7 @@ export default class extends Command {
             if (!data.results.length)
                 return message.channel.send(this.client.embeds.clientError('No results found.'));
 
-            const display = this.client.embeds.richDisplay().useCustomFooters();
+            const display = this.client.embeds.richDisplay({ info: true }).useCustomFooters();
             for (const [idx, doujin] of data.results.entries()) {
                 display.addPage(
                     this.client.util

@@ -4,7 +4,7 @@ import he from 'he';
 import moment from 'moment';
 import { User } from '@nhentai/models/user';
 import { Blacklist } from '@nhentai/models/tag';
-import { Gallery, Tag } from '@nhentai/struct/nhentai/src/struct';
+import { Gallery } from '@nhentai/struct/nhentai/src/struct';
 import { ICON, FLAG_EMOJIS } from '@nhentai/utils/constants';
 
 export default class extends Command {

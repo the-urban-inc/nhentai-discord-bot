@@ -38,7 +38,7 @@ export default class extends Command {
 
             if (pageNum === 1) {
                 const popularNow = data.results.slice(0, 5);
-                const displayPopular = this.client.embeds.richDisplay().useCustomFooters();
+                const displayPopular = this.client.embeds.richDisplay({ info: true }).useCustomFooters();
                 for (const [idx, doujin] of popularNow.entries()) {
                     displayPopular.addPage(
                         this.client.util
@@ -61,14 +61,15 @@ export default class extends Command {
                         doujin.id
                     );
                 }
+                await message.channel.send('`🔥` **Popular Now**');
                 await displayPopular.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching ...\n\n`🔥` **Popular Now**')
+                    await message.channel.send('Searching ...')
                 );
 
                 const newUploads = data.results.slice(5);
-                const displayNew = this.client.embeds.richDisplay().useCustomFooters();
+                const displayNew = this.client.embeds.richDisplay({ info: true }).useCustomFooters();
                 for (const [idx, doujin] of newUploads.entries()) {
                     displayNew.addPage(
                         this.client.util
@@ -91,14 +92,15 @@ export default class extends Command {
                         doujin.id
                     );
                 }
+                await message.channel.send('`🧻` **New Uploads**')
                 return displayNew.run(
                     this.client,
                     message,
-                    await message.channel.send('`🧻` **New Uploads**')
+                    await message.channel.send('Searching ...')
                 );
             }
 
-            const display = this.client.embeds.richDisplay().useCustomFooters();
+            const display = this.client.embeds.richDisplay({ info: true }).useCustomFooters();
             for (const [idx, doujin] of data.results.entries()) {
                 display.addPage(
                     this.client.util

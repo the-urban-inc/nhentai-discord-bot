@@ -21,6 +21,7 @@ export interface RichDisplayOptions {
     remove?: boolean;
     jump?: boolean;
     firstLast?: boolean;
+    info?: boolean;
     auto?: boolean;
     love?: boolean;
     blacklist?: boolean;
@@ -30,6 +31,7 @@ export interface RichDisplayOptions {
 
 export class RichDisplay {
     pages: Array<Page> = [];
+    options: RichDisplayOptions;
     infoPage: Embed | null = null;
     info: Blacklist | null = null;
     _emojis: Cache<ReactionMethods, string> = new Cache();
@@ -39,6 +41,7 @@ export class RichDisplay {
     private footerSuffix = '';
     constructor(options: RichDisplayOptions = {}) {
         this._template = this.resolveEmbedOrCallback(options.template ?? new Embed());
+        this.options = options;
 
         this._emojis
             .set(ReactionMethods.First, '⏮')
@@ -77,7 +80,7 @@ export class RichDisplay {
         message: Message,
         options: ReactionHandlerOptions = {}
     ): Promise<ReactionHandler> {
-        if (!this.infoPage) this._emojis.delete(ReactionMethods.Info);
+        if (!(this.options.info ?? this.infoPage)) this._emojis.delete(ReactionMethods.Info);
         if (!this._footered) this.footer();
 
         let msg: Message;

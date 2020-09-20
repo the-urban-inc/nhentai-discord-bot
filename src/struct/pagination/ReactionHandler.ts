@@ -9,10 +9,14 @@ import {
     ReactionCollectorOptions,
     User as DiscordUser,
 } from 'discord.js';
+import he from 'he';
+import moment from 'moment';
 import { Cache } from './Cache';
 import { RichDisplay } from './RichDisplay';
 import { RichMenu } from './RichMenu';
-import { User } from '@nhentai/struct/db/models/user';
+import { Gallery } from '@nhentai/struct/nhentai/src/struct';
+import { Tag } from '@nhentai/struct/nhentai/src/struct';
+import { ICON } from '@nhentai/utils/constants';
 import { NhentaiClient } from '@nhentai/struct/bot/Client';
 
 export interface ReactionHandlerOptions extends ReactionCollectorOptions {
@@ -66,6 +70,7 @@ export class ReactionHandler {
     readonly collector: ReactionCollector;
     #ended = false;
     #awaiting = false;
+    #info = false;
     #autoMode: NodeJS.Timeout;
     #currentPage: number;
     #resolve:
@@ -152,6 +157,7 @@ export class ReactionHandler {
 
     private async update(): Promise<boolean> {
         if (this.message.deleted) return true;
+        this.#info = false;
         await this.message.edit('', {
             embed: this.display.pages[this.#currentPage].embed,
         });
@@ -220,7 +226,47 @@ export class ReactionHandler {
         })
         .set(ReactionMethods.Info, async function (this: ReactionHandler): Promise<boolean> {
             if (this.message.deleted) return true;
-            await this.message.edit('', { embed: this.display.infoPage! });
+            if (this.#info) return this.update();
+            if (!this.display.infoPage) {
+                const pid = this.display.pages[this.#currentPage].id;
+                if (!pid) return false;
+                const doujin: Gallery = await this.client.nhentai.g(
+                    pid,
+                    false
+                );
+                const { title, id, tags, num_pages, upload_date } = doujin.details;
+                const info = this.client.util
+                    .embed()
+                    .setAuthor(he.decode(title.english), ICON, `https://nhentai.net/g/${id}`)
+                    .setThumbnail(doujin.getCoverThumbnail())
+                    .setTimestamp();
+                let t = new Map();
+                tags.forEach((tag: Tag) => {
+                    let a = t.get(tag.type) || [];
+                    a.push(`**\`${tag.name}\`**\`(${tag.count.toLocaleString()})\``);
+                    t.set(tag.type, a);
+                });
+                [
+                    ['parody', 'Parodies'],
+                    ['character', 'Characters'],
+                    ['tag', 'Tags'],
+                    ['artist', 'Artists'],
+                    ['group', 'Groups'],
+                    ['language', 'Languages'],
+                    ['category', 'Categories'],
+                ].forEach(
+                    ([key, fieldName]) =>
+                        t.has(key) &&
+                        info.addField(fieldName, this.client.util.gshorten(t.get(key)))
+                );
+                info.addField('Pages', `**\`${num_pages}\`**`).addField(
+                    'Uploaded',
+                    moment(upload_date * 1000).fromNow()
+                );
+                this.display.infoPage = info;
+            }
+            await this.message.edit('', { embed: this.display.infoPage });
+            this.#info = true; this.display.infoPage = null;
             return false;
         })
         .set(ReactionMethods.Auto, async function (
