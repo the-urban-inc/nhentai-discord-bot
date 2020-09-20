@@ -337,7 +337,12 @@ export class ReactionHandler {
                 const info = this.display.info;
                 if (!info) return Promise.resolve(false);
                 const { id, type, name } = info;
-                this.client.notifier.send({ tag: id, userId: this.requestMessage.author.id });
+                this.client.notifier.send({
+                    tag: +id,
+                    type,
+                    name,
+                    userId: this.requestMessage.author.id,
+                });
                 const adding = true;
                 this.message.channel
                     .send(

@@ -4,10 +4,21 @@ import type { User } from 'discord.js';
 export interface WatchRecord {
     // tag number
     id: number;
+    // type
+    type: string;
+    // name
+    name: string;
     // user
-    user: User["id"][]
+    user: User['id'][];
 }
 
-export interface WatchRecordDocument extends Document, WatchRecord { id: number };
+export interface WatchRecordDocument extends Document, WatchRecord {
+    id: number;
+}
 
-export const WatchRecordSchema : Schema<WatchRecord> = new Schema({ id: Number, user: [String] })
+export const WatchRecordSchema: Schema<WatchRecord> = new Schema({
+    id: Number,
+    type: String,
+    name: String,
+    user: [String],
+});

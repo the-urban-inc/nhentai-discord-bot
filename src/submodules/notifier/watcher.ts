@@ -1,5 +1,5 @@
 import interval from 'set-interval';
-import { EventEmitter } from "events";
+import { EventEmitter } from 'events';
 import cc from 'cheerio';
 import ax from 'axios';
 import { check } from './check';
@@ -11,16 +11,15 @@ export default class Watcher extends EventEmitter {
     public working = false;
     private ints = interval;
     private key = 'watcher';
-    private last : number;
-    
+    private last: number;
+
     private interval = 1800 * 1000;
 
-    async setWatch(s : Set<number>) {
+    async setWatch(s: Set<number>) {
         this.watch = s;
-        log.info(`I am now configured to watch ${s.size} tag(s).`)
-        if (this.working)
-            await this.stop().then(() => this.start());
-        return this
+        log.info(`I am now configured to watch ${s.size} tag(s).`);
+        if (this.working) await this.stop().then(() => this.start());
+        return this;
     }
 
     async stop() {
@@ -41,37 +40,36 @@ export default class Watcher extends EventEmitter {
         this.last = await this.getCode();
         if (isNaN(this.last)) {
             log.error(
-                `Parsing error : couldn't find the latest doujin code.`
-                + `\Please check the scraping logic. Nothing is changed after this incident.`
-            )
+                `Parsing error : couldn't find the latest doujin code.` +
+                    `\Please check the scraping logic. Nothing is changed after this incident.`
+            );
             return this;
         }
 
-        log.info(`The latest doujin code is ${this.last}. Caching.`)
+        log.info(`The latest doujin code is ${this.last}. Caching.`);
         if (this.watch.size === 0) {
-            log.warn(`No tags to be watched for. I will not start.`)
+            log.warn(`No tags to be watched for. I will not start.`);
         } else {
             this.ints.start(
                 async () => {
                     let _ = await this.getCode();
                     if (this.last < _) {
                         log.info(`The latest code is now ${_}, from the last of ${this.last}.`);
-                        log.info(`Dispatching event.`)
+                        log.info(`Dispatching event.`);
                         let out = await check(this.last + 1, _, this.watch);
                         this.last = _;
                         dispatch(out);
-                    }
-                    else
-                        log.info(`No new doujin.`)
+                    } else log.info(`No new doujin.`);
                     this.last = _;
                     // TODO : dispatch events to another module to check
                 },
-                this.interval, this.key
-            )
+                this.interval,
+                this.key
+            );
             // marking state to be true
             this.working = true;
-            log.info(`Started watcher. Every ${this.interval}ms there will be a check.`)
-        };
+            log.info(`Started watcher. Every ${this.interval}ms there will be a check.`);
+        }
         return this;
     }
 }
