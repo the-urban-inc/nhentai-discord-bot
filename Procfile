@@ -1,1 +1,1 @@
-worker: npm build && npm start
+worker: npm start
