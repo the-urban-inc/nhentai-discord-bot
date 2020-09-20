@@ -343,17 +343,6 @@ export class ReactionHandler {
                     name,
                     userId: this.requestMessage.author.id,
                 });
-                const adding = true;
-                this.message.channel
-                    .send(
-                        this.client.embeds.info(
-                            (adding
-                                ? `Started following ${type} \`${name}\`.`
-                                : `Stopped following ${type} \`${name}\`.`) +
-                                '\nIt may take a while to update.'
-                        )
-                    )
-                    .then(message => message.delete({ timeout: 5000 }));
                 return Promise.resolve(false);
             } catch (err) {
                 this.client.logger.error(err);

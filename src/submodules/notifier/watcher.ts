@@ -23,7 +23,7 @@ export default class Watcher extends EventEmitter {
     }
 
     async stop() {
-        this.ints.stop(this.key);
+        this.ints?.stop?.(this.key);
         this.working = false;
         log.warn(`I am stopping, possibly due to changes in the number of watching targets.`);
         log.info(`The last doujin code I checked was ${this.last}.`);

@@ -7,6 +7,8 @@ import { NhentaiUtil } from '@nhentai/utils/utils';
 import { Mongoose } from '@nhentai/utils/mongoose';
 import NekosLifeAPI from 'nekos.life';
 import { fork, ChildProcess } from 'child_process';
+import { TextChannel } from 'discord.js';
+import { DMChannel } from 'discord.js';
 const { DISCORD_TOKEN, PREFIX } = process.env;
 
 export class NhentaiClient extends AkairoClient {
@@ -45,7 +47,31 @@ export class NhentaiClient extends AkairoClient {
         this.notifier = fork(`${__dirname}/../../submodules/notifier/index`, [
             '-r',
             'tsconfig-paths/register',
-        ]);
+        ]).on(
+            'message',
+            async (m: {
+                tagId: string;
+                type: string;
+                name: string;
+                channel: string;
+                user: string;
+                action: string;
+            }) => {
+                let adding = m.action === 'add';
+                console.log(m.channel);
+                const channel = this.channels.cache.get(m.channel) as TextChannel | DMChannel;
+                channel
+                    .send(
+                        this.embeds.info(
+                            (adding
+                                ? `Started following ${m.type} \`${m.name}\`.`
+                                : `Stopped following ${m.type} \`${m.name}\`.`) +
+                                '\nIt may take a while to update.'
+                        )
+                    )
+                    .then(message => message.delete({ timeout: 5000 }));
+            }
+        );
         this.commandHandler
             .useInhibitorHandler(this.inhibitorHandler)
             .useListenerHandler(this.listenerHandler)

@@ -17,14 +17,21 @@ export const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument
 
     process.on(
         'message',
-        async (m: { userId: User['id']; tag: number; type: string; name: string }) => {
+        async (m: {
+            user: User['id'];
+            channel: string;
+            tag: number;
+            type: string;
+            name: string;
+        }) => {
             // registering
-            let [_] = await model.find({ id: m.tag }).exec();
+            const { user, channel, tag, type, name } = m;
+            let [_] = await model.find({ id: tag }).exec();
             let done = () => {
-                log.info(`Registered watcher for user ${m.userId} on tag ${m.tag}.`);
+                log.info(`Registered watcher for user ${user} on tag ${tag}.`);
             };
             let done2 = () => {
-                log.info(`Removed watcher for user ${m.userId} on tag ${m.tag}.`);
+                log.info(`Removed watcher for user ${user} on tag ${tag}.`);
             };
             let reset = async () => await (await watch.setWatch(cache)).start();
 
@@ -34,35 +41,35 @@ export const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument
                 work.add(async () => {
                     await model
                         .findOneAndUpdate(
-                            { id: m.tag },
-                            { id: m.tag, type: m.type, name: m.name, user: [m.userId] },
+                            { id: tag },
+                            { id: tag, type, name, user: [user] },
                             {
                                 upsert: true,
                             }
                         )
                         .then(done);
-                    cache.add(m.tag);
+                    cache.add(tag);
                     await reset();
-                    process.send({ tagId: m.tag, user: m.userId, action: 'add' });
+                    process.send({ tagId: tag, type, name, user, channel, action: 'add' });
                 });
             else {
-                if (new Set(_.user).has(m.userId))
+                if (new Set(_.user).has(user))
                     // remove
                     work.add(async () => {
                         let s = new Set(_.user);
-                        s.delete(m.userId);
+                        s.delete(user);
                         _.user = [...s];
                         _.save().then(done2);
                         await reset();
-                        process.send({ tagId: m.tag, user: m.userId, action: 'remove' });
+                        process.send({ tagId: tag, type, name, user, channel, action: 'remove' });
                     });
                 // add
                 else
                     work.add(async () => {
-                        _.user = [...new Set(_.user).add(m.userId)];
+                        _.user = [...new Set(_.user).add(user)];
                         _.save().then(done);
                         await reset();
-                        process.send({ tagId: m.tag, user: m.userId, action: 'add' });
+                        process.send({ tagId: tag, type, name, user, channel, action: 'add' });
                     });
             }
         }

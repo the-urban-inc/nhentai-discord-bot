@@ -95,7 +95,7 @@ export default class extends Command {
                     '- ⏪ ⏩ : Jump to first/last page',
                     '- ◀ ▶ : Jump to previous/next page',
                     '- ↗️ : Jump to specified page',
-                    '- ℹ️ : Jump to info page',
+                    '- ℹ️ : Jump to info page/View info of a doujin in doujin list view',
                     `- 🇦 ⏹ : Turn on/off auto browsing mode (add --auto to use this feature in ${PREFIX}g and ${PREFIX}random command)`,
                     '- ❤️ : Add/Remove a doujin to/from favorites',
                     '- 🔖 : Follow/Unfollow a tag/artist/parody/etc.',
