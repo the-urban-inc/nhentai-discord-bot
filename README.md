@@ -23,7 +23,8 @@ nhentai is an open source nhentai Discord bot powered by JavaScript with [discor
 
 # Features
 - Almost every basic features of the **[nhentai](https://nhentai.net/)** website.
-- (WIP) EXP system based on the number of doujins searched
+- EXP system based on the number of doujins searched
+- Follow a tag and receive a DM whenever a doujin with that tag is released
 - Random reddit post from [r/nhentai](https://www.reddit.com/r/nhentai/).
 - Images from [nekobot](https://nekobot.xyz/), [nekos.life](https://nekos.life/), [lolis.life](https://lolis.life/) and multiple booru sites such as Danbooru, Gelbooru, and much more.
 
@@ -39,6 +40,7 @@ nhentai is an open source nhentai Discord bot powered by JavaScript with [discor
 git clone https://github.com/kaguwuya/nhentai-discord-bot.git
 cd nhentai-discord-bot
 npm install
+npm build
 ```
 
 After installation finishes you can use `npm start` to start the bot.
