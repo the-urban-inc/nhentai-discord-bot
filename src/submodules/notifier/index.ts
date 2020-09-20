@@ -3,15 +3,15 @@ config();
 import type { User } from 'discord.js';
 import './db';
 import log from '@nhentai/utils/logger';
-import { model as _m, Model } from 'mongoose';
-import { WatchRecordSchema, WatchRecordDocument } from './db/models/record';
+import { model, Model } from 'mongoose';
+import { WatchRecord, WatchRecordDocument } from './db/models/record';
 import w from './watcher';
 import { Queue } from 'queue-ts';
 
-export const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument>;
+export const Watch = model('watch', WatchRecord) as Model<WatchRecordDocument>;
 
 (async () => {
-    let cache = new Set((await model.find({}).select('id').exec()).map(a => a.id));
+    let cache = new Set((await Watch.find({}).select('id').exec()).map(a => a.id));
     let watch = await (await new w().setWatch(cache)).start();
     let work = new Queue(1);
 
@@ -26,7 +26,7 @@ export const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument
         }) => {
             // registering
             const { user, channel, tag, type, name } = m;
-            let [_] = await model.find({ id: tag }).exec();
+            let [_] = await Watch.find({ id: tag }).exec();
             let done = () => {
                 log.info(`Registered watcher for user ${user} on tag ${tag}.`);
             };
@@ -39,7 +39,7 @@ export const model = _m('watch', WatchRecordSchema) as Model<WatchRecordDocument
             if (!_)
                 // okay, this is new
                 work.add(async () => {
-                    await model
+                    await Watch
                         .findOneAndUpdate(
                             { id: tag },
                             { id: tag, type, name, user: [user] },

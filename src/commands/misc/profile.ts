@@ -60,9 +60,7 @@ export default class extends Command {
                     ]);
                 if (
                     more &&
-                    (user.favorites.length ||
-                        user.blacklists.length ||
-                        (user.history.length && !user.anonymous))
+                    (user.favorites.length || (user.history.length && !user.anonymous))
                 ) {
                     const display = this.client.embeds.richDisplay({ love: false }).addPage(embed);
 
@@ -74,32 +72,6 @@ export default class extends Command {
                                 .setThumbnail(member.user.displayAvatarURL())
                                 .setDescription(user.favorites.map(x => `• ${x}`).join('\n'))
                         );
-                    }
-
-                    if (user.blacklists.length) {
-                        let embed = this.client.util
-                            .embed()
-                            .setTitle('Blacklist')
-                            .setThumbnail(member.user.displayAvatarURL());
-                        let t = new Map<string, string[]>();
-                        user.blacklists.forEach(tag => {
-                            const { type, name } = tag;
-                            let a = t.get(type) || [];
-                            a.push(`\`${name}\``);
-                            t.set(type, a);
-                        });
-                        [
-                            ['parody', 'Parodies'],
-                            ['character', 'Characters'],
-                            ['tag', 'Tags'],
-                            ['artist', 'Artists'],
-                            ['group', 'Groups'],
-                            ['language', 'Languages'],
-                            ['category', 'Categories'],
-                        ].forEach(([key, fieldName]) => {
-                            t.has(key) && embed.addField(fieldName, t.get(key).join(', '));
-                        });
-                        display.addPage(embed);
                     }
 
                     if (user.history.length && !user.anonymous) {

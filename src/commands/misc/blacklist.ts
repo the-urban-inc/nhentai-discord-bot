@@ -1,13 +1,13 @@
 import Command from '@nhentai/struct/bot/Command';
 import { Message } from 'discord.js';
-import { Watch } from '@notifier/index';
+import { User } from '@nhentai/struct/db/models/user';
 
 export default class extends Command {
     constructor() {
-        super('follow', {
-            aliases: ['follow'],
+        super('blacklist', {
+            aliases: ['blacklist'],
             description: {
-                content: 'View your follow list',
+                content: 'View your blacklist',
             },
         });
     }
@@ -15,19 +15,21 @@ export default class extends Command {
     async exec(message: Message) {
         try {
             const member = message.author;
-            const tags = await Watch.find({ 'user': member.id }).exec();
-            if (!tags) {
-                return message.channel.send(this.client.embeds.info('Follow list not found.'));
+            const user = await User.findOne({
+                userID: member.id,
+            }).exec();
+            if (!user) {
+                return message.channel.send(this.client.embeds.info('Blacklist not found.'));
             } else {
-                if (!tags.length)
+                if (!user.blacklists.length)
                     return message.channel.send(
-                        this.client.embeds.info('Follow list not found.')
+                        this.client.embeds.info('Blacklist not found.')
                     );
                 let embed = this.client.util
                     .embed()
-                    .setAuthor(`${member.tag}'s Follow List`, member.displayAvatarURL())
+                    .setAuthor(`${member.tag}'s Blacklist`, member.displayAvatarURL())
                 let t = new Map<string, string[]>();
-                tags.forEach(tag => {
+                user.blacklists.forEach(tag => {
                     const { type, name } = tag;
                     let a = t.get(type) || [];
                     a.push(`\`${name}\``);

@@ -1,5 +1,5 @@
 import { Client, MessageEmbed } from 'discord.js';
-import { model } from './';
+import { Watch } from './';
 import type { check } from './check';
 import log from '@nhentai/utils/logger';
 
@@ -16,7 +16,7 @@ export async function dispatch(_: _) {
     // for each tag-id to check, we'll go through the tags of each doujin
     // to check whether that doujin matches
     // if yes, dispatch & cache, so that we don't send a doujin twice
-    let ids = await model.find({}).exec();
+    let ids = await Watch.find({}).exec();
 
     // cache each sends
     let cache = new Map<string, Set<number>>();

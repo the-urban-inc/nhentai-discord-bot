@@ -17,7 +17,7 @@
         "emitDecoratorMetadata": false,
         "downlevelIteration": true,
         "paths": {
-            "@notifier/utils/*": ["src/submodules/notifier/utils/*"],
+            "@notifier/*": ["src/submodules/notifier/*"],
             "@nhentai/utils/*": ["src/utils/*"],
             "@nhentai/models/*": ["src/struct/db/models/*"],
             "@nhentai/struct/*": ["src/struct/*"]

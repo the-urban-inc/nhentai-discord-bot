@@ -58,7 +58,6 @@ export class NhentaiClient extends AkairoClient {
                 action: string;
             }) => {
                 let adding = m.action === 'add';
-                console.log(m.channel);
                 const channel = this.channels.cache.get(m.channel) as TextChannel | DMChannel;
                 channel
                     .send(

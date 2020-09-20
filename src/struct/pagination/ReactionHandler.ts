@@ -341,7 +341,8 @@ export class ReactionHandler {
                     tag: +id,
                     type,
                     name,
-                    userId: this.requestMessage.author.id,
+                    channel: this.message.channel.id,
+                    user: this.requestMessage.author.id,
                 });
                 return Promise.resolve(false);
             } catch (err) {
