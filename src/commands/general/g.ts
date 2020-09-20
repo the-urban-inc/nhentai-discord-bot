@@ -81,7 +81,7 @@ export default class extends Command {
 
             if (message.guild && !this.anonymous) {
                 await this.client.db.Server.history(message, history);
-                await this.client.db.User.history(message, history);
+                await this.client.db.User.history(message.author, history);
                 const leveledUp = await this.client.db.XP.save('add', 'exp', message, inc);
                 if (leveledUp) {
                     message.channel

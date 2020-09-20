@@ -96,7 +96,7 @@ export default class extends Command {
             const id = tagId.toString(),
                 name = text.toLowerCase();
             if (!this.anonymous) {
-                await this.client.db.User.history(message, {
+                await this.client.db.User.history(message.author, {
                     id,
                     type: tag,
                     name,

@@ -59,6 +59,7 @@ export class NhentaiClient extends AkairoClient {
             }) => {
                 let adding = m.action === 'add';
                 const channel = this.channels.cache.get(m.channel) as TextChannel | DMChannel;
+                const user = this.users.cache.get(m.user);
                 channel
                     .send(
                         this.embeds.info(
@@ -66,7 +67,7 @@ export class NhentaiClient extends AkairoClient {
                                 ? `Started following ${m.type} \`${m.name}\`.`
                                 : `Stopped following ${m.type} \`${m.name}\`.`) +
                                 '\nIt may take a while to update.'
-                        )
+                        ).setFooter(user.tag, user.displayAvatarURL())
                     )
                     .then(message => message.delete({ timeout: 5000 }));
             }

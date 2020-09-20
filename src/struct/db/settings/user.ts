@@ -1,12 +1,12 @@
-import { Message } from 'discord.js';
+import { User as DiscordUser } from 'discord.js';
 import { User } from '../models/user';
 import { History, Blacklist } from '../models/tag';
 
-export async function history(message: Message, userHistory: History) {
-    const user = await User.findOne({ userID: message.author.id });
+export async function history(duser: DiscordUser, userHistory: History) {
+    const user = await User.findOne({ userID: duser.id });
     if (!user) {
         await new User({
-            userID: message.author.id,
+            userID: duser.id,
             history: [userHistory],
         }).save();
     } else {
@@ -15,14 +15,14 @@ export async function history(message: Message, userHistory: History) {
     }
 }
 
-export async function favorite(message: Message, id: string) {
+export async function favorite(duser: DiscordUser, id: string) {
     let adding = false;
     const user = await User.findOne({
-        userID: message.author.id,
+        userID: duser.id,
     }).exec();
     if (!user) {
         await new User({
-            userID: message.author.id,
+            userID: duser.id,
             favorites: [id],
         }).save();
         adding = true;
@@ -38,14 +38,14 @@ export async function favorite(message: Message, id: string) {
     return adding;
 }
 
-export async function blacklist(message: Message, info: Blacklist) {
+export async function blacklist(duser: DiscordUser, info: Blacklist) {
     let adding = false;
     const user = await User.findOne({
-        userID: message.author.id,
+        userID: duser.id,
     }).exec();
     if (!user) {
         await new User({
-            userID: message.author.id,
+            userID: duser.id,
             blacklists: [info],
         }).save();
         adding = true;
@@ -61,11 +61,11 @@ export async function blacklist(message: Message, info: Blacklist) {
     return adding;
 }
 
-export async function anonymous(message: Message) {
-    const user = await User.findOne({ userID: message.author.id });
+export async function anonymous(duser: DiscordUser) {
+    const user = await User.findOne({ userID: duser.id });
     if (!user) {
         await new User({
-            userID: message.author.id,
+            userID: duser.id,
             anonymous: false,
         }).save();
         return false;

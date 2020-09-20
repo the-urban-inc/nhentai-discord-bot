@@ -7,7 +7,7 @@ import {
     Message,
     ReactionCollector,
     ReactionCollectorOptions,
-    User as DiscordUser,
+    User,
 } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
@@ -179,7 +179,7 @@ export class ReactionHandler {
 
     private methods: Map<
         ReactionMethods,
-        (this: ReactionHandler, user: DiscordUser) => Promise<boolean>
+        (this: ReactionHandler, user: User) => Promise<boolean>
     > = new Map()
         .set(ReactionMethods.First, function (this: ReactionHandler): Promise<boolean> {
             this.#currentPage = 0;
@@ -201,7 +201,7 @@ export class ReactionHandler {
         })
         .set(ReactionMethods.Jump, async function (
             this: ReactionHandler,
-            user: DiscordUser
+            user: User
         ): Promise<boolean> {
             if (this.#awaiting) return Promise.resolve(false);
             this.#awaiting = true;
@@ -270,7 +270,7 @@ export class ReactionHandler {
         })
         .set(ReactionMethods.Auto, async function (
             this: ReactionHandler,
-            user: DiscordUser
+            user: User
         ): Promise<boolean> {
             if (this.#awaiting) return Promise.resolve(false);
             this.#awaiting = true;
@@ -313,16 +313,16 @@ export class ReactionHandler {
             }
             return Promise.resolve(false);
         })
-        .set(ReactionMethods.Love, async function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.Love, async function (this: ReactionHandler, user: User): Promise<boolean> {
             try {
                 let id = this.display.info.id || this.display.pages[this.#currentPage].id;
                 if (!id) return Promise.resolve(false);
-                const adding = await this.client.db.User.favorite(this.requestMessage, id);
+                const adding = await this.client.db.User.favorite(user, id);
                 this.message.channel
                     .send(
                         this.client.embeds.info(
                             adding ? `Added ${id} to favorites.` : `Removed ${id} from favorites.`
-                        )
+                        ).setFooter(user.tag, user.displayAvatarURL())
                     )
                     .then(message => message.delete({ timeout: 5000 }));
                 return Promise.resolve(false);
@@ -332,7 +332,7 @@ export class ReactionHandler {
                 return true;
             }
         })
-        .set(ReactionMethods.Follow, async function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.Follow, async function (this: ReactionHandler, user: User): Promise<boolean> {
             try {
                 const info = this.display.info;
                 if (!info) return Promise.resolve(false);
@@ -342,7 +342,7 @@ export class ReactionHandler {
                     type,
                     name,
                     channel: this.message.channel.id,
-                    user: this.requestMessage.author.id,
+                    user: user.id,
                 });
                 return Promise.resolve(false);
             } catch (err) {
@@ -351,19 +351,19 @@ export class ReactionHandler {
                 return true;
             }
         })
-        .set(ReactionMethods.Blacklist, async function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.Blacklist, async function (this: ReactionHandler, user: User): Promise<boolean> {
             try {
                 const info = this.display.info;
                 if (!info) return Promise.resolve(false);
                 const { type, name } = info;
-                const adding = await this.client.db.User.blacklist(this.requestMessage, info);
+                const adding = await this.client.db.User.blacklist(user, info);
                 this.message.channel
                     .send(
                         this.client.embeds.info(
                             adding
                                 ? `Added ${type} \`${name}\` to blacklist.`
                                 : `Removed ${type} \`${name}\` from blacklist.`
-                        )
+                        ).setFooter(user.tag, user.displayAvatarURL())
                     )
                     .then(message => message.delete({ timeout: 5000 }));
                 return Promise.resolve(false);
