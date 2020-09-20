@@ -107,7 +107,7 @@ export default class extends Command {
             }
 
             const display = this.client.embeds
-                .richDisplay({ blacklist: true, info: true })
+                .richDisplay({ info: true, follow: true, blacklist: true })
                 .setInfo({ id, type: tag, name })
                 .useCustomFooters();
             for (const [idx, doujin] of results.entries()) {

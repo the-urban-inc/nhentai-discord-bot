@@ -44,6 +44,7 @@ export const enum ReactionMethods {
     Auto = 'auto',
     Pause = 'pause',
     Love = 'love',
+    Follow = 'follow',
     Blacklist = 'blacklist',
     Remove = 'remove',
     One = 'one',
@@ -230,10 +231,7 @@ export class ReactionHandler {
             if (!this.display.infoPage) {
                 const pid = this.display.pages[this.#currentPage].id;
                 if (!pid) return false;
-                const doujin: Gallery = await this.client.nhentai.g(
-                    pid,
-                    false
-                );
+                const doujin: Gallery = await this.client.nhentai.g(pid, false);
                 const { title, id, tags, num_pages, upload_date } = doujin.details;
                 const info = this.client.util
                     .embed()
@@ -266,7 +264,8 @@ export class ReactionHandler {
                 this.display.infoPage = info;
             }
             await this.message.edit('', { embed: this.display.infoPage });
-            this.#info = true; this.display.infoPage = null;
+            this.#info = true;
+            this.display.infoPage = null;
             return false;
         })
         .set(ReactionMethods.Auto, async function (
@@ -323,6 +322,30 @@ export class ReactionHandler {
                     .send(
                         this.client.embeds.info(
                             adding ? `Added ${id} to favorites.` : `Removed ${id} from favorites.`
+                        )
+                    )
+                    .then(message => message.delete({ timeout: 5000 }));
+                return Promise.resolve(false);
+            } catch (err) {
+                this.client.logger.error(err);
+                this.message.channel.send(this.client.embeds.internalError(err));
+                return true;
+            }
+        })
+        .set(ReactionMethods.Follow, async function (this: ReactionHandler): Promise<boolean> {
+            try {
+                const info = this.display.info;
+                if (!info) return Promise.resolve(false);
+                const { id, type, name } = info;
+                this.client.notifier.send({ tag: id, userId: this.requestMessage.author.id });
+                const adding = true;
+                this.message.channel
+                    .send(
+                        this.client.embeds.info(
+                            (adding
+                                ? `Started following ${type} \`${name}\`.`
+                                : `Stopped following ${type} \`${name}\`.`) +
+                                '\nIt may take a while to update.'
                         )
                     )
                     .then(message => message.delete({ timeout: 5000 }));
