@@ -10,6 +10,7 @@ export default class extends Command {
     constructor() {
         super('favorites', {
             aliases: ['favorites', 'favourites'],
+            channel: 'guild',
             description: {
                 content:
                     "Check your (or your buddy's) favorites list.\nTo add a doujin to your favorites list, react with `❤️`",

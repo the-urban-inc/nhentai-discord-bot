@@ -25,7 +25,6 @@ function isUrl(s: string) {
 export default class extends Command {
     constructor() {
         super('booru', {
-            category: 'images',
             aliases: ['booru'],
             channel: 'guild',
             description: {

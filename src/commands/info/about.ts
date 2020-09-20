@@ -1,15 +1,14 @@
 import Command from '@nhentai/struct/bot/Command';
 import { Message, version as DiscordVersion } from 'discord.js';
 import { version as AkairoVersion } from 'discord-akairo';
-import moment from 'moment';
 import { PERMISSIONS } from '@nhentai/utils/constants';
 const { npm_package_description, npm_package_version, npm_package_repository_url } = process.env;
 
 export default class extends Command {
     constructor() {
         super('about', {
-            category: 'info',
             aliases: ['about', 'info', 'information', 'stats'],
+            channel: 'guild',
             description: {
                 content: 'Responds with detailed bot information.',
             },

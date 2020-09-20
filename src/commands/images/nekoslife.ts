@@ -5,7 +5,6 @@ import { NEKOSLIFE_TAGS } from '@nhentai/utils/constants';
 export default class extends Command {
     constructor() {
         super('nekoslife', {
-            category: 'images',
             aliases: ['nekoslife', 'nl'],
             channel: 'guild',
             description: {

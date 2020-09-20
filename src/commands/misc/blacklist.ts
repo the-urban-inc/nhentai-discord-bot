@@ -6,6 +6,7 @@ export default class extends Command {
     constructor() {
         super('blacklist', {
             aliases: ['blacklist'],
+            channel: 'guild',
             description: {
                 content: 'View your blacklist',
             },

@@ -5,8 +5,8 @@ import { PERMISSIONS } from '@nhentai/utils/constants';
 export default class extends Command {
     constructor() {
         super('invite', {
-            category: 'info',
             aliases: ['invite', 'join'],
+            channel: 'guild',
             description: {
                 content: 'Invite me to your server!',
             },

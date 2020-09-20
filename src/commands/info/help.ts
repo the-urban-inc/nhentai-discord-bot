@@ -20,7 +20,7 @@ export default class extends Command {
     constructor() {
         super('help', {
             aliases: ['help', 'halp', 'h'],
-            category: 'info',
+            channel: 'guild',
             description: {
                 content: 'Displays a list of commands or information about a command.',
                 usage: '[command]',
@@ -105,6 +105,7 @@ export default class extends Command {
         );
         for (const [category, commands] of this.client.commandHandler.categories) {
             const title = TITLE_LIST[category as keyof typeof TITLE_LIST];
+            if (category === 'owner') continue;
             const publicCommands =
                 message.author.id === this.client.ownerID
                     ? commands

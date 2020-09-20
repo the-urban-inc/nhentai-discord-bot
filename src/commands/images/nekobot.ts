@@ -6,7 +6,6 @@ import { NEKOBOT_TAGS } from '@nhentai/utils/constants';
 export default class extends Command {
     constructor() {
         super('nekobot', {
-            category: 'images',
             aliases: ['nekobot', 'nb'],
             channel: 'guild',
             description: {

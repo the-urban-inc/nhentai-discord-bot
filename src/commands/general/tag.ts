@@ -11,8 +11,8 @@ const TAGS = ['tag', 'artist', 'character', 'parody', 'group', 'language'] as co
 export default class extends Command {
     constructor() {
         super('tag', {
-            category: 'general',
             aliases: ['tag', 'artist', 'character', 'parody', 'group', 'language', 'category'],
+            channel: 'guild',
             description: {
                 usage: `[--page=pagenum] [--sort=(${SORT_METHODS.join('/')})]`,
             },

@@ -8,6 +8,7 @@ export default class extends Command {
     constructor() {
         super('profile', {
             aliases: ['profile'],
+            channel: 'guild',
             description: {
                 content:
                     "Views someone's profile.\nAdd --more to view favorite list, blacklist and recent calls (will not show up if the user has anonymous mode turned on).",

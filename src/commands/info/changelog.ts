@@ -10,8 +10,8 @@ const client = new Octokit({
 export default class extends Command {
     constructor() {
         super('changelog', {
-            category: 'info',
             aliases: ['changelog', 'updates', 'commits'],
+            channel: 'guild',
             description: {
                 content: "Responds with the bot's latest 10 commits.",
             },

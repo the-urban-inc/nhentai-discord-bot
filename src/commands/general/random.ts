@@ -8,8 +8,8 @@ import { ICON, FLAG_EMOJIS } from '@nhentai/utils/constants';
 export default class extends Command {
     constructor() {
         super('random', {
-            category: 'general',
             aliases: ['random'],
+            channel: 'guild',
             description: {
                 content:
                     'Random doujin.\nRun with `--more` to include `More Like This` and `Comments`.',

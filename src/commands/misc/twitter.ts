@@ -12,6 +12,7 @@ export default class extends Command {
     constructor() {
         super('twitter', {
             aliases: ['twitter', 'tweet'],
+            channel: 'guild',
             description: {
                 content: "Maou's latest tweet.",
             },

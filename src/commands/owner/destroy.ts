@@ -5,6 +5,7 @@ export default class extends Command {
     constructor() {
         super('destroy', {
             aliases: ['destroy'],
+            channel: 'guild',
             ownerOnly: true,
             args: [
                 {

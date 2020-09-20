@@ -10,8 +10,8 @@ import { ICON, FLAG_EMOJIS } from '@nhentai/utils/constants';
 export default class extends Command {
     constructor() {
         super('g', {
-            category: 'general',
             aliases: ['g', 'get', 'doujin'],
+            channel: 'guild',
             description: {
                 content:
                     'Searches for a code on nhentai.\nRun with `--more` to include `More Like This` and `Comments`.',

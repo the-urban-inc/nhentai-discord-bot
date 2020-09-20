@@ -6,8 +6,8 @@ import { FLAG_EMOJIS, SORT_METHODS } from '@nhentai/utils/constants';
 export default class extends Command {
     constructor() {
         super('search', {
-            category: 'general',
             aliases: ['search'],
+            channel: 'guild',
             description: {
                 content: [
                     'Searches nhentai for given query.',

@@ -6,6 +6,7 @@ export default class extends Command {
     constructor() {
         super('eval', {
             aliases: ['eval', 'e'],
+            channel: 'guild',
             ownerOnly: true,
             args: [
                 {

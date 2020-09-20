@@ -6,6 +6,7 @@ export default class extends Command {
     constructor() {
         super('follow', {
             aliases: ['follow'],
+            channel: 'guild',
             description: {
                 content: 'View your follow list',
             },

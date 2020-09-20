@@ -6,8 +6,8 @@ import { FLAG_EMOJIS } from '@nhentai/utils/constants';
 export default class extends Command {
     constructor() {
         super('home', {
-            category: 'general',
             aliases: ['home', 'homepage'],
+            channel: 'guild',
             description: {
                 content: 'nhentai homepage.',
                 usage: '[--page=pagenum]',

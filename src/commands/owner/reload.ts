@@ -6,6 +6,7 @@ export default class extends Command {
     constructor() {
         super('reload', {
             aliases: ['reload', 'r'],
+            channel: 'guild',
             ownerOnly: true,
             args: [
                 {

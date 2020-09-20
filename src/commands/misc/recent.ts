@@ -7,6 +7,7 @@ export default class extends Command {
     constructor() {
         super('recent', {
             aliases: ['recent'],
+            channel: 'guild',
             description: {
                 content: "Stalking people's fetishes.",
             },

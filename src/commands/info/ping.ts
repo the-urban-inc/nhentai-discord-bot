@@ -5,6 +5,7 @@ export default class extends Command {
     constructor() {
         super('ping', {
             aliases: ['ping', 'hello'],
+            channel: 'guild',
             description: {
                 content: 'Pings Nhentai.',
             },
