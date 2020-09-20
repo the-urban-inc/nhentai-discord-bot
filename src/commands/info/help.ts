@@ -98,6 +98,7 @@ export default class extends Command {
                     '- ℹ️ : Jump to info page',
                     `- 🇦 ⏹ : Turn on/off auto browsing mode (add --auto to use this feature in ${PREFIX}g and ${PREFIX}random command)`,
                     '- ❤️ : Add/Remove a doujin to/from favorites',
+                    '- 🔖 : Follow/Unfollow a tag/artist/parody/etc.',
                     '- 🏴 : Blacklist a tag/artist/parody/etc.',
                     '- 🗑 : Delete bot message',
                 ])
