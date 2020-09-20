@@ -50,7 +50,7 @@ export default class extends Command {
         }
 
         // dispatch event to subprocess
-        this.client.notifier.send({ tag: _.tagId, userId: message.author.id, op: 0 });
+        this.client.notifier.send({ tag: _.tagId, userId: message.author.id });
         message.channel.send(
             this.client.embeds.info(
                 `✅ You are now registered for updates.\n**${this.client.util.capitalize(
