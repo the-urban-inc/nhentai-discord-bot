@@ -61,11 +61,10 @@ export default class extends Command {
                         doujin.id
                     );
                 }
-                await message.channel.send('`🔥` **Popular Now**');
                 await displayPopular.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching ...')
+                    await message.channel.send('`🔥` **Popular Now**')
                 );
 
                 const newUploads = data.results.slice(5);
@@ -92,11 +91,10 @@ export default class extends Command {
                         doujin.id
                     );
                 }
-                await message.channel.send('`🧻` **New Uploads**')
                 return displayNew.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching ...')
+                    await message.channel.send('`🧻` **New Uploads**')
                 );
             }
 

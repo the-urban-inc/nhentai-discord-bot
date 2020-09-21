@@ -88,12 +88,12 @@ export class RichDisplay {
 
         let msg: Message;
         if (message.editable) {
-            await message.edit('', {
+            await message.edit({
                 embed: this.infoPage ?? this.pages[options.startPage ?? 0].embed,
             });
             msg = message;
         } else {
-            msg = await message.channel.send('', {
+            msg = await message.channel.send({
                 embed: this.infoPage ?? this.pages[options.startPage ?? 0].embed,
             });
         }
