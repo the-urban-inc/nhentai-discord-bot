@@ -1,53 +1,64 @@
 {
-  "name": "nhentai",
-  "version": "0.1.0",
-  "description": "As you can guess from the name, I'm a bot that focuses on NSFW content.",
-  "main": "bot/index.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/t41y0u/nhentai-discord-bot"
-  },
-  "dependencies": {
-    "@octokit/rest": "^18.0.0",
-    "@types/cheerio": "^0.22.18",
-    "@types/mongoose": "^5.7.27",
-    "@types/node": "^14.0.13",
-    "axios": "^0.19.0",
-    "axios-https-proxy-fix": "^0.17.1",
-    "booru": "^2.0.5",
-    "chalk": "^4.1.0",
-    "cheerio": "^1.0.0-rc.3",
-    "common-tags": "^1.8.0",
-    "cookie-parser": "^1.4.4",
-    "discord-akairo": "^8.0.0",
-    "discord.js": "^12.2.0",
-    "dotenv": "^8.0.0",
-    "express": "^4.17.1",
-    "he": "^1.2.0",
-    "http-errors": "^1.7.3",
-    "lolis.life": "^4.0.0",
-    "moment": "^2.24.0",
-    "mongoose": "^5.8.6",
-    "nekos.life": "^2.0.5",
-    "node-fetch": "^2.6.1",
-    "qs": "^6.9.1",
-    "queue-ts": "^0.1.0",
-    "set-interval": "https://github.com/cipherallies/SetIntervalJS/archive/8b5e7e07892217bd0eadbcdd3edafc9921ebc2d3.tar.gz",
-    "ts-node": "^8.10.2",
-    "tsconfig-paths": "^3.9.0",
-    "typescript": "^3.9.5"
-  },
-  "devDependencies": {
-    "husky": "^4.2.5"
-  },
-  "scripts": {
-    "start": "node -r ts-node/register -r tsconfig-paths/register bot/index.js",
-    "wipe": "node scripts/wipe.js"
-  },
-  "engines": {
-    "node": ">=11.13.0"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "MIT"
+    "name": "nhentai",
+    "version": "1.1.0",
+    "description": "As you can guess from the name, I'm a bot that focuses on NSFW content.",
+    "main": "build/src/index.js",
+    "types": "build/src/index.d.ts",
+    "files": [
+        "build/src"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/t41y0u/nhentai-discord-bot"
+    },
+    "dependencies": {
+        "@octokit/rest": "^18.0.0",
+        "axios": "^0.19.0",
+        "axios-https-proxy-fix": "^0.17.1",
+        "booru": "^2.0.5",
+        "chalk": "^4.1.0",
+        "cheerio": "^1.0.0-rc.3",
+        "common-tags": "^1.8.0",
+        "cookie-parser": "^1.4.4",
+        "discord-akairo": "^8.0.0",
+        "discord.js": "^12.2.0",
+        "dotenv": "^8.0.0",
+        "he": "^1.2.0",
+        "moment": "^2.24.0",
+        "mongoose": "^5.8.6",
+        "nekos.life": "^2.0.5",
+        "qs": "^6.9.1",
+        "queue-ts": "^0.1.0",
+        "set-interval": "https://github.com/cipherallies/SetIntervalJS/archive/8b5e7e07892217bd0eadbcdd3edafc9921ebc2d3.tar.gz",
+        "tsconfig-paths": "^3.9.0"
+    },
+    "devDependencies": {
+        "@types/cheerio": "^0.22.18",
+        "@types/he": "^1.1.1",
+        "@types/mongoose": "^5.7.27",
+        "@types/node": "^14.0.13",
+        "@types/node-fetch": "^2.5.7",
+        "@types/qs": "^6.9.4",
+        "@types/ws": "^7.2.6",
+        "@zerollup/ts-transform-paths": "^1.7.18",
+        "husky": "^4.2.5",
+        "rimraf": "^3.0.2",
+        "ts-node": "^8.10.2",
+        "ttypescript": "^1.5.10",
+        "typescript": "^3.9.7"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "rimraf build/ && ttsc",
+        "lint": "eslint src/**/* --ext .ts",
+        "start": "node --trace-warnings build/src/index.js",
+        "dev": "ts-node --compiler ttypescript src/index.ts",
+        "wipe": "ts-node --compiler ttypescript scripts/wipe.ts"
+    },
+    "engines": {
+        "node": ">=11.13.0"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "MIT"
 }
