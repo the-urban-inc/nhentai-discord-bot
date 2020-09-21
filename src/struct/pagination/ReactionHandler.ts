@@ -229,7 +229,7 @@ export class ReactionHandler {
             if (this.message.deleted) return true;
             if (this.#info) return this.update();
             if (!this.display.infoPage) {
-                const pid = this.display.pages[this.#currentPage].id;
+                const pid = this.display.pages[this.#currentPage].id || this.display.info.id;
                 if (!pid) return false;
                 const doujin: Gallery = await this.client.nhentai.g(pid, false);
                 const { title, id, tags, num_pages, upload_date } = doujin.details;
