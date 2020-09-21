@@ -136,6 +136,7 @@ export default class extends Command {
             this.client,
             message,
             await message.channel.send('Loading command list...'),
+            '',
             {
                 time: 300000,
             }

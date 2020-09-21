@@ -13,7 +13,7 @@ export default class Watcher extends EventEmitter {
     private key = 'watcher';
     private last: number;
 
-    private interval = 1800 * 1000;
+    private interval = 300 * 1000;
 
     async setWatch(s: Set<number>) {
         this.watch = s;
@@ -45,7 +45,6 @@ export default class Watcher extends EventEmitter {
             );
             return this;
         }
-
         log.info(`The latest doujin code is ${this.last}. Caching.`);
         if (this.watch.size === 0) {
             log.warn(`No tags to be watched for. I will not start.`);

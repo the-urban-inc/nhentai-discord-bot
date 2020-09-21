@@ -65,6 +65,7 @@ export class RichMenu extends RichDisplay {
         client: NhentaiClient,
         requestMessage: Message,
         message: Message,
+        editMessage: string = '',
         options: ReactionHandlerOptions = {}
     ): Promise<ReactionHandler> {
         if (this.choices.length < choiceMethods.length) {
@@ -72,7 +73,7 @@ export class RichMenu extends RichDisplay {
                 this._emojis.delete(choiceMethods[i]);
         }
         if (!this.paginated) this.paginate();
-        return super.run(client, requestMessage, message, options);
+        return super.run(client, requestMessage, message, editMessage, options);
     }
 
     private paginate(): null {

@@ -81,6 +81,7 @@ export class RichDisplay {
         client: NhentaiClient,
         requestMessage: Message,
         message: Message,
+        editMessage: string = '',
         options: ReactionHandlerOptions = {}
     ): Promise<ReactionHandler> {
         if (!(this.options.info ?? this.infoPage)) this._emojis.delete(ReactionMethods.Info);
@@ -88,12 +89,12 @@ export class RichDisplay {
 
         let msg: Message;
         if (message.editable) {
-            await message.edit({
+            await message.edit(editMessage, {
                 embed: this.infoPage ?? this.pages[options.startPage ?? 0].embed,
             });
             msg = message;
         } else {
-            msg = await message.channel.send({
+            msg = await message.channel.send(editMessage, {
                 embed: this.infoPage ?? this.pages[options.startPage ?? 0].embed,
             });
         }

@@ -64,7 +64,8 @@ export default class extends Command {
                 await displayPopular.run(
                     this.client,
                     message,
-                    await message.channel.send('`🔥` **Popular Now**')
+                    await message.channel.send('Searching ...'),
+                    '`🔥` **Popular Now**'
                 );
 
                 const newUploads = data.results.slice(5);
@@ -94,7 +95,8 @@ export default class extends Command {
                 return displayNew.run(
                     this.client,
                     message,
-                    await message.channel.send('`🧻` **New Uploads**')
+                    await message.channel.send('Searching ...'),
+                    '`🧻` **New Uploads**'
                 );
             }
 

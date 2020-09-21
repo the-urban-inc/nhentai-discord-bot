@@ -12,7 +12,7 @@ export interface Tag {
     count: number;
 }
 
-export class DoujinDetails {
+export interface DoujinDetails {
     id: number;
     media_id: string;
     title: {
@@ -32,6 +32,7 @@ export class DoujinDetails {
     tags: Tag[];
     num_pages: number;
     num_favorites: number;
+    error?: string;
 }
 
 export interface DoujinThumbnail {

@@ -159,7 +159,7 @@ export class ReactionHandler {
     private async update(): Promise<boolean> {
         if (this.message.deleted) return true;
         this.#info = false;
-        await this.message.edit('', {
+        await this.message.edit(this.message.content, {
             embed: this.display.pages[this.#currentPage].embed,
         });
         return false;
@@ -263,7 +263,7 @@ export class ReactionHandler {
                 );
                 this.display.infoPage = info;
             }
-            await this.message.edit('', { embed: this.display.infoPage });
+            await this.message.edit(this.message.content, { embed: this.display.infoPage });
             this.#info = true;
             this.display.infoPage = null;
             return false;

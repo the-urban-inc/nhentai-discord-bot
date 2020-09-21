@@ -1,5 +1,6 @@
-import ax from 'axios';
-import log from '@nhentai/utils/logger';
+import { nhentaiClient } from '@nhentai/struct/nhentai/index';
+
+const nh = new nhentaiClient();
 
 /**
  * Categorize into tags
@@ -14,27 +15,12 @@ export async function check(from: number, to: number, filter: Set<number>) {
                 .fill(0)
                 .map((_, i) => from + i)
                 .map(async (c, i) => {
-                    let url = `https://nhentai.net/api/gallery/${c}`;
                     await new Promise(r => setTimeout(r, i * 5500));
-                    let _ = await ax.get(url, { validateStatus: () => true });
-                    if (_.status !== 200) {
-                        log.error(`Fetching ${url} failed : status was ${_.status}`);
-                        return;
-                    }
-                    let out = _.data as {
-                        id: number;
-                        media_id: string;
-                        title: { english: string; japanese: string; pretty: string };
-                        tags: {
-                            id: number;
-                            type: string;
-                            name: string;
-                            count: number;
-                        }[];
-                    };
+                    const out = await nh.g(c.toString());
+                    if (out.details.error) return;
                     let tags = new Map<number, string>();
-                    out.tags.forEach(a => tags.set(a.id, a.name));
-                    return { ...out, tags };
+                    out.details.tags.forEach(a => tags.set(a.id, a.name));
+                    return { out, tags };
                 })
         )
     )

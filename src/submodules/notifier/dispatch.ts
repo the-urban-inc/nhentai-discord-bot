@@ -1,12 +1,17 @@
-import { Client, MessageEmbed } from 'discord.js';
+import { MessageEmbed } from 'discord.js';
+import he from 'he';
+import moment from 'moment';
 import { Watch } from './';
 import type { check } from './check';
 import log from '@nhentai/utils/logger';
+import { ICON } from '@nhentai/utils/constants';
+import { NhentaiClient } from '@nhentai/struct/bot/Client';
+import { WatchRecordDocument } from './db/models/record';
 
 type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
 type _ = ThenArg<ReturnType<typeof check>>;
 
-const client = new Client({
+const client = new NhentaiClient({
     messageCacheMaxSize: 1,
 });
 
@@ -30,27 +35,50 @@ export async function dispatch(_: _) {
             if (!user) return;
 
             targets.forEach(d => {
+                const doujin = d.out;
+                let { tags, num_pages, upload_date } = doujin.details;
+                let id = doujin.details.id,
+                    title = he.decode(doujin.details.title.english);
                 // check if this user were sent this target
                 if (!cache.has(userId)) cache.set(userId, new Set<number>());
-                if (cache.get(userId).has(d.id)) return;
-                cache.get(userId).add(d.id);
+                if (cache.get(userId).has(id)) return;
+                cache.get(userId).add(id);
 
+                let info = new MessageEmbed()
+                    .setAuthor(title, ICON, `https://nhentai.net/g/${id}`)
+                    .setThumbnail(doujin.getCoverThumbnail())
+                    .setFooter(`ID : ${id} • Followed tags are wrapped in brackets []`)
+                    .setTimestamp();
+                let t = new Map();
+                tags.forEach(tag => {
+                    const { id, type, name, count } = tag;
+                    let a = t.get(type) || [];
+                    let s = `**\`${name}\`**\`(${count.toLocaleString()})\``;
+                    if (ids.some(x => x.id === id)) s = `[${s}]`;
+                    a.push(s);
+                    t.set(type, a);
+                });
+
+                [
+                    ['parody', 'Parodies'],
+                    ['character', 'Characters'],
+                    ['tag', 'Tags'],
+                    ['artist', 'Artists'],
+                    ['group', 'Groups'],
+                    ['language', 'Languages'],
+                    ['category', 'Categories'],
+                ].forEach(
+                    ([key, fieldName]) =>
+                        t.has(key) && info.addField(fieldName, client.util.gshorten(t.get(key)))
+                );
+                info.addField('Pages', `**\`${num_pages}\`**`).addField(
+                    'Uploaded',
+                    moment(upload_date * 1000).fromNow()
+                );
                 // and send?
-                user.send(
-                    new MessageEmbed()
-                        .setTitle(`${d.title.english}`)
-                        .setURL(`https://nhentai.net/g/${d.id}`)
-                        .setDescription(
-                            `ID : [\`${
-                                d.id
-                            }\`]${`(https://nhentai.net/g/${d.id})`} | Matching tag : **${d.tags.get(
-                                tagId
-                            )}**`
-                        )
-                        .setImage(`https://t.nhentai.net/galleries/${d.media_id}/thumb.jpg`)
-                ).then(m =>
+                user.send('A new doujin was released!', { embed: info }).then(m =>
                     log.info(
-                        `Notified user ${user.username} (${user.id}) of doujin ${d.id}.` +
+                        `Notified user ${user.username} (${user.id}) of doujin ${id}.` +
                             `\nMessage ID : ${m.id}`
                     )
                 );
