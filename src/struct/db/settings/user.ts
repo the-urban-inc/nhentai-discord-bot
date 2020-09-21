@@ -11,7 +11,7 @@ export async function history(duser: DiscordUser, userHistory: History) {
         }).save();
     } else {
         user.history.push(userHistory);
-        user.save();
+        await user.save();
     }
 }
 
@@ -33,7 +33,7 @@ export async function favorite(duser: DiscordUser, id: string) {
             user.favorites.push(id);
             adding = true;
         }
-        user.save();
+        await user.save();
     }
     return adding;
 }
@@ -56,7 +56,7 @@ export async function blacklist(duser: DiscordUser, info: Blacklist) {
             user.blacklists.push(info);
             adding = true;
         }
-        user.save();
+        await user.save();
     }
     return adding;
 }
@@ -71,7 +71,7 @@ export async function anonymous(duser: DiscordUser) {
         return false;
     } else {
         user.anonymous = !user.anonymous;
-        user.save();
+        await user.save();
         return user.anonymous;
     }
 }

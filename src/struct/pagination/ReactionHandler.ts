@@ -3,12 +3,7 @@
  * @author: Dirigeants Organization (dirigeants)
  */
 
-import {
-    Message,
-    ReactionCollector,
-    ReactionCollectorOptions,
-    User,
-} from 'discord.js';
+import { Message, ReactionCollector, ReactionCollectorOptions, User } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
 import { Cache } from './Cache';
@@ -313,16 +308,23 @@ export class ReactionHandler {
             }
             return Promise.resolve(false);
         })
-        .set(ReactionMethods.Love, async function (this: ReactionHandler, user: User): Promise<boolean> {
+        .set(ReactionMethods.Love, async function (
+            this: ReactionHandler,
+            user: User
+        ): Promise<boolean> {
             try {
                 let id = this.display.info.id || this.display.pages[this.#currentPage].id;
                 if (!id) return Promise.resolve(false);
                 const adding = await this.client.db.User.favorite(user, id);
                 this.message.channel
                     .send(
-                        this.client.embeds.info(
-                            adding ? `Added ${id} to favorites.` : `Removed ${id} from favorites.`
-                        ).setFooter(user.tag, user.displayAvatarURL())
+                        this.client.embeds
+                            .info(
+                                adding
+                                    ? `Added ${id} to favorites.`
+                                    : `Removed ${id} from favorites.`
+                            )
+                            .setFooter(user.tag, user.displayAvatarURL())
                     )
                     .then(message => message.delete({ timeout: 5000 }));
                 return Promise.resolve(false);
@@ -332,7 +334,10 @@ export class ReactionHandler {
                 return true;
             }
         })
-        .set(ReactionMethods.Follow, async function (this: ReactionHandler, user: User): Promise<boolean> {
+        .set(ReactionMethods.Follow, async function (
+            this: ReactionHandler,
+            user: User
+        ): Promise<boolean> {
             try {
                 const info = this.display.info;
                 if (!info) return Promise.resolve(false);
@@ -351,7 +356,10 @@ export class ReactionHandler {
                 return true;
             }
         })
-        .set(ReactionMethods.Blacklist, async function (this: ReactionHandler, user: User): Promise<boolean> {
+        .set(ReactionMethods.Blacklist, async function (
+            this: ReactionHandler,
+            user: User
+        ): Promise<boolean> {
             try {
                 const info = this.display.info;
                 if (!info) return Promise.resolve(false);
@@ -359,11 +367,13 @@ export class ReactionHandler {
                 const adding = await this.client.db.User.blacklist(user, info);
                 this.message.channel
                     .send(
-                        this.client.embeds.info(
-                            adding
-                                ? `Added ${type} \`${name}\` to blacklist.`
-                                : `Removed ${type} \`${name}\` from blacklist.`
-                        ).setFooter(user.tag, user.displayAvatarURL())
+                        this.client.embeds
+                            .info(
+                                adding
+                                    ? `Added ${type} \`${name}\` to blacklist.`
+                                    : `Removed ${type} \`${name}\` from blacklist.`
+                            )
+                            .setFooter(user.tag, user.displayAvatarURL())
                     )
                     .then(message => message.delete({ timeout: 5000 }));
                 return Promise.resolve(false);
@@ -377,7 +387,8 @@ export class ReactionHandler {
             this.collector.stop();
             if (this.#autoMode) clearInterval(this.#autoMode);
             if (!this.message.deleted) await this.message.delete();
-            if (!this.requestMessage.deleted) await this.requestMessage.delete();
+            if (!this.requestMessage.deleted && this.display.options.removeRequest)
+                await this.requestMessage.delete();
             return true;
         })
         .set(ReactionMethods.One, function (this: ReactionHandler): Promise<boolean> {

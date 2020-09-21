@@ -43,3 +43,18 @@ export async function prefix(
         return prefixes;
     }
 }
+
+export async function danger(message: Message) {
+    let server = await Server.findOne({ serverID: message.guild.id }).exec();
+    if (!server) {
+        await new Server({
+            serverID: message.guild.id,
+            danger: true,
+        }).save();
+        return true;
+    } else {
+        server.settings.danger = !server.settings.danger;
+        await server.save();
+        return server.settings.danger;
+    }
+}

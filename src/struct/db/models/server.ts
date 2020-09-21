@@ -1,7 +1,6 @@
 import { model, Document, Schema } from 'mongoose';
 import { History } from './tag';
 import { User } from './user';
-import { Cache } from '@nhentai/struct/pagination/Cache';
 
 interface Prefix {
     id: string;
@@ -11,6 +10,7 @@ interface Prefix {
 
 interface ServerSettings {
     prefixes: Prefix[];
+    danger: boolean;
 }
 
 interface User {
@@ -56,6 +56,10 @@ const serverSchema = new Schema(
                     date: Number,
                 },
             ],
+            danger: {
+                $type: Boolean,
+                default: false,
+            },
         },
     },
     { typeKey: '$type', strict: false }

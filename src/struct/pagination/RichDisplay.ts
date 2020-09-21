@@ -19,6 +19,7 @@ interface Page {
 export interface RichDisplayOptions {
     template?: EmbedOrCallback;
     remove?: boolean;
+    removeRequest?: boolean;
     jump?: boolean;
     firstLast?: boolean;
     info?: boolean;
@@ -86,7 +87,7 @@ export class RichDisplay {
     ): Promise<ReactionHandler> {
         if (!(this.options.info ?? this.infoPage)) this._emojis.delete(ReactionMethods.Info);
         if (!this._footered) this.footer();
-
+        if (this.options.removeRequest !== false) this.options.removeRequest = true;
         let msg: Message;
         if (message.editable) {
             await message.edit(editMessage, {

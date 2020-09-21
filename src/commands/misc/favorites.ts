@@ -2,9 +2,10 @@ import Command from '@nhentai/struct/bot/Command';
 import { Message, GuildMember } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
-import { User } from '@nhentai/struct/db/models/user';
+import { User } from '@nhentai/models/user';
+import { Server } from '@nhentai/models/server';
 import { Tag } from '@nhentai/struct/nhentai/src/struct';
-import { ICON } from '@nhentai/utils/constants';
+import { ICON, BANNED_TAGS, BLOCKED_MESSAGE } from '@nhentai/utils/constants';
 
 export default class extends Command {
     constructor() {
@@ -24,6 +25,19 @@ export default class extends Command {
                 },
             ],
         });
+    }
+
+    danger = true;
+    warning = false;
+
+    async before(message: Message) {
+        try {
+            const server = await Server.findOne({ serverID: message.guild.id }).exec();
+            this.danger = server.settings.danger;
+        } catch (err) {
+            this.client.logger.error(err);
+            return message.channel.send(this.client.embeds.internalError(err));
+        }
     }
 
     async exec(message: Message, { member }: { member: GuildMember }) {
@@ -49,8 +63,15 @@ export default class extends Command {
                     const info = this.client.util
                         .embed()
                         .setAuthor(he.decode(title.english), ICON, `https://nhentai.net/g/${id}`)
-                        .setThumbnail(doujin.getCoverThumbnail())
                         .setTimestamp();
+                    const rip = !this.client.util.hasCommon(
+                        tags.map(x => x.id.toString()),
+                        BANNED_TAGS
+                    );
+
+                    if (rip) this.warning = true;
+                    if (this.danger || !rip) info.setThumbnail(doujin.getCoverThumbnail());
+
                     let t = new Map();
                     tags.forEach((tag: Tag) => {
                         let a = t.get(tag.type) || [];
@@ -77,7 +98,15 @@ export default class extends Command {
                     );
                     display.addPage(info, id.toString());
                 }
-                return display.run(this.client, message, await msg.edit('Done.'));
+                await display.run(this.client, message, await msg.edit('Done.'));
+
+                if (!this.danger && this.warning) {
+                    return this.client.embeds
+                        .richDisplay({ image: true, removeRequest: false })
+                        .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
+                        .useCustomFooters()
+                        .run(this.client, message, await message.channel.send('Loading ...'));
+                }
             }
         } catch (err) {
             this.client.logger.error(err);

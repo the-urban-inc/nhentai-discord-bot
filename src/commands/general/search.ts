@@ -1,7 +1,8 @@
 import Command from '@nhentai/struct/bot/Command';
 import { Message } from 'discord.js';
 import he from 'he';
-import { FLAG_EMOJIS, SORT_METHODS } from '@nhentai/utils/constants';
+import { Server } from '@nhentai/models/server';
+import { FLAG_EMOJIS, SORT_METHODS, BANNED_TAGS, BLOCKED_MESSAGE } from '@nhentai/utils/constants';
 
 export default class extends Command {
     constructor() {
@@ -42,6 +43,19 @@ export default class extends Command {
         });
     }
 
+    danger = true;
+    warning = false;
+
+    async before(message: Message) {
+        try {
+            const server = await Server.findOne({ serverID: message.guild.id }).exec();
+            this.danger = server.settings.danger;
+        } catch (err) {
+            this.client.logger.error(err);
+            return message.channel.send(this.client.embeds.internalError(err));
+        }
+    }
+
     async exec(
         message: Message,
         { text, page, sort }: { text: string; page: string; sort: string }
@@ -75,30 +89,39 @@ export default class extends Command {
                 return message.channel.send(this.client.embeds.clientError('No results found.'));
 
             const display = this.client.embeds.richDisplay({ info: true }).useCustomFooters();
-            for (const [idx, doujin] of data.results.entries()) {
-                display.addPage(
-                    this.client.util
-                        .embed()
-                        .setTitle(`${he.decode(doujin.title)}`)
-                        .setURL(`https://nhentai.net/g/${doujin.id}`)
-                        .setDescription(
-                            `**ID** : ${doujin.id}\u2000•\u2000**Language** : ${
-                                FLAG_EMOJIS[doujin.language as keyof typeof FLAG_EMOJIS] || 'N/A'
-                            }`
-                        )
-                        .setImage(doujin.thumbnail.s)
-                        .setFooter(
-                            `Doujin ${idx + 1} of ${
-                                data.results.length
-                            }\u2000•\u2000Page ${page} of ${
-                                data.num_pages || 1
-                            }\u2000•\u2000Found ${data.num_results} result(s)`
-                        )
-                        .setTimestamp(),
-                    doujin.id
-                );
+            for (const [
+                idx,
+                { title, id, language, dataTags, thumbnail },
+            ] of data.results.entries()) {
+                const epage = this.client.util
+                    .embed()
+                    .setTitle(`${he.decode(title)}`)
+                    .setURL(`https://nhentai.net/g/${id}`)
+                    .setDescription(
+                        `**ID** : ${id}\u2000•\u2000**Language** : ${
+                            FLAG_EMOJIS[language as keyof typeof FLAG_EMOJIS] || 'N/A'
+                        }`
+                    )
+                    .setFooter(
+                        `Doujin ${idx + 1} of ${data.results.length}\u2000•\u2000Page ${page} of ${
+                            data.num_pages || 1
+                        }\u2000•\u2000Found ${data.num_results} result(s)`
+                    )
+                    .setTimestamp();
+                const prip = !this.client.util.hasCommon(dataTags, BANNED_TAGS);
+                if (prip) this.warning = true;
+                if (this.danger || !prip) epage.setImage(thumbnail.s);
+                display.addPage(epage, id);
             }
-            return display.run(this.client, message, await message.channel.send('Searching ...'));
+            await display.run(this.client, message, await message.channel.send('Searching ...'));
+
+            if (!this.danger && this.warning) {
+                return this.client.embeds
+                    .richDisplay({ image: true, removeRequest: false })
+                    .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
+                    .useCustomFooters()
+                    .run(this.client, message, await message.channel.send('Loading ...'));
+            }
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));

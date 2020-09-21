@@ -13,11 +13,6 @@
 
 ---
 
-# ⚠ **Attention**
-This bot violates the **[Discord Terms of Service](https://discordapp.com/terms)** as some of its features can provide "_illustrated or digitally altered pornography which depicts minors (such as lolicon, shotacon, or cub)_" as well as "_images of gore and/or animal cruelty_" as stated in the **[Discord Community Guildlines](https://discordapp.com/guidelines)**. I will not take responsibility if your account or your bot's account was banned by the Discord team.
-
-You can continue reading the rest of the README if you are okay with this.
-
 # About
 nhentai is an open source nhentai Discord bot powered by JavaScript with [discord.js](https://discord.js.org/#/) using the [Akairo](https://discord-akairo.github.io/#/) framework.
 

@@ -1,3 +1,5 @@
+const { PREFIX } = process.env;
+
 export const PERMISSIONS = [
     'MANAGE_MESSAGES',
     'SEND_MESSAGES',
@@ -17,6 +19,10 @@ export const FLAG_EMOJIS = {
 };
 
 export const SORT_METHODS = ['recent', 'popular-today', 'popular-week', 'popular'];
+
+export const BANNED_TAGS = ['19440', '32341', '27217', '1088', '4549', '10542', '14069']; // lolicon, shotacon, guro, bdsm, torture, snuff, ryona
+
+export const BLOCKED_MESSAGE = `This call contains contents violating [Discord's Community Guidelines](https://discord.com/guidelines), therefore, for your own safety, I have decided to omit the images.\nIf you wish to continue viewing the images, contact someone in your server with the Manage Guild permission to unlock them using \`${PREFIX}danger\`.`;
 
 export const TAGS = [
     'g',

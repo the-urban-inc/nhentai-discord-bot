@@ -113,6 +113,10 @@ export class NhentaiUtil extends ClientUtil {
         return res + (tags.join(' ').length > 1024 ? '...' : '');
     }
 
+    hasCommon<T>(a: T[], b: T[]) {
+        return ![...new Set(a)].some(x => new Set(b).has(x))
+    }
+
     pad(text: string, width: number, char = '0') {
         return String(text).length >= width
             ? String(text)

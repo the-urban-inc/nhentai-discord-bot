@@ -2,8 +2,9 @@ import Command from '@nhentai/struct/bot/Command';
 import { Message } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
+import { Server } from '@nhentai/models/server';
 import { Tag } from '@nhentai/struct/nhentai/src/struct';
-import { ICON, FLAG_EMOJIS } from '@nhentai/utils/constants';
+import { ICON, FLAG_EMOJIS, BANNED_TAGS, BLOCKED_MESSAGE } from '@nhentai/utils/constants';
 
 export default class extends Command {
     constructor() {
@@ -31,6 +32,19 @@ export default class extends Command {
         });
     }
 
+    danger = true;
+    warning = false;
+
+    async before(message: Message) {
+        try {
+            const server = await Server.findOne({ serverID: message.guild.id }).exec();
+            this.danger = server.settings.danger;
+        } catch (err) {
+            this.client.logger.error(err);
+            return message.channel.send(this.client.embeds.internalError(err));
+        }
+    }
+
     async exec(message: Message, { more, auto }: { more: boolean; auto: boolean }) {
         try {
             const doujin = await this.client.nhentai.random();
@@ -42,9 +56,16 @@ export default class extends Command {
             const info = this.client.util
                 .embed()
                 .setAuthor(title, ICON, `https://nhentai.net/g/${id}`)
-                .setThumbnail(doujin.getCoverThumbnail())
                 .setFooter(`ID : ${id}${auto ? '• React with 🇦 to start an auto session' : ''}`)
                 .setTimestamp();
+
+            const rip = !this.client.util.hasCommon(
+                tags.map(x => x.id.toString()),
+                BANNED_TAGS
+            );
+
+            if (rip) this.warning = true;
+            if (this.danger || !rip) info.setThumbnail(doujin.getCoverThumbnail());
 
             let t = new Map();
             tags.forEach((tag: Tag) => {
@@ -73,27 +94,38 @@ export default class extends Command {
                 moment(upload_date * 1000).fromNow()
             );
 
-            const displayDoujin = this.client.embeds
-                .richDisplay({ auto: auto })
-                .setInfo({ id, type: 'g', name: title })
-                .setInfoPage(info);
-            doujin
-                .getPages()
-                .forEach((page: string) =>
-                    displayDoujin.addPage(this.client.util.embed().setImage(page).setTimestamp())
+            if (this.danger || !rip) {
+                const displayDoujin = this.client.embeds
+                    .richDisplay({ auto: auto, removeRequest: false })
+                    .setInfo({ id, type: 'g', name: title })
+                    .setInfoPage(info);
+                doujin
+                    .getPages()
+                    .forEach((page: string) =>
+                        displayDoujin.addPage(
+                            this.client.util.embed().setImage(page).setTimestamp()
+                        )
+                    );
+                await displayDoujin.run(
+                    this.client,
+                    message,
+                    await message.channel.send('Searching for doujin ...')
                 );
-            await displayDoujin.run(
-                this.client,
-                message,
-                await message.channel.send('Searching for doujin ...')
-            );
+            } else {
+                await this.client.embeds
+                    .richDisplay({ image: true, removeRequest: false })
+                    .addPage(info)
+                    .useCustomFooters()
+                    .run(this.client, message, await message.channel.send('Searching ...'));
+            }
 
-            if (!more) return;
-            const { comments, related } = doujin;
-            const displayRelated = this.client.embeds.richDisplay().useCustomFooters();
-            for (const [idx, { title, id, language, thumbnail }] of related.entries()) {
-                displayRelated.addPage(
-                    this.client.util
+            if (more) {
+                const { comments, related } = doujin;
+                const displayRelated = this.client.embeds
+                    .richDisplay({ removeRequest: false })
+                    .useCustomFooters();
+                for (const [idx, { title, id, language, dataTags, thumbnail }] of related.entries()) {
+                    const page = this.client.util
                         .embed()
                         .setTitle(`${he.decode(title)}`)
                         .setURL(`https://nhentai.net/g/${id}`)
@@ -102,47 +134,59 @@ export default class extends Command {
                                 FLAG_EMOJIS[language as keyof typeof FLAG_EMOJIS] || 'N/A'
                             }`
                         )
-                        .setImage(thumbnail.s)
                         .setFooter(`Doujin ${idx + 1} of ${related.length}`)
-                        .setTimestamp(),
-                    id
+                        .setTimestamp();
+                    const prip = !this.client.util.hasCommon(dataTags, BANNED_TAGS);
+                    if (prip) this.warning = true;
+                    if (this.danger || !prip) page.setImage(thumbnail.s);
+                    displayRelated.addPage(page, id);
+                }
+                await displayRelated.run(
+                    this.client,
+                    message,
+                    await message.channel.send('Searching ...'),
+                    '**More Like This**'
                 );
-            }
-            await displayRelated.run(
-                this.client,
-                message,
-                await message.channel.send('**More Like This**')
-            );
 
-            if (!comments.length) return;
-            const displayComments = this.client.embeds
-                .richDisplay({ love: false })
-                .useCustomFooters();
-            for (const [
-                idx,
-                {
-                    poster: { username, avatar_url },
-                    body,
-                    post_date,
-                },
-            ] of comments.entries()) {
-                displayComments.addPage(
-                    this.client.util
-                        .embed()
-                        .setAuthor(`${he.decode(username)}`, `https://i5.nhentai.net/${avatar_url}`)
-                        .setDescription(body)
-                        .setFooter(
-                            `Comment ${idx + 1} of ${comments.length}\u2000•\u2000Posted ${moment(
-                                post_date * 1000
-                            ).fromNow()}`
-                        )
+                if (!comments.length) return;
+                const displayComments = this.client.embeds
+                    .richDisplay({ love: false, removeRequest: false })
+                    .useCustomFooters();
+                for (const [
+                    idx,
+                    {
+                        poster: { username, avatar_url },
+                        body,
+                        post_date,
+                    },
+                ] of comments.entries()) {
+                    displayComments.addPage(
+                        this.client.util
+                            .embed()
+                            .setAuthor(`${he.decode(username)}`, `https://i5.nhentai.net/${avatar_url}`)
+                            .setDescription(body)
+                            .setFooter(
+                                `Comment ${idx + 1} of ${comments.length}\u2000•\u2000Posted ${moment(
+                                    post_date * 1000
+                                ).fromNow()}`
+                            )
+                    );
+                }
+                await displayComments.run(
+                    this.client,
+                    message,
+                    await message.channel.send('Searching ...'),
+                    '`💬` **Comments**'
                 );
             }
-            return displayComments.run(
-                this.client,
-                message,
-                await message.channel.send('`💬` **Comments**')
-            );
+            
+            if (!this.danger && this.warning) {
+                return this.client.embeds
+                    .richDisplay({ image: true, removeRequest: false })
+                    .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
+                    .useCustomFooters()
+                    .run(this.client, message, await message.channel.send('Loading ...'));
+            }
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));
