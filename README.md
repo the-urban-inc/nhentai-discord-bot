@@ -47,8 +47,6 @@ Copy or Rename `.env.example` to `.env` and fill out the values:
 ```
 PREFIX = 'Insert your desired prefix here'
 DISCORD_TOKEN = 'Insert your bot's token here'
-TWITTER_API = 'Your Twitter API key'
-TWITTER_SECRET = 'Your Twitter secret'
 MONGODB_URI = 'URL of MongoDB server'
 ```
 
