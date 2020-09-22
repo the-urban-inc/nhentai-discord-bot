@@ -1,12 +1,11 @@
 import { MessageEmbed } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
-import { Watch } from './';
+import { WatchModel } from './';
 import type { check } from './check';
 import log from '@nhentai/utils/logger';
 import { ICON } from '@nhentai/utils/constants';
 import { NhentaiClient } from '@nhentai/struct/bot/Client';
-import { WatchRecordDocument } from './db/models/record';
 
 type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
 type _ = ThenArg<ReturnType<typeof check>>;
@@ -21,7 +20,7 @@ export async function dispatch(_: _) {
     // for each tag-id to check, we'll go through the tags of each doujin
     // to check whether that doujin matches
     // if yes, dispatch & cache, so that we don't send a doujin twice
-    let ids = await Watch.find({}).exec();
+    let ids = await WatchModel.find({}).exec();
 
     // cache each sends
     let cache = new Map<string, Set<number>>();

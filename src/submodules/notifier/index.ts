@@ -1,19 +1,30 @@
 import { config } from 'dotenv';
 config();
 import type { User } from 'discord.js';
-import './db';
-import log from '@nhentai/utils/logger';
-import { model, Model } from 'mongoose';
-import { WatchRecord, WatchRecordDocument } from './db/models/record';
-import w from './watcher';
+import { connectToDatabase } from './db';
+import logger from '@nhentai/utils/logger';
+import type { Model } from 'mongoose';
+import { WatchRecord, IWatchRecord } from './db/models/record';
+import Watcher from './watcher';
 import { Queue } from 'queue-ts';
 
-export const Watch = model('watch', WatchRecord) as Model<WatchRecordDocument>;
+const connection = connectToDatabase();
+export const WatchModel = connection.model('watch', WatchRecord) as Model<IWatchRecord>;
 
-(async () => {
-    let cache = new Set((await Watch.find({}).select('id').exec()).map(a => a.id));
-    let watch = await (await new w().setWatch(cache)).start();
-    let work = new Queue(1);
+const log = {
+    registered : (user : string, tag : number) =>
+        logger.info(`Registered watcher for user ${user} on tag ${tag}.`),
+    removed : (user : string, tag : number) =>
+        logger.info(`Removed watcher for user ${user} on tag ${tag}.`)
+}
+
+async function init () {
+    let records = await WatchModel.find({}).select('id').exec();
+    let tagIdsToWatch = new Set(records.map(a => a.id));
+    let watcher = new Watcher();
+    await watcher.setWatch(tagIdsToWatch);
+    await watcher.start();
+    let workingQueue = new Queue(1);
 
     process.on(
         'message',
@@ -26,52 +37,55 @@ export const Watch = model('watch', WatchRecord) as Model<WatchRecordDocument>;
         }) => {
             // registering
             const { user, channel, tag, type, name } = m;
-            let [_] = await Watch.find({ id: tag }).exec();
-            let done = () => {
-                log.info(`Registered watcher for user ${user} on tag ${tag}.`);
-            };
-            let done2 = () => {
-                log.info(`Removed watcher for user ${user} on tag ${tag}.`);
-            };
-            let reset = async () => await (await watch.setWatch(cache)).start();
+            let subscriberRecord = await WatchModel.findOne({ id: tag }).exec();            
+
+            let reset = async () => await (await watcher.setWatch(tagIdsToWatch)).start();
 
             // add if not present, remove otherwise
-            if (!_)
+            if (!subscriberRecord)
                 // okay, this is new
-                work.add(async () => {
-                    await Watch
-                        .findOneAndUpdate(
-                            { id: tag },
-                            { id: tag, type, name, user: [user] },
-                            {
-                                upsert: true,
-                            }
-                        )
-                        .then(done);
-                    cache.add(tag);
+                workingQueue.add(async () => {
+                    let options = { upsert: true }, record = { id: tag, type, name, user: [user] };
+                    await WatchModel
+                        .findOneAndUpdate({ id: tag }, record, options)
+                        .then(() => log.registered(user, tag));
+                    tagIdsToWatch.add(tag);
                     await reset();
                     process.send({ tagId: tag, type, name, user, channel, action: 'add' });
                 });
             else {
-                if (new Set(_.user).has(user))
+                if (new Set(subscriberRecord.user).has(user))
                     // remove
-                    work.add(async () => {
-                        let s = new Set(_.user);
+                    workingQueue.add(async () => {
+                        let s = new Set(subscriberRecord.user);
                         s.delete(user);
-                        _.user = [...s];
-                        _.save().then(done2);
+                        subscriberRecord.user = [...s];
+                        subscriberRecord.save().then(() => log.removed(user, tag));
                         await reset();
                         process.send({ tagId: tag, type, name, user, channel, action: 'remove' });
                     });
                 // add
                 else
-                    work.add(async () => {
-                        _.user = [...new Set(_.user).add(user)];
-                        _.save().then(done);
+                    workingQueue.add(async () => {
+                        // dedupe user list
+                        let subscribers = subscriberRecord.user;
+                        subscribers.push(user);
+                        subscriberRecord.user = dedupe(subscribers);
+                        subscriberRecord.save().then(() => log.registered(user, tag));
                         await reset();
                         process.send({ tagId: tag, type, name, user, channel, action: 'add' });
                     });
             }
         }
     );
-})();
+}
+
+/**
+ * Dedupe an array of strings
+ * @param a array of strings to dedupe
+ */
+function dedupe (a : string[]) {
+    return [...new Set(a)]
+}
+
+init();

@@ -1,7 +1,7 @@
 import { Schema, Document } from 'mongoose';
 import type { User } from 'discord.js';
 
-export interface IWatchRecord {
+export interface IWatchRecord extends Document {
     // tag number
     id: number;
     // type
@@ -10,10 +10,6 @@ export interface IWatchRecord {
     name: string;
     // user
     user: User['id'][];
-}
-
-export interface WatchRecordDocument extends Document, IWatchRecord {
-    id: number;
 }
 
 export const WatchRecord: Schema<IWatchRecord> = new Schema({

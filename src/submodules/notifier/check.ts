@@ -6,20 +6,21 @@ const nh = new nhentaiClient();
  * Categorize into tags
  * @param from 1st code to check
  * @param to last code to check
+ * @param filter tag IDs to filter. Only doujins which has at least one tag in filter will be returned.
  */
 export async function check(from: number, to: number, filter: Set<number>) {
     if (to < from) return; // bruh wtf
+    let codesToCheck = Array(to - from + 1).fill(0).map((_, i) => from + i);
     return (
         await Promise.all(
-            Array(to - from + 1)
-                .fill(0)
-                .map((_, i) => from + i)
-                .map(async (c, i) => {
-                    await new Promise(r => setTimeout(r, i * 5500));
-                    const out = await nh.g(c.toString());
+            codesToCheck
+                .map(async (code, index) => {
+                    await new Promise(r => setTimeout(r, index * 5500));
+                    const out = await nh.g(code.toString());
                     if (out.details.error) return;
                     let tags = new Map<number, string>();
-                    out.details.tags.forEach(a => tags.set(a.id, a.name));
+                    for (let tag of out.details.tags) 
+                        tags.set(tag.id, tag.name)
                     return { out, tags };
                 })
         )

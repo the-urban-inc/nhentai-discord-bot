@@ -1,6 +1,6 @@
 import Command from '@nhentai/struct/bot/Command';
 import { Message } from 'discord.js';
-import { Watch } from '@notifier/index';
+import { WatchModel } from '@notifier/index';
 
 export default class extends Command {
     constructor() {
@@ -16,7 +16,7 @@ export default class extends Command {
     async exec(message: Message) {
         try {
             const member = message.author;
-            const tags = await Watch.find({ 'user': member.id }).exec();
+            const tags = await WatchModel.find({ 'user': member.id }).exec();
             if (!tags) {
                 return message.channel.send(this.client.embeds.info('Follow list not found.'));
             } else {
