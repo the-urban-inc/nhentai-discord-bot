@@ -23,15 +23,14 @@ export async function prefix(
     let server = await Server.findOne({ serverID: message.guild.id }).exec();
     const _ = { id: prefix, author: message.author.id, date: Date.now() };
     if (!server) {
-        if (action === 'add') {
-            await new Server({
-                serverID: message.guild.id,
-                settings: {
-                    prefixes: [_],
-                },
-            }).save();
-        }
-        return [_];
+        const prefixes = action === 'add' ? [_] : [];
+        await new Server({
+            serverID: message.guild.id,
+            settings: {
+                prefixes: prefixes,
+            },
+        }).save();
+        return prefixes;
     } else {
         let prefixes = server.settings.prefixes;
         const hasPrefix = prefixes.some(pfx => pfx.id === prefix);
