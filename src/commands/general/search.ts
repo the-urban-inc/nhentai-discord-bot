@@ -43,12 +43,17 @@ export default class extends Command {
         });
     }
 
-    danger = true;
+    danger = false;
     warning = false;
 
     async before(message: Message) {
         try {
-            const server = await Server.findOne({ serverID: message.guild.id }).exec();
+            let server = await Server.findOne({ serverID: message.guild.id }).exec();
+            if (!server) {
+                server = await new Server({
+                    settings: { danger: false }
+                }).save()
+            }
             this.danger = server.settings.danger;
         } catch (err) {
             this.client.logger.error(err);

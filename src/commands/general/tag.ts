@@ -40,16 +40,27 @@ export default class extends Command {
     }
 
     anonymous = true;
-    danger = true;
+    danger = false;
     warning = false;
     blacklists: Blacklist[] = [];
 
     async before(message: Message) {
         try {
-            const user = await User.findOne({ userID: message.author.id }).exec();
+            let user = await User.findOne({ userID: message.author.id }).exec();
+            if (!user) {
+                user = await new User({
+                    blacklists: [],
+                    anonymous: true
+                }).save();
+            }
             this.blacklists = user.blacklists;
             this.anonymous = user.anonymous;
-            const server = await Server.findOne({ serverID: message.guild.id }).exec();
+            let server = await Server.findOne({ serverID: message.guild.id }).exec();
+            if (!server) {
+                server = await new Server({
+                    settings: { danger: false }
+                }).save()
+            }
             this.danger = server.settings.danger;
         } catch (err) {
             this.client.logger.error(err);
