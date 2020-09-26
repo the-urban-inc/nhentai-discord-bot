@@ -27,6 +27,7 @@ export interface ReactionHandlerOptions extends ReactionCollectorOptions {
     maxUsers?: number;
     jumpTimeout?: number;
     autoTimeout?: number;
+    messageTimeout?: number;
 }
 
 export const enum ReactionMethods {
@@ -41,6 +42,7 @@ export const enum ReactionMethods {
     Love = 'love',
     Follow = 'follow',
     Blacklist = 'blacklist',
+    Download = 'download',
     Remove = 'remove',
     One = 'one',
     Two = 'two',
@@ -63,6 +65,7 @@ export class ReactionHandler {
     private readonly noAuto: string;
     private readonly jumpTimeout: number;
     private readonly autoTimeout: number;
+    private readonly messageTimeout: number;
     readonly collector: ReactionCollector;
     #ended = false;
     #awaiting = false;
@@ -99,6 +102,7 @@ export class ReactionHandler {
         this.noAuto = options.noAuto ?? "There's no existing auto session. Nothing happened.";
         this.jumpTimeout = options.jumpTimeout ?? 30000;
         this.autoTimeout = options.autoTimeout ?? 30000;
+        this.messageTimeout = options.messageTimeout ?? 5000;
         this.selection = emojis.has(ReactionMethods.One)
             ? new Promise(resolve => {
                   this.#resolve = resolve;
@@ -288,7 +292,7 @@ export class ReactionHandler {
                     clearInterval(this.#autoMode);
                     return this.message.channel
                         .send(this.client.embeds.info(this.endAuto))
-                        .then(message => message.delete({ timeout: 5000 }));
+                        .then(message => message.delete({ timeout: this.messageTimeout }));
                 }
                 this.#currentPage++;
                 this.update();
@@ -300,11 +304,11 @@ export class ReactionHandler {
                 clearInterval(this.#autoMode);
                 this.message.channel
                     .send(this.client.embeds.info(this.stopAuto))
-                    .then(message => message.delete({ timeout: 5000 }));
+                    .then(message => message.delete({ timeout: this.messageTimeout }));
             } else {
                 this.message.channel
                     .send(this.client.embeds.info(this.noAuto))
-                    .then(message => message.delete({ timeout: 5000 }));
+                    .then(message => message.delete({ timeout: this.messageTimeout }));
             }
             return Promise.resolve(false);
         })
@@ -326,7 +330,7 @@ export class ReactionHandler {
                             )
                             .setFooter(user.tag, user.displayAvatarURL())
                     )
-                    .then(message => message.delete({ timeout: 5000 }));
+                    .then(message => message.delete({ timeout: this.messageTimeout }));
                 return Promise.resolve(false);
             } catch (err) {
                 this.client.logger.error(err);
@@ -375,7 +379,30 @@ export class ReactionHandler {
                             )
                             .setFooter(user.tag, user.displayAvatarURL())
                     )
-                    .then(message => message.delete({ timeout: 5000 }));
+                    .then(message => message.delete({ timeout: this.messageTimeout }));
+                return Promise.resolve(false);
+            } catch (err) {
+                this.client.logger.error(err);
+                this.message.channel.send(this.client.embeds.internalError(err));
+                return true;
+            }
+        })
+        .set(ReactionMethods.Download, async function (
+            this: ReactionHandler,
+            user: User
+        ): Promise<boolean> {
+            try {
+                const info = this.display.info;
+                if (!info) return Promise.resolve(false);
+                this.message.channel
+                    .send(
+                        this.client.embeds
+                            .info(
+                                `Click [here](https://nhdl.herokuapp.com/download/nhentai/${info.id}/?e=zip) to download ${info.id}`
+                            ) // Thanks masami45 (@masami45) for the download server
+                            .setFooter(user.tag, user.displayAvatarURL())
+                    )
+                    .then(message => message.delete({ timeout: 60000 }));
                 return Promise.resolve(false);
             } catch (err) {
                 this.client.logger.error(err);

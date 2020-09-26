@@ -3,7 +3,7 @@ import { Message } from 'discord.js';
 import { User } from '@nhentai/models/user';
 import { Server } from '@nhentai/models/server';
 import { Blacklist } from '@nhentai/models/tag';
-import { DoujinList } from '@nhentai/struct/nhentai/src/struct';
+import { List } from '@nhentai/struct/nhentai/src/struct';
 import { FLAG_EMOJIS, SORT_METHODS, BANNED_TAGS, BLOCKED_MESSAGE } from '@nhentai/utils/constants';
 import he from 'he';
 
@@ -50,7 +50,7 @@ export default class extends Command {
             if (!user) {
                 user = await new User({
                     blacklists: [],
-                    anonymous: true
+                    anonymous: true,
                 }).save();
             }
             this.blacklists = user.blacklists;
@@ -58,8 +58,8 @@ export default class extends Command {
             let server = await Server.findOne({ serverID: message.guild.id }).exec();
             if (!server) {
                 server = await new Server({
-                    settings: { danger: false }
-                }).save()
+                    settings: { danger: false },
+                }).save();
             }
             this.danger = server.settings.danger;
         } catch (err) {
@@ -92,11 +92,7 @@ export default class extends Command {
                 );
 
             let pageNum = parseInt(page, 10);
-            let data = (await this.client.nhentai[tag](
-                text.toLowerCase(),
-                pageNum,
-                sort
-            )) as DoujinList;
+            let data = (await this.client.nhentai[tag](text.toLowerCase(), pageNum, sort)) as List;
 
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
                 return message.channel.send(
@@ -111,7 +107,7 @@ export default class extends Command {
             const { tagId, results, num_pages, num_results } = data;
             const id = tagId.toString(),
                 name = text.toLowerCase();
-                
+
             if (!this.anonymous) {
                 await this.client.db.User.history(message.author, {
                     id,
@@ -124,7 +120,7 @@ export default class extends Command {
             }
 
             const display = this.client.embeds
-                .richDisplay({ info: true, follow: true, blacklist: true })
+                .richDisplay({ info: true, follow: true, blacklist: true, download: true })
                 .setInfo({ id, type: tag, name })
                 .useCustomFooters();
             for (const [idx, { id, title, language, dataTags, thumbnail }] of results.entries()) {
@@ -138,7 +134,7 @@ export default class extends Command {
                         }`
                     )
                     .setFooter(
-                        `Doujin ${idx + 1} of ${results.length}\u2000•\u2000Page ${page} of ${
+                        ` ${idx + 1} of ${results.length}\u2000•\u2000Page ${page} of ${
                             num_pages || 1
                         }\u2000•\u2000${num_results} doujin(s)`
                     )

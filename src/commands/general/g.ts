@@ -11,7 +11,7 @@ import { ICON, FLAG_EMOJIS, BANNED_TAGS, BLOCKED_MESSAGE } from '@nhentai/utils/
 export default class extends Command {
     constructor() {
         super('g', {
-            aliases: ['g', 'get', 'doujin'],
+            aliases: ['g', 'get', 'doujin', 'read'],
             channel: 'guild',
             description: {
                 content:
@@ -50,7 +50,7 @@ export default class extends Command {
             if (!user) {
                 user = await new User({
                     blacklists: [],
-                    anonymous: true
+                    anonymous: true,
                 }).save();
             }
             this.blacklists = user.blacklists;
@@ -58,8 +58,8 @@ export default class extends Command {
             let server = await Server.findOne({ serverID: message.guild.id }).exec();
             if (!server) {
                 server = await new Server({
-                    settings: { danger: false }
-                }).save()
+                    settings: { danger: false },
+                }).save();
             }
             this.danger = server.settings.danger;
         } catch (err) {
@@ -152,7 +152,7 @@ export default class extends Command {
 
             if (this.danger || !rip) {
                 const displayDoujin = this.client.embeds
-                    .richDisplay({ auto: auto, removeRequest: false })
+                    .richDisplay({ auto: auto, download: true, removeRequest: false })
                     .setInfo({ id, type: 'g', name: title })
                     .setInfoPage(info);
                 doujin
@@ -180,7 +180,10 @@ export default class extends Command {
                 const displayRelated = this.client.embeds
                     .richDisplay({ removeRequest: false })
                     .useCustomFooters();
-                for (const [idx, { title, id, language, dataTags, thumbnail }] of related.entries()) {
+                for (const [
+                    idx,
+                    { title, id, language, dataTags, thumbnail },
+                ] of related.entries()) {
                     const page = this.client.util
                         .embed()
                         .setTitle(`${he.decode(title)}`)
@@ -194,8 +197,7 @@ export default class extends Command {
                         .setTimestamp();
                     const prip = !this.client.util.hasCommon(dataTags, BANNED_TAGS);
                     if (prip) this.warning = true;
-                    if (this.danger || !prip)
-                        page.setImage(thumbnail.s);
+                    if (this.danger || !prip) page.setImage(thumbnail.s);
                     displayRelated.addPage(page, id);
                 }
                 await displayRelated.run(
@@ -220,12 +222,15 @@ export default class extends Command {
                     displayComments.addPage(
                         this.client.util
                             .embed()
-                            .setAuthor(`${he.decode(username)}`, `https://i5.nhentai.net/${avatar_url}`)
+                            .setAuthor(
+                                `${he.decode(username)}`,
+                                `https://i5.nhentai.net/${avatar_url}`
+                            )
                             .setDescription(body)
                             .setFooter(
-                                `Comment ${idx + 1} of ${comments.length}\u2000•\u2000Posted ${moment(
-                                    post_date * 1000
-                                ).fromNow()}`
+                                `Comment ${idx + 1} of ${
+                                    comments.length
+                                }\u2000•\u2000Posted ${moment(post_date * 1000).fromNow()}`
                             )
                     );
                 }

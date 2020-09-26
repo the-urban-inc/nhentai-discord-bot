@@ -33,8 +33,8 @@ export default class extends Command {
             let server = await Server.findOne({ serverID: message.guild.id }).exec();
             if (!server) {
                 server = await new Server({
-                    settings: { danger: false }
-                }).save()
+                    settings: { danger: false },
+                }).save();
             }
             this.danger = server.settings.danger;
         } catch (err) {
@@ -58,7 +58,7 @@ export default class extends Command {
             if (pageNum === 1) {
                 const popularNow = data.results.slice(0, 5);
                 const displayPopular = this.client.embeds
-                    .richDisplay({ info: true, removeRequest: false })
+                    .richDisplay({ info: true, download: true, removeRequest: false })
                     .useCustomFooters();
                 for (const [
                     idx,
@@ -93,7 +93,7 @@ export default class extends Command {
 
                 const newUploads = data.results.slice(5);
                 const displayNew = this.client.embeds
-                    .richDisplay({ info: true, removeRequest: false })
+                    .richDisplay({ info: true, download: true, removeRequest: false })
                     .useCustomFooters();
                 for (const [
                     idx,
@@ -127,7 +127,9 @@ export default class extends Command {
                 );
             }
 
-            const display = this.client.embeds.richDisplay({ info: true }).useCustomFooters();
+            const display = this.client.embeds
+                .richDisplay({ info: true, download: true })
+                .useCustomFooters();
             for (const [
                 idx,
                 { title, id, language, dataTags, thumbnail },

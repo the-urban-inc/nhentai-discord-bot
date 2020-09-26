@@ -100,6 +100,7 @@ export default class extends Command {
                     '- ❤️ : Add/Remove a doujin to/from favorites',
                     '- 🔖 : Follow/Unfollow a tag/artist/parody/etc.',
                     '- 🏴 : Blacklist a tag/artist/parody/etc.',
+                    '- 📥 : Download current doujin',
                     '- 🗑 : Delete bot message',
                 ])
         );

@@ -51,8 +51,8 @@ export default class extends Command {
             let server = await Server.findOne({ serverID: message.guild.id }).exec();
             if (!server) {
                 server = await new Server({
-                    settings: { danger: false }
-                }).save()
+                    settings: { danger: false },
+                }).save();
             }
             this.danger = server.settings.danger;
         } catch (err) {
@@ -93,7 +93,9 @@ export default class extends Command {
             if (!data.results.length)
                 return message.channel.send(this.client.embeds.clientError('No results found.'));
 
-            const display = this.client.embeds.richDisplay({ info: true }).useCustomFooters();
+            const display = this.client.embeds
+                .richDisplay({ info: true, download: true })
+                .useCustomFooters();
             for (const [
                 idx,
                 { title, id, language, dataTags, thumbnail },

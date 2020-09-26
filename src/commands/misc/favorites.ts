@@ -56,7 +56,7 @@ export default class extends Command {
                 let msg = await message.channel.send(
                     'Fetching favorites... The longer your favorites list is, the more time you will have to wait...'
                 );
-                const display = this.client.embeds.richDisplay();
+                const display = this.client.embeds.richDisplay({ download: true });
                 for (const code of user.favorites) {
                     const doujin = await this.client.nhentai.g(code, false);
                     const { title, id, tags, num_pages, upload_date } = doujin.details;

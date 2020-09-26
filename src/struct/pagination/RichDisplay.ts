@@ -27,6 +27,7 @@ export interface RichDisplayOptions {
     love?: boolean;
     follow?: boolean;
     blacklist?: boolean;
+    download?: boolean;
     image?: boolean;
     list?: number;
 }
@@ -57,6 +58,7 @@ export class RichDisplay {
             .set(ReactionMethods.Love, '❤️')
             .set(ReactionMethods.Follow, '🔖')
             .set(ReactionMethods.Blacklist, '🏴')
+            .set(ReactionMethods.Download, '📥')
             .set(ReactionMethods.Remove, '🗑');
 
         if (!(options.firstLast ?? true)) {
@@ -71,6 +73,7 @@ export class RichDisplay {
         if (!(options.love ?? true)) this._emojis.delete(ReactionMethods.Love);
         if (!(options.follow ?? false)) this._emojis.delete(ReactionMethods.Follow);
         if (!(options.blacklist ?? false)) this._emojis.delete(ReactionMethods.Blacklist);
+        if (!(options.download ?? false)) this._emojis.delete(ReactionMethods.Download);
         if (!(options.remove ?? true)) this._emojis.delete(ReactionMethods.Remove);
         if (options.image ?? false) {
             this._emojis.clear();
