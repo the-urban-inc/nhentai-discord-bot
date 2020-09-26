@@ -10,7 +10,7 @@ async function getRandomID(url: string) {
     if (!res || !res.data) throw new Error('No results found.');
     return +res.request.res.responseUrl.match(
         /(?:(?:https?:\/\/)?nhentai\.net\/g\/)?([0-9]{1,6})/i
-    );
+    )[1];
 }
 
 async function parseRelatedHTML(url: string) {
