@@ -4,7 +4,6 @@ import * as DB from '../db/index';
 import Logger from '@nhentai/utils/logger';
 import Embeds from '@nhentai/utils/embeds';
 import { NhentaiUtil } from '@nhentai/utils/utils';
-import { connectToDatabase } from '@nhentai/utils/mongoose';
 import NekosLifeAPI from 'nekos.life';
 import { fork, ChildProcess } from 'child_process';
 import { TextChannel } from 'discord.js';
@@ -90,7 +89,7 @@ export class NhentaiClient extends AkairoClient {
 
     async start(): Promise<void> {
         this.setup();
-        await connectToDatabase();
+        await this.db.init();
         await super.login(DISCORD_TOKEN);
         const owner = (await super.fetchApplication()).owner!.id;
         this.ownerID = this.commandHandler.ignoreCooldown = owner;
