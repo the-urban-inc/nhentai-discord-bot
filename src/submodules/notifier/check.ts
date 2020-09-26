@@ -1,3 +1,4 @@
+import log from '@nhentai/utils/logger';
 import { nhentaiClient } from '@nhentai/struct/nhentai/index';
 
 const nh = new nhentaiClient();
@@ -10,19 +11,25 @@ const nh = new nhentaiClient();
  */
 export async function check(from: number, to: number, filter: Set<number>) {
     if (to < from) return; // bruh wtf
-    let codesToCheck = Array(to - from + 1).fill(0).map((_, i) => from + i);
+    let codesToCheck = Array(to - from + 1)
+        .fill(0)
+        .map((_, i) => from + i);
     return (
         await Promise.all(
-            codesToCheck
-                .map(async (code, index) => {
-                    await new Promise(r => setTimeout(r, index * 5500));
-                    const out = await nh.g(code.toString());
-                    if (out.details.error) return;
-                    let tags = new Map<number, string>();
-                    for (let tag of out.details.tags) 
-                        tags.set(tag.id, tag.name)
-                    return { out, tags };
-                })
+            codesToCheck.map(async (code, index) => {
+                await new Promise(r => setTimeout(r, index * 5500));
+                let out = null;
+                try {
+                    out = await nh.g(code.toString());
+                } catch (err) {
+                    log.error(err);
+                    return;
+                }
+                if (!out) return;
+                let tags = new Map<number, string>();
+                for (let tag of out.details.tags) tags.set(tag.id, tag.name);
+                return { out, tags };
+            })
         )
     )
         .filter(Boolean)

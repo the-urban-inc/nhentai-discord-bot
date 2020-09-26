@@ -1,13 +1,13 @@
 import Cheerio from 'cheerio';
-import { DoujinThumbnail, DoujinList } from './struct';
+import { Thumbnail, List } from './struct';
 
-export async function details(html: string) {
+export async function related(html: string) {
     const $ = Cheerio.load(html, {
         decodeEntities: false,
         xmlMode: false,
     });
 
-    let related: DoujinThumbnail[] = $('.gallery')
+    let related: Thumbnail[] = $('.gallery')
         .toArray()
         .map((e, i) => {
             let $this = $(e);
@@ -39,12 +39,12 @@ export async function details(html: string) {
  * parse into lists
  * @param {String} html
  */
-export function list(html: string) {
+export async function list(html: string) {
     const $ = Cheerio.load(html, {
         decodeEntities: false,
     });
 
-    let results: DoujinThumbnail[] = $('.gallery')
+    let results: Thumbnail[] = $('.gallery')
         .toArray()
         .map((e, i) => {
             let $this = $(e);
@@ -103,10 +103,10 @@ export function list(html: string) {
         ...addon,
         results,
         tagId: +(tagId || [])[0]?.replace('tag-', '') || null,
-    } as DoujinList;
+    } as List;
 }
 
 module.exports = {
-    details,
+    related,
     list,
 };

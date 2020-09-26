@@ -12,7 +12,7 @@ export interface Tag {
     count: number;
 }
 
-export interface DoujinDetails {
+export interface Details {
     id: number;
     media_id: string;
     title: {
@@ -35,7 +35,7 @@ export interface DoujinDetails {
     error?: string;
 }
 
-export interface DoujinThumbnail {
+export interface Thumbnail {
     id: string;
     title: string;
     language: string;
@@ -47,14 +47,14 @@ export interface DoujinThumbnail {
     };
 }
 
-export interface DoujinList {
+export interface List {
     tagId: number | null;
-    results: DoujinThumbnail[];
+    results: Thumbnail[];
     num_pages: number;
     num_results: number;
 }
 
-interface DoujinCommentUser {
+interface CommentUser {
     id: number;
     username: string;
     slug: string;
@@ -63,10 +63,10 @@ interface DoujinCommentUser {
     is_staff: boolean;
 }
 
-export interface DoujinComment {
+export interface Comment {
     id: number;
     gallery_id: number;
-    poster: DoujinCommentUser;
+    poster: CommentUser;
     post_date: number;
     body: string;
 }
@@ -78,11 +78,11 @@ const TYPE = {
 };
 
 export class Gallery {
-    details: DoujinDetails;
-    related?: DoujinThumbnail[];
-    comments?: DoujinComment[];
+    details: Details;
+    related?: Thumbnail[];
+    comments?: Comment[];
 
-    constructor(details: DoujinDetails, related?: DoujinThumbnail[], comments?: DoujinComment[]) {
+    constructor(details: Details, related?: Thumbnail[], comments?: Comment[]) {
         this.details = details;
         this.related = related;
         this.comments = comments;

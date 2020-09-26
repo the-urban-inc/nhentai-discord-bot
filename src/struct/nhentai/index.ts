@@ -1,25 +1,32 @@
 import getHTML from './src/get';
 import * as Parse from './src/parse';
-import { Gallery } from './src/struct';
+import * as NH from './src/struct';
 import qs from 'qs';
 
-async function parseDetailsHTML(url: string) {
-    const data = await getHTML(url).catch(err => {
+async function getRandomID(url: string) {
+    const res = await getHTML(url).catch(err => {
         throw err;
     });
-    if (!data) throw new Error('No results found.');
-    return {
-        id: parseInt(data.id[1], 10),
-        related: await Parse.details(data.details),
-    };
+    if (!res || !res.data) throw new Error('No results found.');
+    return +res.request.res.responseUrl.match(
+        /(?:(?:https?:\/\/)?nhentai\.net\/g\/)?([0-9]{1,6})/i
+    );
+}
+
+async function parseRelatedHTML(url: string) {
+    const res = await getHTML(url).catch(err => {
+        throw err;
+    });
+    if (!res || !res.data) throw new Error('No results found.');
+    return await Parse.related(res.data);
 }
 
 async function parseListHTML(url: string) {
-    const list = await getHTML(url).catch(err => {
+    const res = await getHTML(url).catch(err => {
         throw err;
     });
-    if (!list) throw new Error('No results found.');
-    return Parse.list(list.details);
+    if (!res || !res.data) throw new Error('No results found.');
+    return await Parse.list(res.data);
 }
 
 export class nhentaiClient {
@@ -30,15 +37,16 @@ export class nhentaiClient {
     }
 
     async g(id: string, more = false) {
-        let details = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
+        let details = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).data as NH.Details;
         if (more) {
-            let related = (await parseDetailsHTML(`${this.baseURL}/g/${id}/`)).related;
-            let comments = (await getHTML(`${this.baseURL}/api/gallery/${id}/comments`)).details;
+            let related = await parseRelatedHTML(`${this.baseURL}/g/${id}/`);
+            let comments = (await getHTML(`${this.baseURL}/api/gallery/${id}/comments`))
+                .data as NH.Comment[];
             if (!related || !comments) throw new Error('Scraping failed');
-            return new Gallery(details, related, comments);
+            return new NH.Gallery(details, related, comments);
         }
         if (!details) throw new Error('Scraping failed');
-        return new Gallery(details);
+        return new NH.Gallery(details);
     }
 
     search(keyword: string, page = 1, sort = 'recent') {
@@ -58,16 +66,9 @@ export class nhentaiClient {
     }
 
     async random(more = false) {
-        let { id, related } = await parseDetailsHTML(`${this.baseURL}/random/`);
+        let id = await getRandomID(`${this.baseURL}/random/`);
         if (!id || isNaN(id)) throw new Error('Invalid ID');
-        let details = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
-        if (more) {
-            let comments = (await getHTML(`${this.baseURL}/api/gallery/${id}`)).details;
-            if (!comments) throw new Error('Scraping failed');
-            return new Gallery(details, related, comments);
-        }
-        if (!details || !related) throw new Error('Scraping failed');
-        return new Gallery(details);
+        return this.g(id.toString(), more);
     }
 
     tag(name: string, page = 1, sort = 'recent') {
