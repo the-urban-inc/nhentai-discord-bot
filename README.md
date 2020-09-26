@@ -14,7 +14,7 @@
 ---
 
 # About
-nhentai is an open source nhentai Discord bot powered by JavaScript with [discord.js](https://discord.js.org/#/) using the [Akairo](https://discord-akairo.github.io/#/) framework.
+nhentai is an open source nhentai Discord bot powered by TypeScript with [discord.js](https://discord.js.org/#/) using the [Akairo](https://discord-akairo.github.io/#/) framework.
 
 # Features
 - Almost every basic features of the **[nhentai](https://nhentai.net/)** website.
