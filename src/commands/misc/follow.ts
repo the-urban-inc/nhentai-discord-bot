@@ -1,6 +1,6 @@
 import Command from '@nhentai/struct/bot/Command';
 import { Message } from 'discord.js';
-import { WatchModel } from '@notifier/index';
+import { WatchModel } from '@notifier/db/models/record';
 
 export default class extends Command {
     constructor() {

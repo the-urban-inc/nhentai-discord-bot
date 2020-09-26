@@ -11,9 +11,9 @@ export function connectToDatabase() {
     });
     connection
         .on('connected', () =>
-            log.info(`Connected to ${chalk.bgBlue.yellowBright(connection.host)}.`)
+            log.info(`[NOTIFIER] Connected to ${chalk.bgBlue.yellowBright(connection.host)}.`)
         )
-        .on('disconnected', () => log.warn(`Disconnected.`))
-        .on('err', e => log.error(`Connection error : ${e}`));
+        .on('disconnected', () => log.warn(`[NOTIFIER] Disconnected.`))
+        .on('err', e => log.error(`[NOTIFIER] Connection error : ${e}`));
     return connection;
 }

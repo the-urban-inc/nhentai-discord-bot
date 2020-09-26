@@ -1,21 +1,21 @@
 import { config } from 'dotenv';
 config();
 import type { User } from 'discord.js';
-import { connectToDatabase } from './db';
 import logger from '@nhentai/utils/logger';
-import type { Model } from 'mongoose';
+import { Model } from 'mongoose';
+import { connectToDatabase } from './db';
 import { WatchRecord, IWatchRecord } from './db/models/record';
 import Watcher from './watcher';
 import { Queue } from 'queue-ts';
 
 const connection = connectToDatabase();
-export const WatchModel = connection.model('watch', WatchRecord) as Model<IWatchRecord>;
+const WatchModel = connection.model('watch', WatchRecord) as Model<IWatchRecord>;
 
 const log = {
     registered : (user : string, tag : number) =>
-        logger.info(`Registered watcher for user ${user} on tag ${tag}.`),
+        logger.info(`[NOTIFIER] Registered watcher for user ${user} on tag ${tag}.`),
     removed : (user : string, tag : number) =>
-        logger.info(`Removed watcher for user ${user} on tag ${tag}.`)
+        logger.info(`[NOTIFIER] Removed watcher for user ${user} on tag ${tag}.`)
 }
 
 async function init () {

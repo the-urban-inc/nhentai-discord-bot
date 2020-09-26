@@ -1,15 +1,19 @@
-import mongoose from 'mongoose';
-import Logger from './logger';
+import { createConnection } from 'mongoose';
+import chalk from 'chalk';
+import log from '@nhentai/utils/logger';
 
-export class Mongoose {
-    static async init() {
-        mongoose.connect(process.env.MONGODB_URI, {
-            useNewUrlParser: true,
-            autoIndex: true,
-            useUnifiedTopology: true
-        });
-        mongoose.connection.on('connected', () => { Logger.info('[DATABASE] Connected to MongoDB successfully!'); });
-        mongoose.connection.on('err', err => { Logger.error(`[DATABASE] Error connecting mongoose: ${err}`); });
-        mongoose.connection.on('disconnected', () => { Logger.info('[DATABASE] Mongoose has disconnected from db!'); });
-    }
-};
+export function connectToDatabase() {
+    let connection = createConnection(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        autoIndex: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false,
+    });
+    connection
+        .on('connected', () =>
+            log.info(`[DATABASE] Connected to ${chalk.bgBlue.yellowBright(connection.host)}.`)
+        )
+        .on('disconnected', () => log.warn(`[DATABASE] Disconnected.`))
+        .on('err', e => log.error(`[DATABASE] Connection error : ${e}`));
+    return connection;
+}

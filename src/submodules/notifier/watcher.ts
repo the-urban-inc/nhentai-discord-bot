@@ -1,10 +1,11 @@
 import interval from 'set-interval';
 import { EventEmitter } from 'events';
-import cc from 'cheerio';
-import ax from 'axios';
 import { check } from './check';
 import { dispatch } from './dispatch';
 import log from '@nhentai/utils/logger';
+import { nhentaiClient } from '@nhentai/struct/nhentai/index';
+
+const nh = new nhentaiClient();
 
 export default class Watcher extends EventEmitter {
     private watch = new Set<number>();
@@ -17,7 +18,7 @@ export default class Watcher extends EventEmitter {
 
     async setWatch(s: Set<number>) {
         this.watch = s;
-        log.info(`I am now configured to watch ${s.size} tag(s).`);
+        log.info(`[NOTIFIER] I am now configured to watch ${s.size} tag(s).`);
         if (this.working) await this.stop().then(() => this.start());
         return this;
     }
@@ -25,14 +26,13 @@ export default class Watcher extends EventEmitter {
     async stop() {
         this.ints?.stop?.(this.key);
         this.working = false;
-        log.warn(`I am stopping, possibly due to changes in the number of watching targets.`);
-        log.info(`The last doujin code I checked was ${this.last}.`);
+        log.warn(`[NOTIFIER] I am stopping, possibly due to changes in the number of watching targets.`);
+        log.info(`[NOTIFIER] The last doujin code I checked was ${this.last}.`);
         return this;
     }
 
     private async getCode() {
-        let _ = (await ax.get('https://nhentai.net/')).data;
-        return +/(\d)+/g.exec(cc.load(_)(`div.gallery > a.cover`).slice(5).attr('href'))[0];
+        return +(await nh.homepage()).results[5].id;
     }
 
     async start() {
@@ -45,16 +45,16 @@ export default class Watcher extends EventEmitter {
             );
             return this;
         }
-        log.info(`The latest doujin code is ${this.last}. Caching.`);
+        log.info(`[NOTIFIER] The latest doujin code is ${this.last}. Caching.`);
         if (this.watch.size === 0) {
-            log.warn(`No tags to be watched for. I will not start.`);
+            log.warn(`[NOTIFIER] No tags to be watched for. I will not start.`);
         } else {
             this.ints.start(
                 async () => {
                     let _ = await this.getCode();
                     if (this.last < _) {
-                        log.info(`The latest code is now ${_}, from the last of ${this.last}.`);
-                        log.info(`Dispatching event.`);
+                        log.info(`[NOTIFIER] The latest code is now ${_}, from the last of ${this.last}.`);
+                        log.info(`[NOTIFIER] Dispatching event.`);
                         let out = await check(this.last + 1, _, this.watch);
                         this.last = _;
                         dispatch(out);
@@ -67,7 +67,7 @@ export default class Watcher extends EventEmitter {
             );
             // marking state to be true
             this.working = true;
-            log.info(`Started watcher. Every ${this.interval}ms there will be a check.`);
+            log.info(`[NOTIFIER] Started watcher. Every ${this.interval}ms there will be a check.`);
         }
         return this;
     }
