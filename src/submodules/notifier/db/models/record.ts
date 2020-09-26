@@ -1,4 +1,4 @@
-import { Schema, Document } from 'mongoose';
+import { model, Schema, Document } from 'mongoose';
 import type { User } from 'discord.js';
 
 export interface IWatchRecord extends Document {
@@ -18,3 +18,5 @@ export const WatchRecord: Schema<IWatchRecord> = new Schema({
     name: String,
     user: [String],
 });
+
+export const WatchModel = model<IWatchRecord>('watch', WatchRecord);

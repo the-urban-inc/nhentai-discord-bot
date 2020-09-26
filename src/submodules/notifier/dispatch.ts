@@ -1,7 +1,7 @@
 import { MessageEmbed } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
-import { WatchModel } from './';
+import { WatchModel } from './db/models/record';
 import type { check } from './check';
 import log from '@nhentai/utils/logger';
 import { ICON } from '@nhentai/utils/constants';
@@ -77,7 +77,7 @@ export async function dispatch(_: _) {
                 // and send?
                 user.send('A new doujin was released!', { embed: info }).then(m =>
                     log.info(
-                        `Notified user ${user.username} (${user.id}) of doujin ${id}.` +
+                        `[NOTIFIER] Notified user ${user.username} (${user.id}) of doujin ${id}.` +
                             `\nMessage ID : ${m.id}`
                     )
                 );
