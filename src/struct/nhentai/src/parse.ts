@@ -1,7 +1,12 @@
 import Cheerio from 'cheerio';
 import { Thumbnail, List } from './struct';
 
-export async function related(html: string) {
+/**
+ * Scrapes the More Like This section of a gallery page
+ * @param html The html of the gallery
+ * @returns An array of gallery thumbnail
+ */
+export async function related(html: string): Promise<Thumbnail[]> {
     const $ = Cheerio.load(html, {
         decodeEntities: false,
         xmlMode: false,
@@ -36,10 +41,11 @@ export async function related(html: string) {
 }
 
 /**
- * parse into lists
- * @param {String} html
+ * Scrapes gallery list
+ * @param html The html of the gallery list page
+ * @returns An array of doujin thumbnail with num_pages, num_results and tagId if this is a tag page
  */
-export async function list(html: string) {
+export async function list(html: string): Promise<List> {
     const $ = Cheerio.load(html, {
         decodeEntities: false,
     });

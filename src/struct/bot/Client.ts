@@ -1,5 +1,5 @@
 import { AkairoClient, CommandHandler, InhibitorHandler, ListenerHandler } from 'discord-akairo';
-import { nhentaiClient } from '../nhentai/index';
+import { NhentaiAPI } from '../nhentai/index';
 import * as DB from '../db/index';
 import Logger from '@nhentai/utils/logger';
 import Embeds from '@nhentai/utils/embeds';
@@ -34,7 +34,7 @@ export class NhentaiClient extends AkairoClient {
         directory: `${__dirname}/../../listeners/`,
     });
 
-    nhentai = new nhentaiClient();
+    nhentai = new NhentaiAPI();
     db = DB;
     util: NhentaiUtil = new NhentaiUtil(this);
     embeds = Embeds;

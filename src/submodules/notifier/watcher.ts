@@ -3,9 +3,9 @@ import { EventEmitter } from 'events';
 import { check } from './check';
 import { dispatch } from './dispatch';
 import log from '@nhentai/utils/logger';
-import { nhentaiClient } from '@nhentai/struct/nhentai/index';
+import { NhentaiAPI } from '@nhentai/struct/nhentai/index';
 
-const nh = new nhentaiClient();
+const nh = new NhentaiAPI();
 
 export default class Watcher extends EventEmitter {
     private watch = new Set<number>();

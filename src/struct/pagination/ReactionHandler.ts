@@ -130,8 +130,6 @@ export class ReactionHandler {
                 try {
                     await this.message.reactions.removeAll();
                 } catch (error) {
-                    // Harmless error. Unable to fix for now
-                    if (error.code === 10008) return;
                     this.message.client.emit('error', error);
                 }
             }

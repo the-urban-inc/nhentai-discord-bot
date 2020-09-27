@@ -24,15 +24,12 @@ export interface Details {
         pages: Page[];
         cover: Page;
         thumbnail: Page;
-        scanlator: string;
-        upload_date: number;
     };
     scanlator: string;
     upload_date: number;
     tags: Tag[];
     num_pages: number;
     num_favorites: number;
-    error?: string;
 }
 
 export interface Thumbnail {

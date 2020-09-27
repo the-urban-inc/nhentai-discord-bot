@@ -1,7 +1,7 @@
 import log from '@nhentai/utils/logger';
-import { nhentaiClient } from '@nhentai/struct/nhentai/index';
+import { NhentaiAPI } from '@nhentai/struct/nhentai/index';
 
-const nh = new nhentaiClient();
+const nh = new NhentaiAPI();
 
 /**
  * Categorize into tags
