@@ -114,7 +114,7 @@ export class NhentaiUtil extends ClientUtil {
     }
 
     hasCommon<T>(a: T[], b: T[]) {
-        return ![...new Set(a)].some(x => new Set(b).has(x))
+        return [...new Set(a)].some(x => new Set(b).has(x));
     }
 
     pad(text: string, width: number, char = '0') {

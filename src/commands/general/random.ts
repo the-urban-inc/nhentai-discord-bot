@@ -64,7 +64,7 @@ export default class extends Command {
                 .setFooter(`ID : ${id}${auto ? '• React with 🇦 to start an auto session' : ''}`)
                 .setTimestamp();
 
-            const rip = !this.client.util.hasCommon(
+            const rip = this.client.util.hasCommon(
                 tags.map(x => x.id.toString()),
                 BANNED_TAGS
             );
@@ -144,7 +144,7 @@ export default class extends Command {
                         )
                         .setFooter(`Doujin ${idx + 1} of ${related.length}`)
                         .setTimestamp();
-                    const prip = !this.client.util.hasCommon(dataTags, BANNED_TAGS);
+                    const prip = this.client.util.hasCommon(dataTags, BANNED_TAGS);
                     if (prip) this.warning = true;
                     if (this.danger || !prip) page.setImage(thumbnail.s);
                     displayRelated.addPage(page, id);

@@ -167,7 +167,7 @@ export default class extends Command {
                     });
                     embed.addField('Blacklist', this.client.util.shorten(s, '\n', 1024));
                 } else {
-                    const prip = !this.client.util.hasCommon(dataTags, BANNED_TAGS);
+                    const prip = this.client.util.hasCommon(dataTags, BANNED_TAGS);
                     if (prip) this.warning = true;
                     if (this.danger || !prip) embed.setImage(thumbnail.s);
                 }

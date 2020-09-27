@@ -115,7 +115,7 @@ export default class extends Command {
                         }\u2000•\u2000Found ${data.num_results} result(s)`
                     )
                     .setTimestamp();
-                const prip = !this.client.util.hasCommon(dataTags, BANNED_TAGS);
+                const prip = this.client.util.hasCommon(dataTags, BANNED_TAGS);
                 if (prip) this.warning = true;
                 if (this.danger || !prip) epage.setImage(thumbnail.s);
                 display.addPage(epage, id);

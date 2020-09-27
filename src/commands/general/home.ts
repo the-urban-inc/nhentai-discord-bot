@@ -79,7 +79,7 @@ export default class extends Command {
                             }\u2000•\u2000Page ${page} of ${data.num_pages || 1}`
                         )
                         .setTimestamp();
-                    const prip = !this.client.util.hasCommon(dataTags, BANNED_TAGS);
+                    const prip = this.client.util.hasCommon(dataTags, BANNED_TAGS);
                     if (prip) this.warning = true;
                     if (this.danger || !prip) epage.setImage(thumbnail.s);
                     displayPopular.addPage(epage, id);
@@ -114,7 +114,7 @@ export default class extends Command {
                             }`
                         )
                         .setTimestamp();
-                    const prip = !this.client.util.hasCommon(dataTags, BANNED_TAGS);
+                    const prip = this.client.util.hasCommon(dataTags, BANNED_TAGS);
                     if (prip) this.warning = true;
                     if (this.danger || !prip) epage.setImage(thumbnail.s);
                     displayNew.addPage(epage, id);
@@ -149,7 +149,7 @@ export default class extends Command {
                         }`
                     )
                     .setTimestamp();
-                const prip = !this.client.util.hasCommon(dataTags, BANNED_TAGS);
+                const prip = this.client.util.hasCommon(dataTags, BANNED_TAGS);
                 if (prip) this.warning = true;
                 if (this.danger || !prip) epage.setImage(thumbnail.s);
                 display.addPage(epage, id);
