@@ -9,7 +9,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/t41y0u/nhentai-discord-bot"
+        "url": "https://github.com/the-urban-inc/nhentai-discord-bot.git"
     },
     "dependencies": {
         "@octokit/rest": "^18.0.0",

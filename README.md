@@ -32,7 +32,7 @@ nhentai is an open source nhentai Discord bot powered by TypeScript with [discor
 # Installation
 
 ```
-git clone https://github.com/kaguwuya/nhentai-discord-bot.git
+git clone https://github.com/the-urban-inc/nhentai-discord-bot.git
 cd nhentai-discord-bot
 npm install
 npm build
