@@ -25,7 +25,7 @@ export async function check(from: number, to: number, filter: Set<number>) {
                     log.error(err);
                     return;
                 }
-                if (!out) return;
+                if (!out || !out.details || !out.details.tags) return;
                 let tags = new Map<number, string>();
                 for (let tag of out.details.tags) tags.set(tag.id, tag.name);
                 return { out, tags };
