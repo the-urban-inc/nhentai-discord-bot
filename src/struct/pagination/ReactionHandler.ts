@@ -315,7 +315,7 @@ export class ReactionHandler {
             user: User
         ): Promise<boolean> {
             try {
-                let id = this.display.info.id || this.display.pages[this.#currentPage].id;
+                let id = this.display.pages[this.#currentPage].id || this.display.info.id;
                 if (!id) return Promise.resolve(false);
                 const adding = await this.client.db.User.favorite(user, id);
                 this.message.channel
@@ -390,13 +390,13 @@ export class ReactionHandler {
             user: User
         ): Promise<boolean> {
             try {
-                const info = this.display.info;
-                if (!info) return Promise.resolve(false);
+                const id = this.display.pages[this.#currentPage].id || this.display.info.id;
+                if (!id) return Promise.resolve(false);
                 this.message.channel
                     .send(
                         this.client.embeds
                             .info(
-                                `Click [here](https://nhdl.herokuapp.com/download/nhentai/${info.id}/?e=zip) to download ${info.id}`
+                                `Click [here](https://nhdl.herokuapp.com/download/nhentai/${id}/?e=zip) to download ${id}`
                             ) // Thanks masami45 (@masami45) for the download server
                             .setFooter(user.tag, user.displayAvatarURL())
                     )

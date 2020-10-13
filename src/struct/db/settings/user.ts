@@ -50,9 +50,10 @@ export async function blacklist(duser: DiscordUser, info: Blacklist) {
         }).save();
         adding = true;
     } else {
-        if (user.blacklists.includes(info)) {
-            user.blacklists.splice(user.blacklists.indexOf(info), 1);
-        } else {
+        const idx = user.blacklists.findIndex(bl => bl.id === info.id);
+        if (idx > -1) {
+            user.blacklists.splice(idx, 1);
+        } else if (idx === -1) {
             user.blacklists.push(info);
             adding = true;
         }
