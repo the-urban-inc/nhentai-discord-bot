@@ -1,4 +1,4 @@
-import Inhibitor from '@nhentai/struct/bot/Inhibitor';
+import Inhibitor from '@inari/struct/bot/Inhibitor';
 import { Message } from 'discord.js';
 
 export default class extends Inhibitor {
@@ -10,7 +10,6 @@ export default class extends Inhibitor {
     }
 
     exec(message: Message) {
-        // Haha chet me may de
         const blacklist = [''];
         return blacklist.includes(message.author.id);
     }

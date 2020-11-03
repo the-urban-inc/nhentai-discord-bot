@@ -1,7 +1,7 @@
 {
-    "name": "nhentai",
+    "name": "inari",
     "version": "1.1.0",
-    "description": "As you can guess from the name, I'm a bot that focuses on NSFW content.",
+    "description": "NSFW discord bot (with some SFW commands)",
     "main": "build/src/index.js",
     "types": "build/src/index.d.ts",
     "files": [
@@ -14,7 +14,6 @@
     "dependencies": {
         "@octokit/rest": "^18.0.0",
         "axios": "^0.19.0",
-        "axios-https-proxy-fix": "^0.17.1",
         "booru": "^2.0.5",
         "chalk": "^4.1.0",
         "cheerio": "^1.0.0-rc.3",

@@ -2,8 +2,8 @@ import interval from 'set-interval';
 import { EventEmitter } from 'events';
 import { check } from './check';
 import { dispatch } from './dispatch';
-import log from '@nhentai/utils/logger';
-import { NhentaiAPI } from '@nhentai/struct/nhentai/index';
+import log from '@inari/utils/logger';
+import { NhentaiAPI } from '@inari/struct/nhentai';
 
 const nh = new NhentaiAPI();
 

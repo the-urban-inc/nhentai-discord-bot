@@ -1,11 +1,6 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Argument } from 'discord-akairo';
 import { Message } from 'discord.js';
-const { PREFIX } = process.env;
-
-const SPECIAL_COMMANDS = {
-    tag: 'Searches nhentai for specifed @',
-};
 
 const TITLE_LIST = {
     general: 'General',
@@ -39,9 +34,12 @@ export default class extends Command {
         if (!commandAlias) return this.execCommandList(message);
 
         let command = commandAlias[0],
-            alias = commandAlias[1];
-        if (Object.keys(SPECIAL_COMMANDS).includes(command.id) && command.aliases.includes(alias)) {
-            command.description.content = SPECIAL_COMMANDS[command.id].replace('@', alias);
+            alias = commandAlias[1].replace(/nsfw_/, '');;
+
+        const prefix = (command.nsfw || !('nsfw' in command)) ? this.client.config.settings.prefix.nsfw[0] : this.client.config.settings.prefix.sfw[0];
+
+        if (command.areMultipleCommands) {
+            command.description.content = command.description.content.replace('@', alias);
             command.id = alias;
             command.aliases = [];
         }
@@ -53,8 +51,7 @@ export default class extends Command {
         const embed = this.client.util
             .embed()
             .setTitle(
-                `${PREFIX}${command.id} ${
-                    command.description.usage ? command.description.usage : ''
+                `${prefix}${command.id} ${command.description.usage ? command.description.usage : ''
                 }`
             )
             .setDescription(command.description.content ?? 'No description specified.');
@@ -75,17 +72,18 @@ export default class extends Command {
         if (command.aliases.length > 1)
             embed.addField('Aliases', command.aliases.slice(1).join(', '));
         if (examples)
-            embed.addField('Examples', examples.map(e => `${PREFIX}${command} ${e}`).join('\n'));
+            embed.addField('Examples', examples.map(e => `${prefix}${command} ${e}`).join('\n'));
         return message.channel.send({ embed });
     }
 
     async execCommandList(message: Message) {
+        const prefix = this.client.config.settings.prefix.nsfw[0];
         const display = this.client.embeds.richDisplay({ love: false }).addPage(
             this.client.util
                 .embed()
                 .setColor(0xffac33)
                 .setTitle('Command List')
-                .setDescription(`Use ${PREFIX}help [command] to see detailed info of a command`)
+                .setDescription(`Use ${prefix}help [command] to see detailed info of a command`)
                 .addField('Command Guide', [
                     '- <> : Required',
                     '- [] : Optional',
@@ -96,7 +94,7 @@ export default class extends Command {
                     '- ◀ ▶ : Jump to previous/next page',
                     '- ↗️ : Jump to specified page',
                     '- ℹ️ : Jump to info page/View info of a doujin in doujin list view',
-                    `- 🇦 ⏹ : Turn on/off auto browsing mode (add --auto to use this feature in ${PREFIX}g and ${PREFIX}random command)`,
+                    `- 🇦 ⏹ : Turn on/off auto browsing mode (add --auto to use this feature in ${prefix}g and ${prefix}random command)`,
                     '- ❤️ : Add/Remove a doujin to/from favorites',
                     '- 🔖 : Follow/Unfollow a tag/artist/parody/etc.',
                     '- 🏴 : Blacklist a tag/artist/parody/etc.',
@@ -111,27 +109,30 @@ export default class extends Command {
                 message.author.id === this.client.ownerID
                     ? commands
                     : commands.filter(c => !c.ownerOnly);
-            const embed = this.client.util.embed().setTitle(title);
-            publicCommands.forEach(command => {
-                if (Object.keys(SPECIAL_COMMANDS).includes(command.id)) {
-                    command.aliases.forEach(a => {
+            for (const splitCommands of this.client.util.chunkify(Array.from(publicCommands.values()), 25)) {
+                const embed = this.client.util.embed().setTitle(title);
+                splitCommands.forEach((command: Command) => {
+                    const prefix = (command.nsfw || !('nsfw' in command)) ? this.client.config.settings.prefix.nsfw[0] : this.client.config.settings.prefix.sfw[0];
+                    if (command.areMultipleCommands) {
+                        command.aliases.forEach(a => {
+                            a = a.replace(/nsfw_/, '');
+                            embed.addField(
+                                `${command.nsfw ? '`🔞` ' : ''}${prefix}${a} ${command.description.usage ? command.description.usage : ''
+                                }`,
+                                command.description.content.replace('@', a)
+                            );
+                        });
+                    } else {
+                        const alias = command.aliases[0].replace(/nsfw_/, '');
                         embed.addField(
-                            `${PREFIX}${a} ${
-                                command.description.usage ? command.description.usage : ''
+                            `${command.nsfw ? '`🔞` ' : ''}${prefix}${alias} ${command.description.usage ? command.description.usage : ''
                             }`,
-                            SPECIAL_COMMANDS[command.id].replace('@', a)
+                            command.description.content ?? 'No description specified.'
                         );
-                    });
-                } else {
-                    embed.addField(
-                        `${PREFIX}${command.aliases[0]} ${
-                            command.description.usage ? command.description.usage : ''
-                        }`,
-                        command.description.content ?? 'No description specified.'
-                    );
-                }
-            });
-            display.addPage(embed);
+                    }
+                });
+                display.addPage(embed);
+            }
         }
         return display.run(
             this.client,

@@ -1,6 +1,6 @@
 import { MessageEmbed } from 'discord.js';
-import { RichDisplay, RichDisplayOptions } from '@nhentai/struct/pagination/RichDisplay';
-import { RichMenu } from '@nhentai/struct/pagination/RichMenu';
+import { RichDisplay, RichDisplayOptions } from '@inari/struct/pagination/RichDisplay';
+import { RichMenu } from '@inari/struct/pagination/RichMenu';
 
 export default class {
     static richDisplay(options?: RichDisplayOptions) {

@@ -1,14 +1,15 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
 import he from 'he';
-import { Server } from '@nhentai/models/server';
-import { FLAG_EMOJIS, SORT_METHODS, BANNED_TAGS, BLOCKED_MESSAGE } from '@nhentai/utils/constants';
+import { Server } from '@inari/models/server';
+import { FLAG_EMOJIS, SORT_METHODS, BANNED_TAGS, BLOCKED_MESSAGE } from '@inari/utils/constants';
 
 export default class extends Command {
     constructor() {
         super('search', {
             aliases: ['search'],
             channel: 'guild',
+            nsfw: true,
             description: {
                 content: [
                     'Searches nhentai for given query.',

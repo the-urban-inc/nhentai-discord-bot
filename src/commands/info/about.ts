@@ -1,8 +1,8 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message, version as DiscordVersion } from 'discord.js';
 import { version as AkairoVersion } from 'discord-akairo';
-import { PERMISSIONS } from '@nhentai/utils/constants';
-const { npm_package_description, npm_package_version, npm_package_repository_url } = process.env;
+import { PERMISSIONS } from '@inari/utils/constants';
+const { npm_package_version, npm_package_repository_url } = process.env;
 
 export default class extends Command {
     constructor() {
@@ -24,7 +24,7 @@ export default class extends Command {
             .embed()
             .setThumbnail(this.client.user.displayAvatarURL())
             .setTitle(`Hey ${message.author.username}, I'm ${this.client.user.tag}!`)
-            .setDescription(`${npm_package_description}`)
+            .setDescription(this.client.config.description)
             .addField('❯ Discord', [
                 `• **Guilds** : ${this.client.guilds.cache.size}`,
                 `• **Channels** : ${this.client.channels.cache.size}`,

@@ -9,10 +9,10 @@ import moment from 'moment';
 import { Cache } from './Cache';
 import { RichDisplay } from './RichDisplay';
 import { RichMenu } from './RichMenu';
-import { Gallery } from '@nhentai/struct/nhentai/src/struct';
-import { Tag } from '@nhentai/struct/nhentai/src/struct';
-import { ICON } from '@nhentai/utils/constants';
-import { NhentaiClient } from '@nhentai/struct/bot/Client';
+import { Gallery } from '@inari/struct/nhentai/src/struct';
+import { Tag } from '@inari/struct/nhentai/src/struct';
+import { ICON } from '@inari/utils/constants';
+import { InariClient } from '@inari/struct/bot/Client';
 
 export interface ReactionHandlerOptions extends ReactionCollectorOptions {
     stop?: boolean;
@@ -53,7 +53,7 @@ export const enum ReactionMethods {
 
 export class ReactionHandler {
     readonly selection: Promise<number | null>;
-    readonly client: NhentaiClient;
+    readonly client: InariClient;
     readonly requestMessage: Message;
     readonly message: Message;
     private readonly display: RichDisplay | RichMenu;
@@ -77,7 +77,7 @@ export class ReactionHandler {
         | null = null;
 
     constructor(
-        client: NhentaiClient,
+        client: InariClient,
         requestMessage: Message,
         message: Message,
         options: ReactionHandlerOptions,
@@ -121,22 +121,20 @@ export class ReactionHandler {
             ]);
             if (signals[1]) this.collector.stop();
         });
-        this.collector.on('end', async () => {
-            if (
-                this.message &&
-                !this.message.deleted &&
-                this.message.client.guilds.cache.has(this.message.guild!.id)
-            ) {
-                try {
-                    await this.message.reactions.removeAll();
-                } catch (error) {
-                    this.message.client.emit('error', error);
-                }
-            }
-        });
     }
 
-    public stop(): boolean {
+    public async stop(): Promise<boolean> {
+        if (
+            this.message &&
+            !this.message.deleted &&
+            this.message.client.guilds.cache.has(this.message.guild!.id)
+        ) {
+            try {
+                await this.message.reactions.removeAll();
+            } catch (error) {
+                this.message.client.emit('error', error);
+            }
+        }
         this.#ended = true;
         if (this.#resolve) this.#resolve(null);
         return true;
@@ -409,7 +407,7 @@ export class ReactionHandler {
             }
         })
         .set(ReactionMethods.Remove, async function (this: ReactionHandler): Promise<boolean> {
-            this.collector.stop();
+            await this.stop();
             if (this.#autoMode) clearInterval(this.#autoMode);
             if (!this.message.deleted) await this.message.delete();
             if (!this.requestMessage.deleted && this.display.options.removeRequest)

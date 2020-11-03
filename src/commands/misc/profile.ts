@@ -1,7 +1,7 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message, GuildMember } from 'discord.js';
-import { User } from '@nhentai/models/user';
-import { ICON } from '@nhentai/utils/constants';
+import { User } from '@inari/models/user';
+import { ICON } from '@inari/utils/constants';
 import moment from 'moment';
 
 export default class extends Command {
@@ -13,7 +13,7 @@ export default class extends Command {
                 content:
                     "Views someone's profile.\nAdd --more to view favorite list, blacklist and recent calls (will not show up if the user has anonymous mode turned on).",
                 usage: '[user]',
-                examples: ['', '@nhentai#7217'],
+                examples: ['', '@Inari#7217'],
             },
             args: [
                 {

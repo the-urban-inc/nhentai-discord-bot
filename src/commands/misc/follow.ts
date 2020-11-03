@@ -1,4 +1,4 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
 import { WatchModel } from '@notifier/db/models/record';
 
@@ -7,6 +7,7 @@ export default class extends Command {
         super('follow', {
             aliases: ['follow'],
             channel: 'guild',
+            nsfw: true,
             description: {
                 content: 'View your follow list',
             },

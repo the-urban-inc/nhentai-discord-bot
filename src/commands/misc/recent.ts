@@ -1,13 +1,14 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
 import moment from 'moment';
-import { Server } from '@nhentai/struct/db/models/server';
+import { Server } from '@inari/models/server';
 
 export default class extends Command {
     constructor() {
         super('recent', {
             aliases: ['recent'],
             channel: 'guild',
+            nsfw: true,
             description: {
                 content: "Stalking people's fetishes.",
             },

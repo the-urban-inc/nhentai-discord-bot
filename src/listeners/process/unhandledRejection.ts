@@ -1,4 +1,4 @@
-import Listener from '@nhentai/struct/bot/Listener';
+import Listener from '@inari/struct/bot/Listener';
 
 export default class extends Listener {
     constructor() {

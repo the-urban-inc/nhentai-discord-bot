@@ -1,6 +1,6 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
-import { PERMISSIONS } from '@nhentai/utils/constants';
+import { PERMISSIONS } from '@inari/utils/constants';
 
 export default class extends Command {
     constructor() {

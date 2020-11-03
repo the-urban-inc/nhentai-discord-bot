@@ -18,9 +18,10 @@
         "downlevelIteration": true,
         "paths": {
             "@notifier/*": ["src/submodules/notifier/*"],
-            "@nhentai/utils/*": ["src/utils/*"],
-            "@nhentai/models/*": ["src/struct/db/models/*"],
-            "@nhentai/struct/*": ["src/struct/*"]
+            "@inari/utils/*": ["src/utils/*"],
+            "@inari/models/*": ["src/struct/db/models/*"],
+            "@inari/struct/*": ["src/struct/*"],
+            "@inari/config": ["config.json"]
         },
         "plugins": [
             {

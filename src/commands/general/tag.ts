@@ -1,10 +1,10 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
-import { User } from '@nhentai/models/user';
-import { Server } from '@nhentai/models/server';
-import { Blacklist } from '@nhentai/models/tag';
-import { List } from '@nhentai/struct/nhentai/src/struct';
-import { FLAG_EMOJIS, SORT_METHODS, BANNED_TAGS, BLOCKED_MESSAGE } from '@nhentai/utils/constants';
+import { User } from '@inari/models/user';
+import { Server } from '@inari/models/server';
+import { Blacklist } from '@inari/models/tag';
+import { List } from '@inari/struct/nhentai/src/struct';
+import { FLAG_EMOJIS, SORT_METHODS, BANNED_TAGS, BLOCKED_MESSAGE } from '@inari/utils/constants';
 import he from 'he';
 
 const TAGS = ['tag', 'artist', 'character', 'parody', 'group', 'language'] as const;
@@ -13,8 +13,11 @@ export default class extends Command {
     constructor() {
         super('tag', {
             aliases: ['tag', 'artist', 'character', 'parody', 'group', 'language', 'category'],
+            areMultipleCommands: true,
             channel: 'guild',
+            nsfw: true,
             description: {
+                content: 'Searches nhentai for specifed @',
                 usage: `[--page=pagenum] [--sort=(${SORT_METHODS.join('/')})]`,
             },
             args: [

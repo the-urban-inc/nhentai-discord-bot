@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import log from '@nhentai/utils/logger';
+import log from '@inari/utils/logger';
 
 export async function init() {
     mongoose.connect(process.env.MONGODB_URI, {

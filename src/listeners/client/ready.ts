@@ -1,5 +1,4 @@
-import Listener from '@nhentai/struct/bot/Listener';
-const { PREFIX } = process.env;
+import Listener from '@inari/struct/bot/Listener';
 
 export default class extends Listener {
     constructor() {
@@ -23,7 +22,7 @@ export default class extends Listener {
                     .then(data => data)
                     .catch(err => this.client.logger.error(err));
                 code = data ? data.details.id.toString() : code;
-                this.client.user.setActivity(`${code} • ${PREFIX}help`, { type: 'WATCHING' });
+                this.client.user.setActivity(`${code} • ${this.client.config.settings.prefix.nsfw[0]}help`, { type: 'WATCHING' });
             }, 300000);
         }, 10000);
     }

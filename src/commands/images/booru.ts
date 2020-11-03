@@ -1,8 +1,8 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
 import he from 'he';
 import { search } from 'booru';
-const { PREFIX } = process.env;
+import config from '@inari/config';
 
 const PROTOCOL_AND_DOMAIN_RE = /^(?:\w+:)?\/\/(\S+)$/;
 const LOCALHOST_DOMAIN_RE = /^localhost[\:?\d]*(?:[^\:?\d]\S*)?$/;
@@ -27,8 +27,9 @@ export default class extends Command {
         super('booru', {
             aliases: ['booru'],
             channel: 'guild',
+            nsfw: true,
             description: {
-                content: `Fetch images from multiple booru sites by tags.\nRun ${PREFIX}booru for list of supported pages.`,
+                content: `Fetch images from multiple booru sites by tags.\nRun ${config.settings.prefix.nsfw[0]}booru for list of supported pages.`,
                 usage: '<site> <tags>',
                 examples: ['danbooru neko', 'gelbooru kitsune'],
             },

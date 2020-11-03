@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 config();
 import type { User } from 'discord.js';
-import logger from '@nhentai/utils/logger';
+import logger from '@inari/utils/logger';
 import { Model } from 'mongoose';
 import { connectToDatabase } from './db';
 import { WatchRecord, IWatchRecord } from './db/models/record';

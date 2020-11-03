@@ -17,6 +17,7 @@ export async function history(message: Message, serverHistory: History) {
 
 export async function prefix(
     message: Message,
+    type: 'nsfw' | 'sfw',
     action: 'add' | 'remove' | 'clear' | 'list',
     prefix?: string
 ) {
@@ -26,18 +27,16 @@ export async function prefix(
         const prefixes = action === 'add' ? [_] : [];
         await new Server({
             serverID: message.guild.id,
-            settings: {
-                prefixes: prefixes,
-            },
+            settings: { prefixes: { type: prefixes }, },
         }).save();
         return prefixes;
     } else {
-        let prefixes = server.settings.prefixes;
+        let prefixes = server.settings.prefixes[type];
         const hasPrefix = prefixes.some(pfx => pfx.id === prefix);
         if (!hasPrefix && action === 'add') prefixes.push(_);
         else if (hasPrefix && action === 'remove')
             prefixes = prefixes.filter(pfx => pfx.id !== prefix);
-        server.settings.prefixes = action === 'clear' ? [] : prefixes;
+        server.settings.prefixes[type] = action === 'clear' ? [] : prefixes;
         await server.save();
         return prefixes;
     }

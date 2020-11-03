@@ -1,6 +1,5 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
-const { PREFIX } = process.env;
 
 const MAX_LEN = 100;
 const REQUIRED_PERMISSIONS = ['MANAGE_GUILD'] as const;
@@ -8,7 +7,7 @@ const REQUIRED_PERMISSIONS = ['MANAGE_GUILD'] as const;
 const ACTIONS = {
     add: 'Added',
     remove: 'Removed',
-    clear: 'Clear',
+    clear: 'Cleared',
     list: 'List',
 };
 
@@ -20,10 +19,14 @@ export default class extends Command {
             userPermissions: REQUIRED_PERMISSIONS,
             description: {
                 content: "Edits server's custom prefix list.",
-                usage: '<add <prefix>|remove <prefix>|clear|list>',
+                usage: '<nsfw|sfw> <add <prefix>|remove <prefix>|clear|list>',
                 examples: ['add lmao', 'remove lol', 'clear', 'list'],
             },
             args: [
+                {
+                    id: 'nsfw',
+                    type: ['nsfw', 'sfw']
+                },
                 {
                     id: 'action',
                     type: Object.keys(ACTIONS),
@@ -36,7 +39,13 @@ export default class extends Command {
         });
     }
 
-    async exec(message: Message, { action, prefix }: { action: string; prefix: string }) {
+    async exec(message: Message, { nsfw, action, prefix }: { nsfw: 'nsfw' | 'sfw'; action: keyof typeof ACTIONS; prefix: string }) {
+        if (!nsfw)
+            return message.channel.send(
+                this.client.embeds.clientError(
+                    `Unknown type. Available types are: \`nsfw\`, \`sfw\``
+                )
+            );
         if (!action)
             return message.channel.send(
                 this.client.embeds.clientError(
@@ -52,7 +61,8 @@ export default class extends Command {
         try {
             const prefixes = await this.client.db.Server.prefix(
                 message,
-                action as keyof typeof ACTIONS,
+                nsfw,
+                action,
                 prefix
             );
             if (action == 'add' || action == 'remove') {
@@ -72,15 +82,14 @@ export default class extends Command {
                 template: this.client.util
                     .embed()
                     .setTitle('Custom Prefix List')
-                    .setDescription(`You can still use the default prefix \`${PREFIX}\`.`),
+                    .setDescription(`You can still use the default prefixes ${this.client.config.settings.prefix[nsfw]}.`),
                 list: 5,
             });
             prefixes.forEach(async pfx => {
                 list.addChoice(
                     0,
                     pfx.id,
-                    `**Added by** : ${
-                        (await this.client.users.fetch(pfx.author)).tag
+                    `**Added by** : ${(await this.client.users.fetch(pfx.author)).tag
                     }\u2000•\u2000**Date added** : ${new Date(pfx.date).toUTCString()}`
                 );
             });

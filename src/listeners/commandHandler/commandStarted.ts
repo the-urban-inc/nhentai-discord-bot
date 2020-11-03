@@ -1,5 +1,5 @@
-import Command from '@nhentai/struct/bot/Command';
-import Listener from '@nhentai/struct/bot/Listener';
+import Command from '@inari/struct/bot/Command';
+import Listener from '@inari/struct/bot/Listener';
 import { Message } from 'discord.js';
 
 export default class extends Listener {
@@ -12,6 +12,6 @@ export default class extends Listener {
     }
 
     exec(message: Message, command: Command) {
-        this.client.logger.log(`${message.author.tag} (ID: ${message.author.id}) => ${command.id}`);
+        this.client.logger.log(`${message.author.tag} (ID: ${message.author.id}) => ${command.id} (${message.util?.parsed?.alias ?? command.id})`);
     }
 }

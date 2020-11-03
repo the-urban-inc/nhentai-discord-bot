@@ -1,12 +1,13 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
-import { User } from '@nhentai/struct/db/models/user';
+import { User } from '@inari/models/user';
 
 export default class extends Command {
     constructor() {
         super('blacklist', {
             aliases: ['blacklist'],
             channel: 'guild',
+            nsfw: true,
             description: {
                 content: 'View your blacklist',
             },

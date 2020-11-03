@@ -1,4 +1,4 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
 
 const REQUIRED_PERMISSIONS = ['MANAGE_GUILD'] as const;

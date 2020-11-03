@@ -1,6 +1,6 @@
 import { Listener } from 'discord-akairo';
-import type { NhentaiClient } from './Client';
+import type { InariClient } from './Client';
 
 export default class extends Listener {
-    client: NhentaiClient;
+    client: InariClient;
 }

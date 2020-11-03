@@ -1,16 +1,17 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
-import { Server } from '@nhentai/models/server';
-import { Tag } from '@nhentai/struct/nhentai/src/struct';
-import { ICON, FLAG_EMOJIS, BANNED_TAGS, BLOCKED_MESSAGE } from '@nhentai/utils/constants';
+import { Server } from '@inari/models/server';
+import { Tag } from '@inari/struct/nhentai/src/struct';
+import { ICON, FLAG_EMOJIS, BANNED_TAGS, BLOCKED_MESSAGE } from '@inari/utils/constants';
 
 export default class extends Command {
     constructor() {
         super('random', {
             aliases: ['random'],
             channel: 'guild',
+            nsfw: true,
             description: {
                 content:
                     'Random doujin.\nRun with `--more` to include `More Like This` and `Comments`.',

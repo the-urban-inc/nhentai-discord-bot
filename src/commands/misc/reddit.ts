@@ -1,4 +1,4 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
 import axios from 'axios';
 
@@ -10,6 +10,7 @@ export default class extends Command {
         super('reddit', {
             aliases: ['reddit'],
             channel: 'guild',
+            nsfw: true,
             description: {
                 content: 'Random post on r/nhentai.',
             },

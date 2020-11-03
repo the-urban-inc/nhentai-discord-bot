@@ -1,4 +1,4 @@
-import Listener from '@nhentai/struct/bot/Listener';
+import Listener from '@inari/struct/bot/Listener';
 import { Message, TextChannel } from 'discord.js';
 
 export default class extends Listener {

@@ -1,4 +1,4 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { CommandHandler, InhibitorHandler, ListenerHandler } from 'discord-akairo';
 import { Message } from 'discord.js';
 

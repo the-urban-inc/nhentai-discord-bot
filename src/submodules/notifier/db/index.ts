@@ -1,6 +1,6 @@
 import { createConnection } from 'mongoose';
 import chalk from 'chalk';
-import log from '@nhentai/utils/logger';
+import log from '@inari/utils/logger';
 
 export function connectToDatabase() {
     let connection = createConnection(process.env.MONGODB_URI, {

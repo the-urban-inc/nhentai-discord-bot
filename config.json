@@ -1,0 +1,10 @@
+{
+    "description": "I'm an open source nhentai Discord bot powered by [TypeScript](https://www.typescriptlang.org/) with [discord.js](https://discord.js.org/#/) using the [Akairo](https://discord-akairo.github.io/#/) framework.\n\nAbout the name:\n**Inari Ōkami** (Japanese: 稲荷大神), also called Ō-Inari (大稲荷), is the Japanese kami of foxes, of **fertility**, rice, tea and sake, of agriculture and industry, of general prosperity and worldly success, and one of the principal kami of Shinto.",
+    "settings": {
+        "prefix": {
+            "sfw": ["s!"],
+            "nsfw": ["n!"]
+        },
+        "donateLink": "https://paypal.me/taiyou67"
+    }
+}

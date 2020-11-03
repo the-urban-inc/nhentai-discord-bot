@@ -1,26 +1,28 @@
 import { AkairoClient, CommandHandler, InhibitorHandler, ListenerHandler } from 'discord-akairo';
-import { NhentaiAPI } from '../nhentai/index';
-import * as DB from '../db/index';
-import Logger from '@nhentai/utils/logger';
-import Embeds from '@nhentai/utils/embeds';
-import { NhentaiUtil } from '@nhentai/utils/utils';
+import { TextChannel, DMChannel } from 'discord.js';
+import Command from './Command';
+import Inhibitor from './Inhibitor';
+import Listener from './Listener';
+import { NhentaiAPI } from '@inari/struct/nhentai';
+import * as DB from '@inari/struct/db';
+import Logger from '@inari/utils/logger';
+import Embeds from '@inari/utils/embeds';
+import { InariUtil } from '@inari/utils/utils';
+import config from '@inari/config';
 import NekosLifeAPI from 'nekos.life';
 import { fork, ChildProcess } from 'child_process';
-import { TextChannel } from 'discord.js';
-import { DMChannel } from 'discord.js';
-const { DISCORD_TOKEN, PREFIX } = process.env;
+const { DISCORD_TOKEN } = process.env;
 
-export class NhentaiClient extends AkairoClient {
+export class InariClient extends AkairoClient {
+    config = config;
     commandHandler = new CommandHandler(this, {
         directory: `${__dirname}/../../commands/`,
         prefix: async message => {
-            if (message.guild) {
-                const prefix = (await DB.Server.prefix(message, 'list')).map(pfx => pfx.id);
-                prefix.push(PREFIX);
-                return prefix;
-            }
-            return PREFIX;
+            const prefix = [...this.config.settings.prefix.nsfw, ...this.config.settings.prefix.sfw];
+            if (message.guild) return prefix.concat((await DB.Server.prefix(message, 'nsfw', 'list')).map(pfx => pfx.id), (await DB.Server.prefix(message, 'sfw', 'list')).map(pfx => pfx.id));
+            return prefix;
         },
+        classToHandle: Command,
         allowMention: true,
         defaultCooldown: 30000,
         blockBots: true,
@@ -29,14 +31,16 @@ export class NhentaiClient extends AkairoClient {
     });
     inhibitorHandler = new InhibitorHandler(this, {
         directory: `${__dirname}/../../inhibitors/`,
+        classToHandle: Inhibitor,
     });
     listenerHandler = new ListenerHandler(this, {
         directory: `${__dirname}/../../listeners/`,
+        classToHandle: Listener,
     });
 
     nhentai = new NhentaiAPI();
     db = DB;
-    util: NhentaiUtil = new NhentaiUtil(this);
+    util: InariUtil = new InariUtil(this);
     embeds = Embeds;
     logger = Logger;
     nekoslife = new NekosLifeAPI();

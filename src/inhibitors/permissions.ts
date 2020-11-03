@@ -1,6 +1,6 @@
-import Inhibitor from '@nhentai/struct/bot/Inhibitor';
+import Inhibitor from '@inari/struct/bot/Inhibitor';
 import { Message, TextChannel, DMChannel, PermissionResolvable } from 'discord.js';
-import { PERMISSIONS } from '@nhentai/utils/constants';
+import { PERMISSIONS } from '@inari/utils/constants';
 
 export default class extends Inhibitor {
     constructor() {

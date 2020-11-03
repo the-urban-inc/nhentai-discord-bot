@@ -1,6 +1,6 @@
 import { Inhibitor } from 'discord-akairo';
-import type { NhentaiClient } from './Client';
+import type { InariClient } from './Client';
 
 export default class extends Inhibitor {
-    client: NhentaiClient;
+    client: InariClient;
 }

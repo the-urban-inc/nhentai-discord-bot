@@ -6,8 +6,8 @@
 import { Message, MessageEmbed as Embed } from 'discord.js';
 import { Cache } from './Cache';
 import { ReactionMethods, ReactionHandlerOptions, ReactionHandler } from './ReactionHandler';
-import { NhentaiClient } from '@nhentai/struct/bot/Client';
-import { Blacklist } from '@nhentai/models/tag';
+import { InariClient } from '@inari/struct/bot/Client';
+import { Blacklist } from '@inari/models/tag';
 
 type EmbedOrCallback = Embed | ((embed: Embed) => Embed);
 
@@ -82,7 +82,7 @@ export class RichDisplay {
     }
 
     async run(
-        client: NhentaiClient,
+        client: InariClient,
         requestMessage: Message,
         message: Message,
         editMessage: string = '',

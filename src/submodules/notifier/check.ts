@@ -1,5 +1,5 @@
-import log from '@nhentai/utils/logger';
-import { NhentaiAPI } from '@nhentai/struct/nhentai/index';
+import log from '@inari/utils/logger';
+import { NhentaiAPI } from '@inari/struct/nhentai';
 
 const nh = new NhentaiAPI();
 

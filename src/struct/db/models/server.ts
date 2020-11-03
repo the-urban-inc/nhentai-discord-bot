@@ -2,14 +2,17 @@ import { model, Document, Schema } from 'mongoose';
 import { History } from './tag';
 import { User } from './user';
 
-interface Prefix {
+export interface Prefix {
     id: string;
     author: string;
     date: number;
 }
 
-interface ServerSettings {
-    prefixes: Prefix[];
+export interface ServerSettings {
+    prefixes: {
+        nsfw: Prefix[];
+        sfw: Prefix[];
+    };
     danger: boolean;
 }
 
@@ -49,13 +52,22 @@ const serverSchema = new Schema(
             },
         ],
         settings: {
-            prefixes: [
-                {
-                    id: String,
-                    author: String,
-                    date: Number,
-                },
-            ],
+            prefixes: {
+                nsfw: [
+                    {
+                        id: String,
+                        author: String,
+                        date: Number,
+                    },
+                ],
+                sfw: [
+                    {
+                        id: String,
+                        author: String,
+                        date: Number,
+                    },
+                ]
+            },
             danger: {
                 $type: Boolean,
                 default: false,

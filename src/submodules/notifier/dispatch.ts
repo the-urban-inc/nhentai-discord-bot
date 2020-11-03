@@ -3,14 +3,14 @@ import he from 'he';
 import moment from 'moment';
 import { WatchModel } from './db/models/record';
 import type { check } from './check';
-import log from '@nhentai/utils/logger';
-import { ICON } from '@nhentai/utils/constants';
-import { NhentaiClient } from '@nhentai/struct/bot/Client';
+import log from '@inari/utils/logger';
+import { ICON } from '@inari/utils/constants';
+import { InariClient } from '@inari/struct/bot/Client';
 
 type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
 type _ = ThenArg<ReturnType<typeof check>>;
 
-const client = new NhentaiClient({
+const client = new InariClient({
     messageCacheMaxSize: 1,
 });
 

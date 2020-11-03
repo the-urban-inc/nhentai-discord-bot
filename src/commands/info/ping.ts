@@ -1,4 +1,4 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
 
 export default class extends Command {
@@ -7,7 +7,7 @@ export default class extends Command {
             aliases: ['ping', 'hello'],
             channel: 'guild',
             description: {
-                content: 'Pings Nhentai.',
+                content: 'Pings Inari.',
             },
         });
     }

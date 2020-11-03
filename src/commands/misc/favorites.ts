@@ -1,22 +1,23 @@
-import Command from '@nhentai/struct/bot/Command';
+import Command from '@inari/struct/bot/Command';
 import { Message, GuildMember } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
-import { User } from '@nhentai/models/user';
-import { Server } from '@nhentai/models/server';
-import { Tag } from '@nhentai/struct/nhentai/src/struct';
-import { ICON, BANNED_TAGS, BLOCKED_MESSAGE } from '@nhentai/utils/constants';
+import { User } from '@inari/models/user';
+import { Server } from '@inari/models/server';
+import { Tag } from '@inari/struct/nhentai/src/struct';
+import { ICON, BANNED_TAGS, BLOCKED_MESSAGE } from '@inari/utils/constants';
 
 export default class extends Command {
     constructor() {
         super('favorites', {
             aliases: ['favorites', 'favourites'],
             channel: 'guild',
+            nsfw: true,
             description: {
                 content:
                     "Check your (or your buddy's) favorites list.\nTo add a doujin to your favorites list, react with `❤️`",
                 usage: '[user]',
-                examples: ['', '@nhentai#7217'],
+                examples: ['', '@Inari#7217'],
             },
             args: [
                 {
