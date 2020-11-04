@@ -8,6 +8,7 @@ export const PERMISSIONS = [
     'ADD_REACTIONS',
     'READ_MESSAGE_HISTORY',
     'USE_EXTERNAL_EMOJIS',
+    'CHANGE_NICKNAME'
 ] as const;
 
 export const ICON = 'https://i.imgur.com/7WX63G3.png';

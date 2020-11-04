@@ -53,20 +53,16 @@ const serverSchema = new Schema(
         ],
         settings: {
             prefixes: {
-                nsfw: [
-                    {
-                        id: String,
-                        author: String,
-                        date: Number,
-                    },
-                ],
-                sfw: [
-                    {
-                        id: String,
-                        author: String,
-                        date: Number,
-                    },
-                ]
+                nsfw: [{
+                    id: String,
+                    author: String,
+                    date: Number,
+                }],
+                sfw: [{
+                    id: String,
+                    author: String,
+                    date: Number,
+                }]
             },
             danger: {
                 $type: Boolean,
