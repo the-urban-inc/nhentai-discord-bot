@@ -50,11 +50,13 @@ export default class extends Command {
                 )
                 .setDescription(`[Click here if image failed to load](${image})`)
                 .setImage(image);
-            this.client.embeds
+            return this.client.embeds
                 .richDisplay({ image: true })
                 .addPage(embed)
                 .useCustomFooters()
-                .run(this.client, message, await message.channel.send('Searching ...'));
+                .run(this.client, message, await message.channel.send('Searching ...'), '', {
+                    time: 180000,
+                });
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));

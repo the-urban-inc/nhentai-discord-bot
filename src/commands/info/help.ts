@@ -140,7 +140,7 @@ export default class extends Command {
             await message.channel.send('Loading command list...'),
             '',
             {
-                time: 300000,
+                time: 180000,
             }
         );
     }

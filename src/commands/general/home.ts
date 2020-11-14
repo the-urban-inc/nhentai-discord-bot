@@ -89,7 +89,10 @@ export default class extends Command {
                     this.client,
                     message,
                     await message.channel.send('Searching ...'),
-                    '`🔥` **Popular Now**'
+                    '`🔥` **Popular Now**',
+                    {
+                        idle: 300000,
+                    }
                 );
 
                 const newUploads = data.results.slice(5);
@@ -124,7 +127,10 @@ export default class extends Command {
                     this.client,
                     message,
                     await message.channel.send('Searching ...'),
-                    '`🧻` **New Uploads**'
+                    '`🧻` **New Uploads**',
+                    {
+                        idle: 300000,
+                    }
                 );
             }
 
@@ -155,14 +161,18 @@ export default class extends Command {
                 if (this.danger || !prip) epage.setImage(thumbnail.s);
                 display.addPage(epage, id);
             }
-            await display.run(this.client, message, await message.channel.send('Searching ...'));
+            await display.run(this.client, message, await message.channel.send('Searching ...'), '', {
+                idle: 300000,
+            });
 
             if (!this.danger && this.warning) {
                 return this.client.embeds
                     .richDisplay({ image: true, removeRequest: false })
                     .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
                     .useCustomFooters()
-                    .run(this.client, message, await message.channel.send('Loading ...'));
+                    .run(this.client, message, await message.channel.send('Loading ...'), '', {
+                        time: 300000,
+                    });
             }
         } catch (err) {
             this.client.logger.error(err);

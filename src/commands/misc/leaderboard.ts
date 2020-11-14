@@ -38,8 +38,7 @@ export default class extends Command {
                         .setTitle(`${message.guild.name}'s leaderboard`)
                         .setThumbnail(message.guild.iconURL())
                         .setFooter(
-                            `Your guild placing stats : Rank [${pos + 1}]\u2000•\u2000Level : ${
-                                pervs[pos].level
+                            `Your guild placing stats : Rank [${pos + 1}]\u2000•\u2000Level : ${pervs[pos].level
                             }\u2000•\u2000Total Score : ${pervs[pos].points}`
                         ),
                     list: 10,
@@ -58,7 +57,11 @@ export default class extends Command {
             return list.run(
                 this.client,
                 message,
-                await message.channel.send('Loading leaderboard ...')
+                await message.channel.send('Loading leaderboard ...'),
+                '',
+                {
+                    time: 180000,
+                }
             );
         } catch (err) {
             this.client.logger.error(err);

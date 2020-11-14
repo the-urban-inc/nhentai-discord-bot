@@ -12,6 +12,7 @@ export default class extends Command {
     nsfw?: boolean;
     areMultipleCommands: boolean;
     constructor(id: string, options?: InariCommandOptions) {
+        options.typing = true;
         super(id, options);
         const { areMultipleCommands = false } = options;
         this.areMultipleCommands = Boolean(areMultipleCommands);

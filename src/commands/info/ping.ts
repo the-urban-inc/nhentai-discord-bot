@@ -12,11 +12,9 @@ export default class extends Command {
         });
     }
 
-    async exec(msg: Message) {
-        const sent = await msg.channel.send('Pong!');
-        const timeDiff =
-            (sent.editedAt || sent.createdAt).getMilliseconds() -
-            (msg.editedAt || msg.createdAt).getMilliseconds();
+    async exec(message: Message) {
+        const sent = await message.channel.send('Pong!');
+        const timeDiff = sent.createdTimestamp - message.createdTimestamp;
         return sent.edit(
             `🔂 **RTT**: ${timeDiff} ms\n💟 **Heartbeat**: ${Math.round(this.client.ws.ping)} ms`
         );

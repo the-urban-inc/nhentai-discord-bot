@@ -99,7 +99,9 @@ export default class extends Command {
                     );
                     display.addPage(info, id.toString());
                 }
-                await display.run(this.client, message, await msg.edit('Done.'));
+                await display.run(this.client, message, await msg.edit('Done.'), '', {
+                    idle: 300000,
+                });
 
                 if (!this.danger && this.warning) {
                     return this.client.embeds

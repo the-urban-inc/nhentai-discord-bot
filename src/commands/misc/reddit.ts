@@ -31,10 +31,13 @@ export default class extends Command {
                 );
             if (data['url'].match('.jpg') || data['url'].match('.png')) embed.setImage(data['url']);
             else embed.setImage(data['url'] + '.jpg');
-            return message.channel.send({ embed }).then(async msg => {
-                await msg.react('⬆');
-                await msg.react('⬇');
-            });
+            return this.client.embeds
+                .richDisplay({ image: true })
+                .addPage(embed)
+                .useCustomFooters()
+                .run(this.client, message, await message.channel.send('Searching ...'), '', {
+                    time: 180000,
+                });
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));

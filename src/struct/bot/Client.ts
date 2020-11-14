@@ -1,8 +1,9 @@
-import { AkairoClient, CommandHandler, InhibitorHandler, ListenerHandler } from 'discord-akairo';
+import { AkairoClient, InhibitorHandler, ListenerHandler } from 'discord-akairo';
 import { TextChannel, DMChannel } from 'discord.js';
 import Command from './Command';
 import Inhibitor from './Inhibitor';
 import Listener from './Listener';
+import CommandHandler from './CommandHandler';
 import { NhentaiAPI } from '@inari/struct/nhentai';
 import * as DB from '@inari/struct/db';
 import Logger from '@inari/utils/logger';
@@ -18,9 +19,13 @@ export class InariClient extends AkairoClient {
     commandHandler = new CommandHandler(this, {
         directory: `${__dirname}/../../commands/`,
         prefix: async message => {
-            const prefix = [...this.config.settings.prefix.nsfw, ...this.config.settings.prefix.sfw];
-            if (message.guild) return prefix.concat((await DB.Server.prefix(message, 'nsfw', 'list')).map(pfx => pfx.id), (await DB.Server.prefix(message, 'sfw', 'list')).map(pfx => pfx.id));
-            return prefix;
+            let { nsfw, sfw } = this.config.settings.prefix;
+            if (message.guild) {
+                nsfw = nsfw.concat((await DB.Server.prefix(message, 'nsfw', 'list')).map(pfx => pfx.id));
+                sfw = sfw.concat((await DB.Server.prefix(message, 'sfw', 'list')).map(pfx => pfx.id));
+            }
+            this.commandHandler.splitPrefix = { nsfw, sfw };
+            return [...nsfw, ...sfw];
         },
         classToHandle: Command,
         allowMention: true,

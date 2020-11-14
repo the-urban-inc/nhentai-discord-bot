@@ -100,11 +100,13 @@ export default class extends Command {
                         )}\n\n[Original post](${original})\u2000•\u2000[Click here if image failed to load](${image})`
                     )
                     .setImage(image);
-                this.client.embeds
+                return this.client.embeds
                     .richDisplay({ image: true })
                     .addPage(embed)
                     .useCustomFooters()
-                    .run(this.client, message, await message.channel.send('Searching ...'));
+                    .run(this.client, message, await message.channel.send('Searching ...'), '', {
+                        time: 180000,
+                    });
             })
             .catch(err => {
                 this.client.logger.error(err);

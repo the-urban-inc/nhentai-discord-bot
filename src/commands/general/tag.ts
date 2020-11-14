@@ -176,13 +176,17 @@ export default class extends Command {
                 }
                 display.addPage(embed, id);
             }
-            await display.run(this.client, message, await message.channel.send('Searching ...'));
+            await display.run(this.client, message, await message.channel.send('Searching ...'), '', {
+                idle: 300000,
+            });
             if (!this.danger && this.warning) {
                 return this.client.embeds
                     .richDisplay({ image: true, removeRequest: false })
                     .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
                     .useCustomFooters()
-                    .run(this.client, message, await message.channel.send('Loading ...'));
+                    .run(this.client, message, await message.channel.send('Loading ...'), '', {
+                        time: 300000,
+                    });
             }
         } catch (err) {
             this.client.logger.error(err);

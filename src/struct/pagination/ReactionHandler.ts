@@ -64,6 +64,7 @@ export class ReactionHandler {
     private readonly stopAuto: string;
     private readonly endAuto: string;
     private readonly noAuto: string;
+    private readonly dispose: boolean;
     private readonly jumpTimeout: number;
     private readonly autoTimeout: number;
     private readonly messageTimeout: number;
@@ -106,6 +107,7 @@ export class ReactionHandler {
         this.autoTimeout = options.autoTimeout ?? 30000;
         this.messageTimeout = options.messageTimeout ?? 5000;
         this.collectorTimeout = options.collectorTimeout ?? 900000;
+        this.dispose = options.dispose ?? true;
         this.selection = emojis.has(ReactionMethods.One)
             ? new Promise(resolve => {
                   this.#resolve = resolve;
@@ -118,7 +120,7 @@ export class ReactionHandler {
             maxEmojis: options.maxEmojis,
             maxUsers: options.maxUsers,
             idle: this.collectorTimeout,
-            dispose: true,
+            dispose: this.dispose,
         });
         this.collector.on('collect', async (reaction, user) => {
             if (user.bot) return;
