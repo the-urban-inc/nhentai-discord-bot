@@ -13,8 +13,13 @@ import config from '@inari/config';
 import NekosLifeAPI from 'nekos.life';
 import { fork, ChildProcess } from 'child_process';
 const { DISCORD_TOKEN } = process.env;
+import { cpus } from 'os';
 
 export class InariClient extends AkairoClient {
+    constructor(...options : ConstructorParameters<typeof AkairoClient>) {
+        super(options[0], Object.assign({}, options[1], { shardCount: 2 * cpus().length }))
+    }
+
     config = config;
     commandHandler = new CommandHandler(this, {
         directory: `${__dirname}/../../commands/`,
