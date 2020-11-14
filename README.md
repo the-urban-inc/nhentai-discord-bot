@@ -32,8 +32,8 @@ Inari is an open source nhentai Discord bot powered by [TypeScript](https://www.
 # Installation
 
 ```
-git clone https://github.com/the-urban-inc/nhentai-discord-bot.git
-cd nhentai-discord-bot
+git clone https://github.com/the-urban-inc/Inari.git
+cd Inari
 npm install
 npm build
 ```
@@ -65,12 +65,12 @@ Edit the `config.json` file if you prefer different prefixes or inserting your o
 
 # Contributing
 
-1. [Fork the repository](https://github.com/the-urban-inc/nhentai-discord-bot/fork)
-2. Clone your fork: `git clone https://github.com/your-username/nhentai-discord-bot.git`
+1. [Fork the repository](https://github.com/the-urban-inc/Inari/fork)
+2. Clone your fork: `git clone https://github.com/your-username/Inari.git`
 3. Create your feature branch: `git checkout -b my-new-feature`
 4. Commit your changes: `git commit -am 'Add some feature'`
 5. Push to the branch: `git push origin my-new-feature`
 6. Submit a pull request
 
 # License
-Inari is licensed under the **[MIT License](https://github.com/the-urban-inc/nhentai-discord-bot/blob/master/LICENSE)**
+Inari is licensed under the **[MIT License](https://github.com/the-urban-inc/Inari/blob/master/LICENSE)**

@@ -28,6 +28,7 @@ export interface ReactionHandlerOptions extends ReactionCollectorOptions {
     jumpTimeout?: number;
     autoTimeout?: number;
     messageTimeout?: number;
+    collectorTimeout?: number;
 }
 
 export const enum ReactionMethods {
@@ -66,6 +67,7 @@ export class ReactionHandler {
     private readonly jumpTimeout: number;
     private readonly autoTimeout: number;
     private readonly messageTimeout: number;
+    private readonly collectorTimeout: number;
     readonly collector: ReactionCollector;
     #ended = false;
     #awaiting = false;
@@ -103,6 +105,7 @@ export class ReactionHandler {
         this.jumpTimeout = options.jumpTimeout ?? 30000;
         this.autoTimeout = options.autoTimeout ?? 30000;
         this.messageTimeout = options.messageTimeout ?? 5000;
+        this.collectorTimeout = options.collectorTimeout ?? 900000;
         this.selection = emojis.has(ReactionMethods.One)
             ? new Promise(resolve => {
                   this.#resolve = resolve;
@@ -110,7 +113,13 @@ export class ReactionHandler {
             : Promise.resolve(null);
         this.#currentPage = options.startPage ?? (this.display.infoPage ? -1 : 0);
         this.run([...emojis.values()]);
-        this.collector = this.message.createReactionCollector(() => true, options);
+        this.collector = this.message.createReactionCollector(() => true, { 
+            max: options.max,
+            maxEmojis: options.maxEmojis,
+            maxUsers: options.maxUsers,
+            idle: this.collectorTimeout,
+            dispose: true,
+        });
         this.collector.on('collect', async (reaction, user) => {
             if (user.bot) return;
             const method = this.methodMap.get((reaction.emoji.name ?? reaction.emoji.id) as string);

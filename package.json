@@ -9,7 +9,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/the-urban-inc/nhentai-discord-bot.git"
+        "url": "https://github.com/the-urban-inc/Inari.git"
     },
     "dependencies": {
         "@octokit/rest": "^18.0.0",

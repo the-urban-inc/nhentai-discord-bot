@@ -27,6 +27,7 @@ export default class extends Inhibitor {
             const { prefix, command, afterPrefix, alias, content } = test;
             if (command) {
                 if (afterPrefix.startsWith('nsfw_')) return true;
+                if (!content.length) return false;
                 if (['help', 'halp', 'h'].includes(alias)) {
                     let nsfwPrefix = this.client.config.settings.prefix.nsfw;
                     if (message.guild) nsfwPrefix = nsfwPrefix.concat((await DB.Server.prefix(message, 'nsfw', 'list')).map(pfx => pfx.id));
