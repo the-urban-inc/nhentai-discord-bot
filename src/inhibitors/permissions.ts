@@ -12,7 +12,7 @@ export default class extends Inhibitor {
     async exec(message: Message) {
         if (message.channel instanceof DMChannel) return false;
         let ok = false,
-            requirements: Array<string>;
+            requirements: Array<string> = [];
         PERMISSIONS.forEach((x: PermissionResolvable) => {
             if (!(message.channel as TextChannel).permissionsFor(this.client.user).has(x))
                 (ok = true), requirements.push(this.client.util.capitalize(x as string));
