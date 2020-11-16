@@ -55,7 +55,7 @@
         "wipe": "ts-node --compiler ttypescript scripts/wipe.ts"
     },
     "engines": {
-        "node": ">=11.13.0"
+        "node": ">=14.15.0"
     },
     "keywords": [],
     "author": "",

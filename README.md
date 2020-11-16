@@ -27,7 +27,7 @@ Inari is an open source nhentai Discord bot powered by [TypeScript](https://www.
 
 1. Discord Bot Token. You can learn how to get one **[here](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot)**.
 2. A MongoDB server. Read **[this](https://docs.mongodb.com/manual/)** for more info.
-3. Node.js v11.0.0 or newer
+3. Node.js v14.0.0 or newer
 
 # Installation
 
