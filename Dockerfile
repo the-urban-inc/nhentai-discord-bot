@@ -1,4 +1,4 @@
-FROM node:13.8.0-alpine3.11 as build
+FROM node:14.15.0-alpine3.11 as build
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY config.json .
 COPY src/ src/
 RUN yarn build
 
-FROM node:13.8.0-alpine3.11 as run
+FROM node:14.15.0-alpine3.11 as run
 WORKDIR /app
 COPY --from=build /app/package.json .
 COPY --from=build /app/build/ build/
