@@ -324,7 +324,7 @@ export class ReactionHandler {
             user: User
         ): Promise<boolean> {
             try {
-                let id = this.display.pages[this.#currentPage].id || this.display.info.id;
+                let id = this.display.pages[this.#currentPage]?.id || this.display.info.id;
                 if (!id) return Promise.resolve(false);
                 const adding = await this.client.db.User.favorite(user, id);
                 this.message.channel
@@ -399,7 +399,7 @@ export class ReactionHandler {
             user: User
         ): Promise<boolean> {
             try {
-                const id = this.display.pages[this.#currentPage].id || this.display.info.id;
+                const id = this.display.pages[this.#currentPage]?.id || this.display.info.id;
                 if (!id) return Promise.resolve(false);
                 this.message.channel
                     .send(
