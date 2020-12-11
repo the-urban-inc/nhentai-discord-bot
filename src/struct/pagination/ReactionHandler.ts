@@ -115,7 +115,7 @@ export class ReactionHandler {
             : Promise.resolve(null);
         this.#currentPage = options.startPage ?? (this.display.infoPage ? -1 : 0);
         this.run([...emojis.values()]);
-        this.collector = this.message.createReactionCollector(() => true, { 
+        this.collector = this.message.createReactionCollector(() => true, {
             max: options.max,
             maxEmojis: options.maxEmojis,
             maxUsers: options.maxUsers,
@@ -187,51 +187,59 @@ export class ReactionHandler {
         ReactionMethods,
         (this: ReactionHandler, user: User) => Promise<boolean>
     > = new Map()
-        .set(ReactionMethods.First, function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.First, function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             this.#currentPage = 0;
             return this.update();
         })
-        .set(ReactionMethods.Back, function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.Back, function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             if (this.#currentPage <= 0) return Promise.resolve(false);
             this.#currentPage--;
             return this.update();
         })
-        .set(ReactionMethods.Forward, function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.Forward, function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             if (this.#currentPage >= this.display.pages.length - 1) return Promise.resolve(false);
             this.#currentPage++;
             return this.update();
         })
-        .set(ReactionMethods.Last, function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.Last, function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             this.#currentPage = this.display.pages.length - 1;
             return this.update();
         })
-        .set(ReactionMethods.Jump, async function (
-            this: ReactionHandler,
-            user: User
-        ): Promise<boolean> {
-            if (this.#awaiting) return Promise.resolve(false);
-            this.#awaiting = true;
-            const message = await this.message.channel.send(this.client.embeds.info(this.prompt));
-            const collected = await this.message.channel.awaitMessages(
-                mess => mess.author === user,
-                {
-                    max: 1,
-                    idle: this.jumpTimeout,
+        .set(
+            ReactionMethods.Jump,
+            async function (this: ReactionHandler, user: User): Promise<boolean> {
+                if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+                if (this.#awaiting) return Promise.resolve(false);
+                this.#awaiting = true;
+                const message = await this.message.channel.send(
+                    this.client.embeds.info(this.prompt)
+                );
+                const collected = await this.message.channel.awaitMessages(
+                    mess => mess.author === user,
+                    {
+                        max: 1,
+                        idle: this.jumpTimeout,
+                    }
+                );
+                this.#awaiting = false;
+                await message.delete();
+                const response = collected.first();
+                if (!response) return Promise.resolve(false);
+                const newPage = parseInt(response.content);
+                await response.delete();
+                if (newPage && newPage > 0 && newPage <= this.display.pages.length) {
+                    this.#currentPage = newPage - 1;
+                    return this.update();
                 }
-            );
-            this.#awaiting = false;
-            await message.delete();
-            const response = collected.first();
-            if (!response) return Promise.resolve(false);
-            const newPage = parseInt(response.content);
-            await response.delete();
-            if (newPage && newPage > 0 && newPage <= this.display.pages.length) {
-                this.#currentPage = newPage - 1;
-                return this.update();
+                return Promise.resolve(false);
             }
-            return Promise.resolve(false);
-        })
-        .set(ReactionMethods.Info, async function (this: ReactionHandler): Promise<boolean> {
+        )
+        .set(ReactionMethods.Info, async function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             if (this.message.deleted) return true;
             if (this.#info) return this.update();
             if (!this.display.infoPage) {
@@ -274,39 +282,41 @@ export class ReactionHandler {
             this.display.infoPage = null;
             return false;
         })
-        .set(ReactionMethods.Auto, async function (
-            this: ReactionHandler,
-            user: User
-        ): Promise<boolean> {
-            if (this.#awaiting) return Promise.resolve(false);
-            this.#awaiting = true;
-            const message = await this.message.channel.send(
-                this.client.embeds.info(this.promptAuto)
-            );
-            const collected = await this.message.channel.awaitMessages(
-                mess => mess.author === user,
-                { max: 1, idle: this.autoTimeout }
-            );
-            this.#awaiting = false;
-            await message.delete();
-            const response = collected.first();
-            if (!response) return Promise.resolve(false);
-            const seconds = parseInt(response.content);
-            await response.delete();
-            this.update();
-            this.#autoMode = setInterval(() => {
-                if (this.#currentPage >= this.display.pages.length - 1) {
-                    clearInterval(this.#autoMode);
-                    return this.message.channel
-                        .send(this.client.embeds.info(this.endAuto))
-                        .then(message => message.delete({ timeout: this.messageTimeout }));
-                }
-                this.#currentPage++;
+        .set(
+            ReactionMethods.Auto,
+            async function (this: ReactionHandler, user: User): Promise<boolean> {
+                if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+                if (this.#awaiting) return Promise.resolve(false);
+                this.#awaiting = true;
+                const message = await this.message.channel.send(
+                    this.client.embeds.info(this.promptAuto)
+                );
+                const collected = await this.message.channel.awaitMessages(
+                    mess => mess.author === user,
+                    { max: 1, idle: this.autoTimeout }
+                );
+                this.#awaiting = false;
+                await message.delete();
+                const response = collected.first();
+                if (!response) return Promise.resolve(false);
+                const seconds = parseInt(response.content);
+                await response.delete();
                 this.update();
-            }, seconds * 1000);
-            return Promise.resolve(false);
-        })
-        .set(ReactionMethods.Pause, function (this: ReactionHandler): Promise<boolean> {
+                this.#autoMode = setInterval(() => {
+                    if (this.#currentPage >= this.display.pages.length - 1) {
+                        clearInterval(this.#autoMode);
+                        return this.message.channel
+                            .send(this.client.embeds.info(this.endAuto))
+                            .then(message => message.delete({ timeout: this.messageTimeout }));
+                    }
+                    this.#currentPage++;
+                    this.update();
+                }, seconds * 1000);
+                return Promise.resolve(false);
+            }
+        )
+        .set(ReactionMethods.Pause, function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             if (this.#autoMode) {
                 clearInterval(this.#autoMode);
                 this.message.channel
@@ -319,125 +329,134 @@ export class ReactionHandler {
             }
             return Promise.resolve(false);
         })
-        .set(ReactionMethods.Love, async function (
-            this: ReactionHandler,
-            user: User
-        ): Promise<boolean> {
-            try {
-                let id = this.display.pages[this.#currentPage]?.id || this.display.info.id;
-                if (!id) return Promise.resolve(false);
-                const adding = await this.client.db.User.favorite(user, id);
-                this.message.channel
-                    .send(
-                        this.client.embeds
-                            .info(
-                                adding
-                                    ? `Added ${id} to favorites.`
-                                    : `Removed ${id} from favorites.`
-                            )
-                            .setFooter(user.tag, user.displayAvatarURL())
-                    )
-                    .then(message => message.delete({ timeout: this.messageTimeout }));
-                return Promise.resolve(false);
-            } catch (err) {
-                this.client.logger.error(err);
-                this.message.channel.send(this.client.embeds.internalError(err));
+        .set(
+            ReactionMethods.Love,
+            async function (this: ReactionHandler, user: User): Promise<boolean> {
+                try {
+                    let id = this.display.pages[this.#currentPage]?.id || this.display.info.id;
+                    if (!id) return Promise.resolve(false);
+                    const adding = await this.client.db.User.favorite(user, id);
+                    this.message.channel
+                        .send(
+                            this.client.embeds
+                                .info(
+                                    adding
+                                        ? `Added ${id} to favorites.`
+                                        : `Removed ${id} from favorites.`
+                                )
+                                .setFooter(user.tag, user.displayAvatarURL())
+                        )
+                        .then(message => message.delete({ timeout: this.messageTimeout }));
+                    return Promise.resolve(false);
+                } catch (err) {
+                    this.client.logger.error(err);
+                    this.message.channel.send(this.client.embeds.internalError(err));
+                    return true;
+                }
+            }
+        )
+        .set(
+            ReactionMethods.Follow,
+            async function (this: ReactionHandler, user: User): Promise<boolean> {
+                try {
+                    const info = this.display.info;
+                    if (!info) return Promise.resolve(false);
+                    const { id, type, name } = info;
+                    this.client.notifier.send({
+                        tag: +id,
+                        type,
+                        name,
+                        channel: this.message.channel.id,
+                        user: user.id,
+                    });
+                    return Promise.resolve(false);
+                } catch (err) {
+                    this.client.logger.error(err);
+                    this.message.channel.send(this.client.embeds.internalError(err));
+                    return true;
+                }
+            }
+        )
+        .set(
+            ReactionMethods.Blacklist,
+            async function (this: ReactionHandler, user: User): Promise<boolean> {
+                try {
+                    const info = this.display.info;
+                    if (!info) return Promise.resolve(false);
+                    const { type, name } = info;
+                    const adding = await this.client.db.User.blacklist(user, info);
+                    this.message.channel
+                        .send(
+                            this.client.embeds
+                                .info(
+                                    adding
+                                        ? `Added ${type} \`${name}\` to blacklist.`
+                                        : `Removed ${type} \`${name}\` from blacklist.`
+                                )
+                                .setFooter(user.tag, user.displayAvatarURL())
+                        )
+                        .then(message => message.delete({ timeout: this.messageTimeout }));
+                    return Promise.resolve(false);
+                } catch (err) {
+                    this.client.logger.error(err);
+                    this.message.channel.send(this.client.embeds.internalError(err));
+                    return true;
+                }
+            }
+        )
+        .set(
+            ReactionMethods.Download,
+            async function (this: ReactionHandler, user: User): Promise<boolean> {
+                try {
+                    const id = this.display.pages[this.#currentPage]?.id || this.display.info.id;
+                    if (!id) return Promise.resolve(false);
+                    this.message.channel
+                        .send(
+                            this.client.embeds
+                                .info(
+                                    `Click [here](https://nhdl.herokuapp.com/download/nhentai/${id}/?e=zip) to download ${id}`
+                                ) // Thanks masami45 (@masami45) for the download server
+                                .setFooter(user.tag, user.displayAvatarURL())
+                        )
+                        .then(message => message.delete({ timeout: 60000 }));
+                    return Promise.resolve(false);
+                } catch (err) {
+                    this.client.logger.error(err);
+                    this.message.channel.send(this.client.embeds.internalError(err));
+                    return true;
+                }
+            }
+        )
+        .set(
+            ReactionMethods.Remove,
+            async function (this: ReactionHandler, user: User): Promise<boolean> {
+                if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+                await this.stop();
+                if (this.#autoMode) clearInterval(this.#autoMode);
+                if (!this.message.deleted) await this.message.delete();
+                if (!this.requestMessage.deleted && this.display.options.removeRequest)
+                    await this.requestMessage.delete();
                 return true;
             }
-        })
-        .set(ReactionMethods.Follow, async function (
-            this: ReactionHandler,
-            user: User
-        ): Promise<boolean> {
-            try {
-                const info = this.display.info;
-                if (!info) return Promise.resolve(false);
-                const { id, type, name } = info;
-                this.client.notifier.send({
-                    tag: +id,
-                    type,
-                    name,
-                    channel: this.message.channel.id,
-                    user: user.id,
-                });
-                return Promise.resolve(false);
-            } catch (err) {
-                this.client.logger.error(err);
-                this.message.channel.send(this.client.embeds.internalError(err));
-                return true;
-            }
-        })
-        .set(ReactionMethods.Blacklist, async function (
-            this: ReactionHandler,
-            user: User
-        ): Promise<boolean> {
-            try {
-                const info = this.display.info;
-                if (!info) return Promise.resolve(false);
-                const { type, name } = info;
-                const adding = await this.client.db.User.blacklist(user, info);
-                this.message.channel
-                    .send(
-                        this.client.embeds
-                            .info(
-                                adding
-                                    ? `Added ${type} \`${name}\` to blacklist.`
-                                    : `Removed ${type} \`${name}\` from blacklist.`
-                            )
-                            .setFooter(user.tag, user.displayAvatarURL())
-                    )
-                    .then(message => message.delete({ timeout: this.messageTimeout }));
-                return Promise.resolve(false);
-            } catch (err) {
-                this.client.logger.error(err);
-                this.message.channel.send(this.client.embeds.internalError(err));
-                return true;
-            }
-        })
-        .set(ReactionMethods.Download, async function (
-            this: ReactionHandler,
-            user: User
-        ): Promise<boolean> {
-            try {
-                const id = this.display.pages[this.#currentPage]?.id || this.display.info.id;
-                if (!id) return Promise.resolve(false);
-                this.message.channel
-                    .send(
-                        this.client.embeds
-                            .info(
-                                `Click [here](https://nhdl.herokuapp.com/download/nhentai/${id}/?e=zip) to download ${id}`
-                            ) // Thanks masami45 (@masami45) for the download server
-                            .setFooter(user.tag, user.displayAvatarURL())
-                    )
-                    .then(message => message.delete({ timeout: 60000 }));
-                return Promise.resolve(false);
-            } catch (err) {
-                this.client.logger.error(err);
-                this.message.channel.send(this.client.embeds.internalError(err));
-                return true;
-            }
-        })
-        .set(ReactionMethods.Remove, async function (this: ReactionHandler): Promise<boolean> {
-            await this.stop();
-            if (this.#autoMode) clearInterval(this.#autoMode);
-            if (!this.message.deleted) await this.message.delete();
-            if (!this.requestMessage.deleted && this.display.options.removeRequest)
-                await this.requestMessage.delete();
-            return true;
-        })
-        .set(ReactionMethods.One, function (this: ReactionHandler): Promise<boolean> {
+        )
+        .set(ReactionMethods.One, function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             return this.choose(this.#currentPage * 5);
         })
-        .set(ReactionMethods.Two, function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.Two, function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             return this.choose(1 + this.#currentPage * 5);
         })
-        .set(ReactionMethods.Three, function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.Three, function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             return this.choose(2 + this.#currentPage * 5);
         })
-        .set(ReactionMethods.Four, function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.Four, function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             return this.choose(3 + this.#currentPage * 5);
         })
-        .set(ReactionMethods.Five, function (this: ReactionHandler): Promise<boolean> {
+        .set(ReactionMethods.Five, function (this: ReactionHandler, user: User): Promise<boolean> {
+            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
             return this.choose(4 + this.#currentPage * 5);
         });
 }
