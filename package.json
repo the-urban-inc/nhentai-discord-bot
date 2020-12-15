@@ -23,7 +23,7 @@
         "discord-akairo": "^8.1.0",
         "discord.js": "^12.5.1",
         "dotenv": "^8.0.0",
-        "erlpack": "discord/erlpack",
+        "erlpack": "https://github.com/discord/erlpack/archive/e27db8f82892bdb9b28a0547cc394d68b5d2242d.tar.gz",
         "he": "^1.2.0",
         "moment": "^2.24.0",
         "mongoose": "5.10.15",
