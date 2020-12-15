@@ -40,16 +40,8 @@ export class InariClient extends AkairoClient {
     commandHandler = new CommandHandler(this, {
         directory: `${__dirname}/../../commands/`,
         prefix: async message => {
-            let { nsfw, sfw } = this.config.settings.prefix;
-            if (message.guild) {
-                nsfw = nsfw.concat(
-                    (await DB.Server.prefix(message, 'nsfw', 'list')).map(pfx => pfx.id)
-                );
-                sfw = sfw.concat(
-                    (await DB.Server.prefix(message, 'sfw', 'list')).map(pfx => pfx.id)
-                );
-            }
-            this.commandHandler.splitPrefix = { nsfw, sfw };
+            if (!this.commandHandler.splitPrefix) await this.commandHandler.updatePrefix(message);
+            let { nsfw, sfw } = this.commandHandler.splitPrefix;
             return [...nsfw, ...sfw];
         },
         classToHandle: Command,

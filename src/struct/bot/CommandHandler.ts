@@ -36,6 +36,18 @@ function prefixCompare(aKey: string | PrefixSupplier, bKey: string | PrefixSuppl
 export default class extends CommandHandler {
     client: InariClient;
     splitPrefix: Prefix;
+    async updatePrefix(message: Message) {
+        let { nsfw, sfw } = this.client.config.settings.prefix;
+        if (message.guild) {
+            nsfw = nsfw.concat(
+                (await this.client.db.Server.prefix(message, 'nsfw', 'list')).map(pfx => pfx.id)
+            );
+            sfw = sfw.concat(
+                (await this.client.db.Server.prefix(message, 'sfw', 'list')).map(pfx => pfx.id)
+            );
+        }
+        this.splitPrefix = { nsfw, sfw };
+    }
     private async parse(message: Message) {
         let parsed = await this.parseCommand(message);
         if (!parsed.command) {

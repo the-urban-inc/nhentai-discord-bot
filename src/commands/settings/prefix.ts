@@ -66,10 +66,12 @@ export default class extends Command {
                 prefix
             );
             if (action == 'add' || action == 'remove') {
+                await this.client.commandHandler.updatePrefix(message);
                 return message.channel.send(
                     this.client.embeds.info(`${ACTIONS[action]} prefix \`${prefix}\`.`)
                 );
             } else if (action === 'clear') {
+                await this.client.commandHandler.updatePrefix(message);
                 return message.channel.send(this.client.embeds.info('Cleared all prefixes.'));
             } else if (!prefixes.length) {
                 return message.channel.send(
