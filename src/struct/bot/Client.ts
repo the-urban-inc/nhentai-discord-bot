@@ -1,5 +1,5 @@
 import { AkairoClient, InhibitorHandler, ListenerHandler } from 'discord-akairo';
-import { TextChannel, DMChannel } from 'discord.js';
+import { TextChannel, DMChannel, Intents } from 'discord.js';
 import Command from './Command';
 import Inhibitor from './Inhibitor';
 import Listener from './Listener';
@@ -13,11 +13,27 @@ import config from '@inari/config';
 import NekosLifeAPI from 'nekos.life';
 import { fork, ChildProcess } from 'child_process';
 const { DISCORD_TOKEN } = process.env;
-import { cpus } from 'os';
+const intent = Intents.FLAGS;
 
 export class InariClient extends AkairoClient {
-    constructor(...options : ConstructorParameters<typeof AkairoClient>) {
-        super(options[0], Object.assign({}, options[1], { shardCount: 2 * cpus().length }))
+    constructor(...options: ConstructorParameters<typeof AkairoClient>) {
+        super(
+            options[0],
+            Object.assign({}, options[1], {
+                shards: 'auto',
+                messageCacheMaxSize: 10,
+                messageCacheLifetime: 10000,
+                messageSweepInterval: 30000,
+                messageEditHistoryMaxSize: 3,
+                ws: {
+                    intents:
+                        intent.GUILDS |
+                        intent.GUILD_MESSAGES |
+                        intent.GUILD_MESSAGE_REACTIONS |
+                        intent.DIRECT_MESSAGES,
+                },
+            })
+        );
     }
 
     config = config;
@@ -26,8 +42,12 @@ export class InariClient extends AkairoClient {
         prefix: async message => {
             let { nsfw, sfw } = this.config.settings.prefix;
             if (message.guild) {
-                nsfw = nsfw.concat((await DB.Server.prefix(message, 'nsfw', 'list')).map(pfx => pfx.id));
-                sfw = sfw.concat((await DB.Server.prefix(message, 'sfw', 'list')).map(pfx => pfx.id));
+                nsfw = nsfw.concat(
+                    (await DB.Server.prefix(message, 'nsfw', 'list')).map(pfx => pfx.id)
+                );
+                sfw = sfw.concat(
+                    (await DB.Server.prefix(message, 'sfw', 'list')).map(pfx => pfx.id)
+                );
             }
             this.commandHandler.splitPrefix = { nsfw, sfw };
             return [...nsfw, ...sfw];
@@ -75,12 +95,14 @@ export class InariClient extends AkairoClient {
                 const user = this.users.cache.get(m.user);
                 channel
                     .send(
-                        this.embeds.info(
-                            (adding
-                                ? `Started following ${m.type} \`${m.name}\`.`
-                                : `Stopped following ${m.type} \`${m.name}\`.`) +
-                                '\nIt may take a while to update.'
-                        ).setFooter(user.tag, user.displayAvatarURL())
+                        this.embeds
+                            .info(
+                                (adding
+                                    ? `Started following ${m.type} \`${m.name}\`.`
+                                    : `Stopped following ${m.type} \`${m.name}\`.`) +
+                                    '\nIt may take a while to update.'
+                            )
+                            .setFooter(user.tag, user.displayAvatarURL())
                     )
                     .then(message => message.delete({ timeout: 5000 }));
             }
