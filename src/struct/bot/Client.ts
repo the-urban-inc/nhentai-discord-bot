@@ -40,8 +40,8 @@ export class InariClient extends AkairoClient {
     commandHandler = new CommandHandler(this, {
         directory: `${__dirname}/../../commands/`,
         prefix: async message => {
-            if (!this.commandHandler.splitPrefix) await this.commandHandler.updatePrefix(message);
-            let { nsfw, sfw } = this.commandHandler.splitPrefix;
+            if (!this.commandHandler.splitPrefix || !this.commandHandler.splitPrefix.has(message.guild.id)) await this.commandHandler.updatePrefix(message);
+            let { nsfw, sfw } = this.commandHandler.splitPrefix.get(message.guild.id);
             return [...nsfw, ...sfw];
         },
         classToHandle: Command,

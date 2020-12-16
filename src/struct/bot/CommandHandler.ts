@@ -1,5 +1,5 @@
 import { CommandHandler, CommandUtil, PrefixSupplier } from 'discord-akairo';
-import { Message } from 'discord.js'; 
+import { Message, Collection } from 'discord.js'; 
 import type { InariClient } from './Client';
 
 interface Prefix { 
@@ -35,8 +35,9 @@ function prefixCompare(aKey: string | PrefixSupplier, bKey: string | PrefixSuppl
 
 export default class extends CommandHandler {
     client: InariClient;
-    splitPrefix: Prefix;
+    splitPrefix: Collection<string, Prefix>;
     async updatePrefix(message: Message) {
+        if (!this.splitPrefix) this.splitPrefix = new Collection();
         let { nsfw, sfw } = this.client.config.settings.prefix;
         if (message.guild) {
             nsfw = nsfw.concat(
@@ -45,8 +46,9 @@ export default class extends CommandHandler {
             sfw = sfw.concat(
                 (await this.client.db.Server.prefix(message, 'sfw', 'list')).map(pfx => pfx.id)
             );
+            this.splitPrefix.set(message.guild.id, { nsfw, sfw });
         }
-        this.splitPrefix = { nsfw, sfw };
+        this.splitPrefix.set(message.channel.id, { nsfw, sfw });
     }
     private async parse(message: Message) {
         let parsed = await this.parseCommand(message);
@@ -68,7 +70,7 @@ export default class extends CommandHandler {
             if (afterPrefix.startsWith('nsfw_') || content.startsWith('nsfw_')) return await this.handleDirectCommand(message, content, command);
             if (!content.length) return await this.handleDirectCommand(message, content, command);
             if (['help', 'halp', 'h'].includes(alias)) {
-                if (this.splitPrefix.nsfw.includes(prefix) && Array.from(this.client.commandHandler.aliases.keys()).includes(`nsfw_${content}`)) {
+                if (this.splitPrefix.get(message.guild.id).nsfw.includes(prefix) && Array.from(this.client.commandHandler.aliases.keys()).includes(`nsfw_${content}`)) {
                     message.content = `${prefix}${alias} nsfw_${content}`
                     return this.test(message);
                 }

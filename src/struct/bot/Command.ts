@@ -19,9 +19,9 @@ export default class extends Command {
         if ('nsfw' in options) {
             this.nsfw = Boolean(options.nsfw);
             this.prefix = async message => {
-                const prefix = this.client.config.settings.prefix[this.nsfw ? 'nsfw' : 'sfw'];
-                if (message.guild) return prefix.concat((await DB.Server.prefix(message, this.nsfw ? 'nsfw' : 'sfw', 'list')).map(pfx => pfx.id));
-                return prefix;
+                if (!this.client.commandHandler.splitPrefix || !this.client.commandHandler.splitPrefix.has(message.guild.id)) await this.client.commandHandler.updatePrefix(message);
+                const { nsfw, sfw } = this.client.commandHandler.splitPrefix.get(message.guild.id);
+                return this.nsfw ? nsfw : sfw;
             }
         }
     }
