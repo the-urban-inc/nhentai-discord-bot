@@ -1,21 +1,27 @@
 import { Command, CommandOptions } from 'discord-akairo';
 import type { InariClient } from './Client';
-import * as DB from '@inari/struct/db';
+
+type _ = {
+    [key: string]: string[];
+}
 
 export interface InariCommandOptions extends CommandOptions {
     nsfw?: boolean;
     areMultipleCommands?: boolean;
+    subAliases?: _;
 }
 
 export default class extends Command {
     client: InariClient;
     nsfw?: boolean;
     areMultipleCommands: boolean;
+    subAliases: _;
     constructor(id: string, options?: InariCommandOptions) {
         options.typing = true;
         super(id, options);
-        const { areMultipleCommands = false } = options;
+        const { areMultipleCommands = false, subAliases = {} } = options;
         this.areMultipleCommands = Boolean(areMultipleCommands);
+        if (this.areMultipleCommands && Object.keys(subAliases).length !== 0) this.subAliases = subAliases;
         if ('nsfw' in options) {
             this.nsfw = Boolean(options.nsfw);
             this.prefix = async message => {

@@ -102,7 +102,7 @@ export default class extends Command {
 
             if (this.danger || !rip) {
                 const displayDoujin = this.client.embeds
-                    .richDisplay({ auto: auto, download: true, removeRequest: false })
+                    .richDisplay({ auto: auto, download: true })
                     .setInfo({ id, type: 'g', name: title })
                     .setInfoPage(info);
                 doujin
@@ -119,7 +119,7 @@ export default class extends Command {
                 );
             } else {
                 await this.client.embeds
-                    .richDisplay({ image: true, removeRequest: false })
+                    .richDisplay({ image: true })
                     .addPage(info)
                     .useCustomFooters()
                     .run(this.client, message, await message.channel.send('Searching ...'));

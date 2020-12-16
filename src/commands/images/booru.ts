@@ -22,40 +22,39 @@ function isUrl(s: string) {
     return false;
 }
 
+const SITES = {
+    e621: ['e6'],
+    e926: ['e9'],
+    hypnohub: ['hypno', 'hh'],
+    danbooru: ['dan', 'db'],
+    konac: ['kcom', 'kc'],
+    konan: ['knet', 'kn'],
+    yandere: ['yand', 'yd'],
+    gelbooru: ['gel', 'gb'],
+    rule34: ['r34'],
+    safebooru: ['safe', 'sb'],
+    tbib: ['tb'],
+    xbooru: ['xb'],
+    lolibooru: ['loli', 'lb'],
+    paheal: ['r34paheal', 'pa'],
+    derpibooru: ['derpi', 'dp'],
+    furrybooru: ['fb'],
+    realbooru: ['rb'],
+};
+
 export default class extends Command {
     constructor() {
         super('booru', {
-            aliases: ['booru'],
+            aliases: Object.keys(SITES).concat(...Object.values(SITES)),
+            areMultipleCommands: true,
+            subAliases: SITES,
             channel: 'guild',
             nsfw: true,
             description: {
-                content: `Fetch images from multiple booru sites by tags.\nRun ${config.settings.prefix.nsfw[0]}booru for list of supported pages.`,
-                usage: '<site> <tags>',
-                examples: ['danbooru neko', 'gelbooru kitsune'],
+                content: `Fetch images from @ by tags.`,
+                usage: '<tags>',
             },
             args: [
-                {
-                    id: 'site',
-                    type: [
-                        ['e621', 'e6'],
-                        ['e926', 'e9'],
-                        ['hypnohub', 'hypno', 'hh'],
-                        ['danbooru', 'dan', 'db'],
-                        ['konac', 'kcom', 'kc'],
-                        ['konan', 'knet', 'kn'],
-                        ['yandere', 'yand', 'yd'],
-                        ['gelbooru', 'gel', 'gb'],
-                        ['rule34', 'r34'],
-                        ['safebooru', 'safe', 'sb'],
-                        ['tbib', 'tb'],
-                        ['xbooru', 'xb'],
-                        ['lolibooru', 'loli', 'lb'],
-                        ['paheal', 'r34paheal', 'pa'],
-                        ['derpibooru', 'derpi', 'dp'],
-                        ['furrybooru', 'fb'],
-                        ['realbooru', 'rb'],
-                    ],
-                },
                 {
                     id: 'tags',
                     match: 'rest',
@@ -65,13 +64,16 @@ export default class extends Command {
         });
     }
 
-    exec(message: Message, { site, tags }: { site: string; tags: string }) {
-        if (!site)
+    exec(message: Message, { tags }: { tags: string }) {
+        type _ = keyof typeof SITES;
+        const site = message.util?.parsed?.alias as _ | typeof SITES[_][number];
+        if (!site) {
             return message.channel.send(
                 this.client.embeds.clientError(
                     'Unknown or unsupported site. Supported sites are: [e621](https://e621.net/), [e926](https://e926.net/), [hypnohub](https://hypnohub.net/), [danbooru](https://danbooru.donmai.us/), [konac (konachan.com)](https://konachan.com/), [konan (konachan.net)](https://konachan.net/), [yandere](https://yande.re/), [gelbooru](https://gelbooru.com/), [rule34](https://rule34.xxx/), [safebooru](https://safebooru.org/), [tbib](https://tbib.org/), [xbooru](https://xbooru.com/), [lolibooru](https://lolibooru.moe/), [paheal (rule34.paheal.net)](https://rule34.paheal.net/), [derpibooru](https://derpibooru.org/), [furrybooru](https://furry.booru.org/), [realbooru](https://realbooru.com/).'
                 )
             );
+        }
         let tagsArray = tags.split(' ');
         search(site, tagsArray, { limit: 3, random: true })
             .then(async res => {

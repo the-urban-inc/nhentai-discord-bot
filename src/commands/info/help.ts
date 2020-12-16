@@ -34,14 +34,25 @@ export default class extends Command {
         if (!commandAlias) return this.execCommandList(message);
 
         let command = commandAlias[0],
-            alias = commandAlias[1].replace(/nsfw_/, '');;
+            alias = commandAlias[1].replace(/nsfw_/, '');
 
-        const prefix = (command.nsfw || !('nsfw' in command)) ? this.client.config.settings.prefix.nsfw[0] : this.client.config.settings.prefix.sfw[0];
+        const prefix =
+            command.nsfw || !('nsfw' in command)
+                ? this.client.config.settings.prefix.nsfw[0]
+                : this.client.config.settings.prefix.sfw[0];
 
         if (command.areMultipleCommands) {
-            command.description.content = command.description.content.replace('@', alias);
-            command.id = alias;
-            command.aliases = [];
+            if (command.subAliases) {
+                command.id = Object.keys(command.subAliases).find(key =>
+                    command.subAliases[key].includes(alias)
+                );
+                command.aliases = command.subAliases[command.id];
+                command.description.content = command.description.content.replace('@', command.id);
+            } else {
+                command.id = alias;
+                command.aliases = [];
+                command.description.content = command.description.content.replace('@', alias);
+            }
         }
 
         const clientPermissions = command.clientPermissions as string[];
@@ -51,7 +62,8 @@ export default class extends Command {
         const embed = this.client.util
             .embed()
             .setTitle(
-                `${prefix}${command.id} ${command.description.usage ? command.description.usage : ''
+                `${prefix}${command.id} ${
+                    command.description.usage ? command.description.usage : ''
                 }`
             )
             .setDescription(command.description.content ?? 'No description specified.');
@@ -104,34 +116,54 @@ export default class extends Command {
         );
         for (const [category, commands] of this.client.commandHandler.categories) {
             const title = TITLE_LIST[category as keyof typeof TITLE_LIST];
-            if (category === 'owner') continue;
             const publicCommands =
                 message.author.id === this.client.ownerID
                     ? commands
-                    : commands.filter(c => !c.ownerOnly);
-            for (const splitCommands of this.client.util.chunkify(Array.from(publicCommands.values()), 25)) {
+                    : commands.filter((c: Command) => !c.ownerOnly);
+            const multipleCommands = publicCommands.filter((c: Command) => c.areMultipleCommands);
+            const normalCommands = publicCommands.filter((c: Command) => !c.areMultipleCommands);
+            if (normalCommands.size) {
                 const embed = this.client.util.embed().setTitle(title);
-                splitCommands.forEach((command: Command) => {
-                    const prefix = (command.nsfw || !('nsfw' in command)) ? this.client.config.settings.prefix.nsfw[0] : this.client.config.settings.prefix.sfw[0];
-                    if (command.areMultipleCommands) {
-                        command.aliases.forEach(a => {
-                            a = a.replace(/nsfw_/, '');
+                for (const [id, command] of normalCommands) {
+                    const prefix =
+                        command.nsfw || !('nsfw' in command)
+                            ? this.client.config.settings.prefix.nsfw[0]
+                            : this.client.config.settings.prefix.sfw[0];
+                    const alias = command.aliases[0].replace(/nsfw_/, '');
+                    embed.addField(
+                        `${command.nsfw ? '`🔞` ' : ''}${prefix}${alias} ${
+                            command.description.usage ? command.description.usage : ''
+                        }`,
+                        command.description.content ?? 'No description specified.'
+                    );
+                }
+                display.addPage(embed);
+            }
+            if (multipleCommands.size) {
+                for (const [id, command] of multipleCommands) {
+                    const embed = this.client.util.embed().setTitle(title);
+                    if (command.subAliases) {
+                        Object.keys(command.subAliases).forEach(a => {
                             embed.addField(
-                                `${command.nsfw ? '`🔞` ' : ''}${prefix}${a} ${command.description.usage ? command.description.usage : ''
+                                `${command.nsfw ? '`🔞` ' : ''}${prefix}${a} ${
+                                    command.description.usage ? command.description.usage : ''
                                 }`,
                                 command.description.content.replace('@', a)
                             );
                         });
                     } else {
-                        const alias = command.aliases[0].replace(/nsfw_/, '');
-                        embed.addField(
-                            `${command.nsfw ? '`🔞` ' : ''}${prefix}${alias} ${command.description.usage ? command.description.usage : ''
-                            }`,
-                            command.description.content ?? 'No description specified.'
-                        );
+                        command.aliases.forEach(a => {
+                            a = a.replace(/nsfw_/, '');
+                            embed.addField(
+                                `${command.nsfw ? '`🔞` ' : ''}${prefix}${a} ${
+                                    command.description.usage ? command.description.usage : ''
+                                }`,
+                                command.description.content.replace('@', a)
+                            );
+                        });
                     }
-                });
-                display.addPage(embed);
+                    display.addPage(embed);
+                }
             }
         }
         return display.run(
