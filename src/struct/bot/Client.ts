@@ -25,13 +25,6 @@ export class InariClient extends AkairoClient {
                 messageCacheLifetime: 10000,
                 messageSweepInterval: 30000,
                 messageEditHistoryMaxSize: 3,
-                ws: {
-                    intents:
-                        intent.GUILDS |
-                        intent.GUILD_MESSAGES |
-                        intent.GUILD_MESSAGE_REACTIONS |
-                        intent.DIRECT_MESSAGES,
-                },
             })
         );
     }
