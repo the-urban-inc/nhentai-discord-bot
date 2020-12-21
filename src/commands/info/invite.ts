@@ -19,9 +19,9 @@ export default class extends Command {
             .filter(a => a)
             .reverse();
         const embed = this.client.embeds.info(
-            `[Here](${await this.client.generateInvite(
-                PERMISSIONS
-            )}) is my invite link! You can also [self-host](https://github.com/${owner}/${repo}) me if you prefer.`
+            `[Here](${await this.client.generateInvite({
+                permissions: PERMISSIONS,
+            })}) is my invite link! You can also [self-host](https://github.com/${owner}/${repo}) me if you prefer.`
         );
         return message.channel.send({ embed });
     }

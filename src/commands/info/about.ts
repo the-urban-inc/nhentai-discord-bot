@@ -29,9 +29,9 @@ export default class extends Command {
                 `• **Guilds** : ${this.client.guilds.cache.size}`,
                 `• **Channels** : ${this.client.channels.cache.size}`,
                 `• **Users** : ${this.client.users.cache.size}`,
-                `• **Invite Link** : [Click here](${await this.client.generateInvite(
-                    PERMISSIONS
-                )})`,
+                `• **Invite Link** : [Click here](${await this.client.generateInvite({
+                    permissions: PERMISSIONS,
+                })})`,
             ])
             .addField('❯ Technical', [
                 `• **Uptime** : ${
@@ -40,7 +40,9 @@ export default class extends Command {
                         : 'N/A'
                 }`,
                 `• **Version** : ${npm_package_version}`,
-                `• **Memory Usage** : ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`,
+                `• **Memory Usage** : ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(
+                    2
+                )} MB`,
                 `• **Node.js** : ${process.version}`,
                 `• **Discord.js** : v${DiscordVersion}`,
                 `• **Akairo** : v${AkairoVersion}`,
