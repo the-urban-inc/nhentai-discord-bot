@@ -63,7 +63,7 @@ export class InariClient extends AkairoClient {
 
     notifier: ChildProcess;
     private setup(): void {
-        this.notifier = fork(`${__dirname}/../../submodules/notifier/index`, [
+        /* this.notifier = fork(`${__dirname}/../../submodules/notifier/index`, [
             '-r',
             'tsconfig-paths/register',
         ]).on(
@@ -92,7 +92,7 @@ export class InariClient extends AkairoClient {
                     )
                     .then(message => message.delete({ timeout: 5000 }));
             }
-        );
+        ); */
         this.commandHandler
             .useInhibitorHandler(this.inhibitorHandler)
             .useListenerHandler(this.listenerHandler)
