@@ -21,10 +21,6 @@ export class InariClient extends AkairoClient {
             options[0],
             Object.assign({}, options[1], {
                 shards: 'auto',
-                messageCacheMaxSize: 10,
-                messageCacheLifetime: 10000,
-                messageSweepInterval: 30000,
-                messageEditHistoryMaxSize: 3,
             })
         );
     }
@@ -34,7 +30,11 @@ export class InariClient extends AkairoClient {
         directory: `${__dirname}/../../commands/`,
         prefix: async message => {
             if (!message.guild) return [...config.settings.prefix.nsfw, config.settings.prefix.sfw];
-            if (!this.commandHandler.splitPrefix || !this.commandHandler.splitPrefix.has(message.guild.id)) await this.commandHandler.updatePrefix(message);
+            if (
+                !this.commandHandler.splitPrefix ||
+                !this.commandHandler.splitPrefix.has(message.guild.id)
+            )
+                await this.commandHandler.updatePrefix(message);
             let { nsfw, sfw } = this.commandHandler.splitPrefix.get(message.guild.id);
             return [...nsfw, ...sfw];
         },
