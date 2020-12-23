@@ -84,15 +84,15 @@ export default class extends Command {
             let pageNum = parseInt(page, 10);
             const data = await this.client.nhentai.search(text, pageNum, sort);
 
+            if (!data.results.length)
+                return message.channel.send(this.client.embeds.clientError('No results found.'));
+
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
                 return message.channel.send(
                     this.client.embeds.clientError(
                         'Page number is not an integer or is out of range.'
                     )
                 );
-
-            if (!data.results.length)
-                return message.channel.send(this.client.embeds.clientError('No results found.'));
 
             const display = this.client.embeds
                 .richDisplay({ info: true, download: true })

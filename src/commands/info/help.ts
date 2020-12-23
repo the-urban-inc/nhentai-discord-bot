@@ -1,5 +1,5 @@
 import Command from '@inari/struct/bot/Command';
-import { Argument } from 'discord-akairo';
+import { Argument, Category } from 'discord-akairo';
 import { Message } from 'discord.js';
 
 const TITLE_LIST = {
@@ -120,8 +120,8 @@ export default class extends Command {
                 message.author.id === this.client.ownerID
                     ? commands
                     : commands.filter((c: Command) => !c.ownerOnly);
-            const multipleCommands = publicCommands.filter((c: Command) => c.areMultipleCommands);
-            const normalCommands = publicCommands.filter((c: Command) => !c.areMultipleCommands);
+            const multipleCommands = publicCommands.filter((c: Command) => c.areMultipleCommands) as Category<string, Command>;
+            const normalCommands = publicCommands.filter((c: Command) => !c.areMultipleCommands) as Category<string, Command>;
             if (normalCommands.size) {
                 const embed = this.client.util.embed().setTitle(title);
                 for (const [id, command] of normalCommands) {

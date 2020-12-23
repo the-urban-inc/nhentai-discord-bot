@@ -36,6 +36,12 @@ export default class extends Command {
                     match: 'flag',
                     flag: ['-a', '--auto'],
                 },
+                {
+                    id: 'page',
+                    match: 'option',
+                    flag: ['--page=', '-p='],
+                    default: '1',
+                },
             ],
         });
     }
@@ -71,12 +77,14 @@ export default class extends Command {
 
     async exec(
         message: Message,
-        { code, more, auto }: { code: string; more: boolean; auto: boolean }
+        { code, more, auto, page }: { code: string; more?: boolean; auto?: boolean; page?: string }
     ) {
         if (!code)
             return message.channel.send(this.client.embeds.clientError('Code is not specified.'));
         try {
             const doujin: Gallery = await this.client.nhentai.g(code, more);
+
+            if (!doujin.details) throw new Error("Code doesn't exist.");
 
             // points increase
             const min = 30,
@@ -84,6 +92,13 @@ export default class extends Command {
             const inc = Math.floor(Math.random() * (max - min)) + min;
 
             let { tags, num_pages, upload_date } = doujin.details;
+            let pageNum = parseInt(page, 10);
+            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > num_pages)
+                return message.channel.send(
+                    this.client.embeds.clientError(
+                        'Page number is not an integer or is out of range.'
+                    )
+                );
             let id = doujin.details.id.toString(),
                 title = he.decode(doujin.details.title.english),
                 date = Date.now();
@@ -153,7 +168,7 @@ export default class extends Command {
 
             if (this.danger || !rip) {
                 const displayDoujin = this.client.embeds
-                    .richDisplay({ auto: auto, download: true })
+                    .richDisplay({ auto, download: true })
                     .setInfo({ id, type: 'g', name: title })
                     .setInfoPage(info);
                 doujin
@@ -166,7 +181,11 @@ export default class extends Command {
                 await displayDoujin.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching for doujin ...')
+                    await message.channel.send('Searching for doujin ...'),
+                    '',
+                    {
+                        startPage: pageNum - 1,
+                    }
                 );
             } else {
                 await this.client.embeds

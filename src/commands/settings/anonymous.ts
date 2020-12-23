@@ -4,7 +4,7 @@ import { Message } from 'discord.js';
 export default class extends Command {
     constructor() {
         super('anonymous', {
-            aliases: ['anonymous', 'incognito', 'hide', 'anon'],
+            aliases: ['anonymous', 'incognito', 'hide', 'anon', 'toggle-anonymous', 'toggle-anon'],
             channel: 'guild',
             description: {
                 content:

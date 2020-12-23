@@ -94,12 +94,18 @@ export class RichDisplay {
         let msg: Message;
         if (message.editable) {
             await message.edit(editMessage, {
-                embed: this.infoPage ?? this.pages[options.startPage ?? 0].embed,
+                embed:
+                    !isNaN(options.startPage) && options.startPage > 0
+                        ? this.pages[options.startPage].embed
+                        : this.infoPage ?? this.pages[0].embed,
             });
             msg = message;
         } else {
             msg = await message.channel.send(editMessage, {
-                embed: this.infoPage ?? this.pages[options.startPage ?? 0].embed,
+                embed:
+                    !isNaN(options.startPage) && options.startPage > 0
+                        ? this.pages[options.startPage].embed
+                        : this.infoPage ?? this.pages[0].embed,
             });
         }
 

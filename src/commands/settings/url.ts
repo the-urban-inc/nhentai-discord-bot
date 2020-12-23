@@ -5,21 +5,21 @@ const REQUIRED_PERMISSIONS = ['MANAGE_GUILD'] as const;
 
 export default class extends Command {
     constructor() {
-        super('danger', {
-            aliases: ['danger', 'fucktos', 'toggle-danger'],
+        super('url', {
+            aliases: ['url', 'toggle-url'],
             channel: 'guild',
             userPermissions: REQUIRED_PERMISSIONS,
             description: {
-                content: "Toggles danger mode (allowing contents involving lolicon, shotacon, gore, etc.)",
+                content: "Toggles url mode (can call g, tag, etc. with urls)",
             },
         });
     }
 
     async exec(message: Message) {
         try {
-            const danger = await this.client.db.Server.danger(message);
+            const url = await this.client.db.Server.url(message);
             return message.channel.send(
-                this.client.embeds.info(`Turned ${danger ? 'on' : 'off'} danger mode for this server.`)
+                this.client.embeds.info(`Turned ${url ? 'on' : 'off'} url mode for this server.`)
             );
         } catch (err) {
             this.client.logger.error(err);

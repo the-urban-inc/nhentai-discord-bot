@@ -56,3 +56,18 @@ export async function danger(message: Message) {
         return server.settings.danger;
     }
 }
+
+export async function url(message: Message) {
+    let server = await Server.findOne({ serverID: message.guild.id }).exec();
+    if (!server) {
+        await new Server({
+            serverID: message.guild.id,
+            url: true,
+        }).save();
+        return true;
+    } else {
+        server.settings.url = !server.settings.url;
+        await server.save();
+        return server.settings.url;
+    }
+}

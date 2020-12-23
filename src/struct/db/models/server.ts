@@ -14,6 +14,7 @@ export interface ServerSettings {
         sfw: Prefix[];
     };
     danger: boolean;
+    url: boolean;
 }
 
 interface User {
@@ -65,6 +66,10 @@ const serverSchema = new Schema(
                 }]
             },
             danger: {
+                $type: Boolean,
+                default: false,
+            },
+            url: {
                 $type: Boolean,
                 default: false,
             },

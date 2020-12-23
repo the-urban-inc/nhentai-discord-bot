@@ -51,7 +51,7 @@ export default class extends Command {
         }
     }
 
-    async exec(message: Message, { more, auto }: { more: boolean; auto: boolean }) {
+    async exec(message: Message, { more, auto }: { more?: boolean; auto?: boolean }) {
         try {
             const doujin = await this.client.nhentai.random();
 
@@ -102,7 +102,7 @@ export default class extends Command {
 
             if (this.danger || !rip) {
                 const displayDoujin = this.client.embeds
-                    .richDisplay({ auto: auto, download: true })
+                    .richDisplay({ auto, download: true })
                     .setInfo({ id, type: 'g', name: title })
                     .setInfoPage(info);
                 doujin

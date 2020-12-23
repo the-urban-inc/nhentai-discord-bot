@@ -42,7 +42,7 @@ export class NhentaiAPI {
                 });
                 return parseListHTML(
                     `${this.baseURL}/${tag}/${name.replace(/ /g, '-')}/${
-                        sort == 'recent' ? '' : sort
+                        sort === 'recent' ? '' : sort
                     }?${query}`
                 );
             };
@@ -55,10 +55,10 @@ export class NhentaiAPI {
             let related = await parseRelatedHTML(`${this.baseURL}/g/${id}/`);
             let comments = (await get(`${this.baseURL}/api/gallery/${id}/comments`))
                 .data as NH.Comment[];
-            if (!related || !comments) throw new Error('Scraping failed');
+            if (!related || !comments || 'error' in related || 'error' in comments) throw new Error('No results found.');
             return new NH.Gallery(details, related, comments);
         }
-        if (!details) throw new Error('Scraping failed');
+        if (!details || 'error' in details) throw new Error('Code doesn\'t exist.');
         return new NH.Gallery(details);
     }
 

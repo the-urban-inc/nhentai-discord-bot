@@ -97,15 +97,15 @@ export default class extends Command {
             let pageNum = parseInt(page, 10);
             let data = (await this.client.nhentai[tag](text.toLowerCase(), pageNum, sort)) as List;
 
+            if (!data.results.length)
+                return message.channel.send(this.client.embeds.clientError('No results, sorry.'));
+
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
                 return message.channel.send(
                     this.client.embeds.clientError(
                         'Page number is not an integer or is out of range.'
                     )
                 );
-
-            if (!data.results.length)
-                return message.channel.send(this.client.embeds.clientError('No results, sorry.'));
 
             const { tagId, results, num_pages, num_results } = data;
             const id = tagId.toString(),
