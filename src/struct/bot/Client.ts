@@ -1,5 +1,5 @@
 import { AkairoClient, InhibitorHandler, ListenerHandler } from 'discord-akairo';
-import { TextChannel, DMChannel, Intents } from 'discord.js';
+import { TextChannel, DMChannel } from 'discord.js';
 import Command from './Command';
 import Inhibitor from './Inhibitor';
 import Listener from './Listener';
@@ -13,7 +13,6 @@ import config from '@inari/config';
 import NekosLifeAPI from 'nekos.life';
 import { fork, ChildProcess } from 'child_process';
 const { DISCORD_TOKEN } = process.env;
-const intent = Intents.FLAGS;
 
 export class InariClient extends AkairoClient {
     constructor(...options: ConstructorParameters<typeof AkairoClient>) {
@@ -21,6 +20,10 @@ export class InariClient extends AkairoClient {
             options[0],
             Object.assign({}, options[1], {
                 shards: 'auto',
+                messageCacheMaxSize: 10,
+                messageCacheLifetime: 10000,
+                messageSweepInterval: 30000,
+                messageEditHistoryMaxSize: 3,
             })
         );
     }
@@ -29,7 +32,7 @@ export class InariClient extends AkairoClient {
     commandHandler = new CommandHandler(this, {
         directory: `${__dirname}/../../commands/`,
         prefix: async message => {
-            if (!message.guild) return [...config.settings.prefix.nsfw, config.settings.prefix.sfw];
+            if (!message.guild) return [...config.settings.prefix.nsfw, ...config.settings.prefix.sfw];
             if (
                 !this.commandHandler.splitPrefix ||
                 !this.commandHandler.splitPrefix.has(message.guild.id)
@@ -63,7 +66,7 @@ export class InariClient extends AkairoClient {
 
     notifier: ChildProcess;
     private setup(): void {
-        /* this.notifier = fork(`${__dirname}/../../submodules/notifier/index`, [
+        this.notifier = fork(`${__dirname}/../../submodules/notifier/index`, [
             '-r',
             'tsconfig-paths/register',
         ]).on(
@@ -92,7 +95,7 @@ export class InariClient extends AkairoClient {
                     )
                     .then(message => message.delete({ timeout: 5000 }));
             }
-        ); */
+        );
         this.commandHandler
             .useInhibitorHandler(this.inhibitorHandler)
             .useListenerHandler(this.listenerHandler)

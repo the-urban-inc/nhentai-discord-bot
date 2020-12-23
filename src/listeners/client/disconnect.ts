@@ -10,6 +10,6 @@ export default class extends Listener {
     }
 
     exec() {
-        return this.client.logger.warn('[WARN] Disconnecting...');
+        return this.client.logger.warn('[EVENT] Disconnecting...');
     }
 }
