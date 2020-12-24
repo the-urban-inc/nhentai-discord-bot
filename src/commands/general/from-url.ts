@@ -30,6 +30,7 @@ export default class extends Command {
 
     condition(message: Message) {
         try {
+            if (!message.content || message.content === '') return false;
             const url = new URL(
                 `${message.content.startsWith('nhentai.net') ? 'https://' : ''}${message.content}`,
                 'https://nhentai.net'
