@@ -3,16 +3,11 @@ import { User } from '../models/user';
 import { History, Blacklist } from '../models/tag';
 
 export async function history(duser: DiscordUser, userHistory: History) {
-    const user = await User.findOne({ userID: duser.id });
-    if (!user) {
-        await new User({
-            userID: duser.id,
-            history: [userHistory],
-        }).save();
-    } else {
-        user.history.push(userHistory);
-        await user.save();
-    }
+    return await User.findOneAndUpdate(
+        { userID: duser.id },
+        { $push: { history: userHistory } },
+        { upsert: true }
+    ).exec()
 }
 
 export async function favorite(duser: DiscordUser, id: string) {

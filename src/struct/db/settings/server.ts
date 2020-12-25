@@ -3,16 +3,11 @@ import { Server } from '../models/server';
 import { History } from '../models/tag';
 
 export async function history(message: Message, serverHistory: History) {
-    let server = await Server.findOne({ serverID: message.guild.id }).exec();
-    if (!server) {
-        await new Server({
-            serverID: message.guild.id,
-            recent: [serverHistory],
-        }).save();
-    } else {
-        server.recent.push(serverHistory);
-        await server.save();
-    }
+    return await Server.findOneAndUpdate(
+        { serverID: message.guild.id },
+        { $push: { recent: serverHistory } },
+        { upsert: true }
+    ).exec();
 }
 
 export async function prefix(
@@ -47,7 +42,7 @@ export async function danger(message: Message) {
     if (!server) {
         await new Server({
             serverID: message.guild.id,
-            danger: true,
+            settings: { danger: true }
         }).save();
         return true;
     } else {
@@ -62,7 +57,7 @@ export async function url(message: Message) {
     if (!server) {
         await new Server({
             serverID: message.guild.id,
-            url: true,
+            settings: { url: true }
         }).save();
         return true;
     } else {
