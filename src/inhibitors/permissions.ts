@@ -14,7 +14,10 @@ export default class extends Inhibitor {
         let ok = false,
             requirements: Array<string> = [];
         PERMISSIONS.forEach((x: PermissionResolvable) => {
-            if (!(message.channel as TextChannel).permissionsFor(this.client.user).has(x))
+            if (
+                !(message.channel as TextChannel).permissionsFor(this.client.user).has(x) &&
+                x !== 'CHANGE_NICKNAME'
+            )
                 (ok = true), requirements.push(this.client.util.capitalize(x as string));
         });
         if (ok) {
