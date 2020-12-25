@@ -19,7 +19,8 @@ export default class {
         return new MessageEmbed().setColor('#ff0000').setDescription(text);
     }
 
-    static internalError(text: string) {
+    static internalError(text: string | Error) {
+        if (typeof text !== 'string') text = text.message; 
         return new MessageEmbed()
             .setColor('#ff0000')
             .setDescription(

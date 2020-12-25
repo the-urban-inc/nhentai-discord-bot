@@ -44,17 +44,13 @@ export default class extends Command {
         }
     }
 
-    async exec(message: Message, { page }: { page: string }) {
+    async exec(message: Message, { page, dontLogErr }: { page: string; dontLogErr?: boolean }) {
         try {
             let pageNum = parseInt(page, 10);
             const data = await this.client.nhentai.homepage(pageNum);
 
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
-                return message.channel.send(
-                    this.client.embeds.clientError(
-                        'Page number is not an integer or is out of range.'
-                    )
-                );
+                throw new RangeError('Page number is not an integer or is out of range.');
 
             if (pageNum === 1) {
                 const popularNow = data.results.slice(0, 5);
@@ -161,9 +157,15 @@ export default class extends Command {
                 if (this.danger || !prip) epage.setImage(thumbnail.s);
                 display.addPage(epage, id);
             }
-            await display.run(this.client, message, await message.channel.send('Searching ...'), '', {
-                idle: 300000,
-            });
+            await display.run(
+                this.client,
+                message,
+                await message.channel.send('Searching ...'),
+                '',
+                {
+                    idle: 300000,
+                }
+            );
 
             if (!this.danger && this.warning) {
                 return this.client.embeds
@@ -175,6 +177,7 @@ export default class extends Command {
                     });
             }
         } catch (err) {
+            if (dontLogErr) return;
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));
         }

@@ -51,7 +51,7 @@ export default class extends Command {
         }
     }
 
-    async exec(message: Message, { more, auto }: { more?: boolean; auto?: boolean }) {
+    async exec(message: Message, { more, auto, dontLogErr }: { more?: boolean; auto?: boolean; dontLogErr?: boolean }) {
         try {
             const doujin = await this.client.nhentai.random();
 
@@ -200,6 +200,7 @@ export default class extends Command {
                     .run(this.client, message, await message.channel.send('Loading ...'));
             }
         } catch (err) {
+            if (dontLogErr) return;
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));
         }

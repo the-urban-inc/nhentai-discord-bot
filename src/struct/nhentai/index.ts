@@ -58,7 +58,7 @@ export class NhentaiAPI {
             if (!related || !comments || 'error' in related || 'error' in comments) throw new Error('No results found.');
             return new NH.Gallery(details, related, comments);
         }
-        if (!details || 'error' in details) throw new Error('Code doesn\'t exist.');
+        if (!details || !details.id) throw new Error('Code doesn\'t exist.');
         return new NH.Gallery(details);
     }
 

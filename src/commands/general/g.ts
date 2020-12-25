@@ -77,11 +77,16 @@ export default class extends Command {
 
     async exec(
         message: Message,
-        { code, more, auto, page }: { code: string; more?: boolean; auto?: boolean; page?: string }
+        {
+            code,
+            more,
+            auto,
+            page,
+            dontLogErr,
+        }: { code: string; more?: boolean; auto?: boolean; page?: string; dontLogErr?: boolean }
     ) {
-        if (!code)
-            return message.channel.send(this.client.embeds.clientError('Code is not specified.'));
         try {
+            if (!code) throw new TypeError('Code is not specified.');
             const doujin: Gallery = await this.client.nhentai.g(code, more);
 
             if (!doujin.details) throw new Error("Code doesn't exist.");
@@ -94,11 +99,7 @@ export default class extends Command {
             let { tags, num_pages, upload_date } = doujin.details;
             let pageNum = parseInt(page, 10);
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > num_pages)
-                return message.channel.send(
-                    this.client.embeds.clientError(
-                        'Page number is not an integer or is out of range.'
-                    )
-                );
+                throw new RangeError('Page number is not an integer or is out of range.');
             let id = doujin.details.id.toString(),
                 title = he.decode(doujin.details.title.english),
                 date = Date.now();
@@ -270,6 +271,7 @@ export default class extends Command {
                     .run(this.client, message, await message.channel.send('Loading ...'));
             }
         } catch (err) {
+            if (dontLogErr) return;
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));
         }

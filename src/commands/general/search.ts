@@ -64,35 +64,30 @@ export default class extends Command {
 
     async exec(
         message: Message,
-        { text, page, sort }: { text: string; page: string; sort: string }
+        {
+            text,
+            page,
+            sort,
+            dontLogErr,
+        }: { text: string; page: string; sort: string; dontLogErr?: boolean }
     ) {
         try {
-            if (!text)
-                return message.channel.send(
-                    this.client.embeds.clientError('Search text is not specified.')
-                );
+            if (!text) throw new TypeError('Search text is not specified.');
 
             if (!SORT_METHODS.includes(sort))
-                return message.channel.send(
-                    this.client.embeds.clientError(
-                        `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
-                            s => `\`${s}\``
-                        ).join(', ')}.`
-                    )
+                throw new TypeError(
+                    `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
+                        s => `\`${s}\``
+                    ).join(', ')}.`
                 );
 
             let pageNum = parseInt(page, 10);
             const data = await this.client.nhentai.search(text, pageNum, sort);
 
-            if (!data.results.length)
-                return message.channel.send(this.client.embeds.clientError('No results found.'));
+            if (!data.results.length) throw new Error('No results found.');
 
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
-                return message.channel.send(
-                    this.client.embeds.clientError(
-                        'Page number is not an integer or is out of range.'
-                    )
-                );
+                throw new RangeError('Page number is not an integer or is out of range.');
 
             const display = this.client.embeds
                 .richDisplay({ info: true, download: true })
@@ -121,9 +116,15 @@ export default class extends Command {
                 if (this.danger || !prip) epage.setImage(thumbnail.s);
                 display.addPage(epage, id);
             }
-            await display.run(this.client, message, await message.channel.send('Searching ...'), '', {
-                idle: 300000,
-            });
+            await display.run(
+                this.client,
+                message,
+                await message.channel.send('Searching ...'),
+                '',
+                {
+                    idle: 300000,
+                }
+            );
 
             if (!this.danger && this.warning) {
                 return this.client.embeds
@@ -135,6 +136,7 @@ export default class extends Command {
                     });
             }
         } catch (err) {
+            if (dontLogErr) return;
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));
         }
