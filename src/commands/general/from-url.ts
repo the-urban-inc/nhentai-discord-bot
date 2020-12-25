@@ -8,6 +8,7 @@ export default class extends Command {
         super('from-url', {
             channel: 'guild',
             nsfw: true,
+            isConditionalorRegexCommand: true,
         });
     }
 

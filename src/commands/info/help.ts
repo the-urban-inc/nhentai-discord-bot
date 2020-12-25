@@ -118,10 +118,16 @@ export default class extends Command {
             const title = TITLE_LIST[category as keyof typeof TITLE_LIST];
             const publicCommands =
                 message.author.id === this.client.ownerID
-                    ? commands
-                    : commands.filter((c: Command) => !c.ownerOnly);
-            const multipleCommands = publicCommands.filter((c: Command) => c.areMultipleCommands) as Category<string, Command>;
-            const normalCommands = publicCommands.filter((c: Command) => !c.areMultipleCommands) as Category<string, Command>;
+                    ? commands.filter((c: Command) => !c.isConditionalorRegexCommand)
+                    : commands.filter(
+                          (c: Command) => !c.ownerOnly && !c.isConditionalorRegexCommand
+                      );
+            const multipleCommands = publicCommands.filter(
+                (c: Command) => c.areMultipleCommands
+            ) as Category<string, Command>;
+            const normalCommands = publicCommands.filter(
+                (c: Command) => !c.areMultipleCommands
+            ) as Category<string, Command>;
             if (normalCommands.size) {
                 const embed = this.client.util.embed().setTitle(title);
                 for (const [id, command] of normalCommands) {
