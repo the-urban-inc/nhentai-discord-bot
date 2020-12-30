@@ -1,36 +1,10 @@
-import { CommandHandler, CommandUtil, PrefixSupplier } from 'discord-akairo';
-import { Message, Collection } from 'discord.js'; 
+import { CommandHandler, CommandUtil } from 'discord-akairo';
+import { Message, Collection } from 'discord.js';
 import type { InariClient } from './Client';
 
-interface Prefix { 
+interface Prefix {
     nsfw: string[];
     sfw: string[];
-}
-
-function intoArray(x: string | string[]) {
-    if (Array.isArray(x)) {
-        return x;
-    }
-    return [x];
-}
-
-function intoCallable(thing: string | string[] | PrefixSupplier) {
-    if (typeof thing === 'function') {
-        return thing;
-    }
-    return () => thing;
-}
-
-function prefixCompare(aKey: string | PrefixSupplier, bKey: string | PrefixSupplier) {
-    if (aKey === '' && bKey === '') return 0;
-    if (aKey === '') return 1;
-    if (bKey === '') return -1;
-    if (typeof aKey === 'function' && typeof bKey === 'function') return 0;
-    if (typeof aKey === 'function') return 1;
-    if (typeof bKey === 'function') return -1;
-    return aKey.length === bKey.length
-        ? aKey.localeCompare(bKey)
-        : bKey.length - aKey.length;
 }
 
 export default class extends CommandHandler {
@@ -51,7 +25,7 @@ export default class extends CommandHandler {
         this.splitPrefix.set(message.channel.id, { nsfw, sfw });
     }
     private async parse(message: Message) {
-        let parsed = await this.parseCommand(message);
+        let parsed = await super.parseCommand(message);
         if (!parsed.command) {
             const overParsed = await this.parseCommandOverwrittenPrefixes(message);
             if (overParsed.command || (parsed.prefix == null && overParsed.prefix != null)) {
@@ -67,31 +41,31 @@ export default class extends CommandHandler {
         const parsed = await this.parse(message);
         const { prefix, command, afterPrefix, alias, content } = parsed;
         if (command) {
-            if (afterPrefix.startsWith('nsfw_') || content.startsWith('nsfw_')) return await this.handleDirectCommand(message, content, command);
+            if (afterPrefix.startsWith('nsfw_') || content.startsWith('nsfw_'))
+                return await this.handleDirectCommand(message, content, command);
             if (!content.length) return await this.handleDirectCommand(message, content, command);
             if (['help', 'halp', 'h'].includes(alias)) {
-                if (this.splitPrefix.get(message.guild.id).nsfw.includes(prefix) && Array.from(this.client.commandHandler.aliases.keys()).includes(`nsfw_${content}`)) {
-                    message.content = `${prefix}${alias} nsfw_${content}`
+                if (
+                    this.splitPrefix.get(message.guild.id).nsfw.includes(prefix) &&
+                    Array.from(this.client.commandHandler.aliases.keys()).includes(
+                        `nsfw_${content}`
+                    )
+                ) {
+                    message.content = `${prefix}${alias} nsfw_${content}`;
                     return this.test(message);
                 }
             }
             return await this.handleDirectCommand(message, content, command);
-        } 
-        if (prefix && afterPrefix && !afterPrefix.startsWith('nsfw_')) {
+        }
+        if (
+            prefix &&
+            afterPrefix &&
+            Array.from(this.client.commandHandler.aliases.keys()).includes(`nsfw_${afterPrefix}`)
+        ) {
             message.content = `${prefix}nsfw_${afterPrefix}`;
             return this.test(message);
         }
         return await this.handleRegexAndConditionalCommands(message);
-    }
-    async parseCommand(message: Message) {
-        let prefixes = intoArray(await intoCallable(this.prefix)(message));
-        const allowMention = await intoCallable(this.prefix)(message);
-        if (allowMention) {
-            const mentions = [`<@${this.client.user.id}>`, `<@!${this.client.user.id}>`];
-            prefixes = [...mentions, ...prefixes];
-        }
-        prefixes.sort(prefixCompare);
-        return this.parseMultiplePrefixes(message, prefixes.map(p => [p, null]) as any); // as [string, Set<string> | null][]);
     }
     async handle(message: Message) {
         try {
