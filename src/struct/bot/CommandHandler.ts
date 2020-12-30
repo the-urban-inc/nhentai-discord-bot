@@ -77,7 +77,7 @@ export default class extends CommandHandler {
             }
             return await this.handleDirectCommand(message, content, command);
         } 
-        if (prefix && afterPrefix) {
+        if (prefix && afterPrefix && !afterPrefix.startsWith('nsfw_')) {
             message.content = `${prefix}nsfw_${afterPrefix}`;
             return this.test(message);
         }
