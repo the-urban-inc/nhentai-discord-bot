@@ -33,7 +33,7 @@ export default class extends Command {
     exec(message: Message, { commandAlias }: { commandAlias: [Command, string] }) {
         if (!commandAlias) return this.execCommandList(message);
 
-        let command = commandAlias[0],
+        const command = commandAlias[0],
             alias = commandAlias[1].replace(/nsfw_/, '');
 
         const prefix =
@@ -41,17 +41,19 @@ export default class extends Command {
                 ? this.client.config.settings.prefix.nsfw[0]
                 : this.client.config.settings.prefix.sfw[0];
 
+        let { id, aliases, description } = command;
+
         if (command.areMultipleCommands) {
             if (command.subAliases) {
-                command.id = Object.keys(command.subAliases).find(key =>
+                id = Object.keys(command.subAliases).find(key =>
                     command.subAliases[key].includes(alias)
                 );
-                command.aliases = command.subAliases[command.id];
-                command.description.content = command.description.content.replace('@', command.id);
+                aliases = command.subAliases[command.id];
+                description.content = description.content.replace('@', command.id);
             } else {
-                command.id = alias;
-                command.aliases = [alias];
-                command.description.content = command.description.content.replace('@', alias);
+                id = alias;
+                aliases = [alias];
+                description.content = description.content.replace('@', alias);
             }
         }
 
@@ -61,12 +63,8 @@ export default class extends Command {
 
         const embed = this.client.util
             .embed()
-            .setTitle(
-                `${prefix}${command.id} ${
-                    command.description.usage ? command.description.usage : ''
-                }`
-            )
-            .setDescription(command.description.content ?? 'No description specified.');
+            .setTitle(`${prefix}${id} ${description.usage ? description.usage : ''}`)
+            .setDescription(description.content ?? 'No description specified.');
 
         if (clientPermissions)
             embed.addField(
@@ -81,8 +79,7 @@ export default class extends Command {
         if (command.channel) {
             embed.addField('Channel', command.channel === 'guild' ? 'Guild' : 'DM');
         }
-        if (command.aliases && command.aliases.length > 1)
-            embed.addField('Aliases', command.aliases.slice(1).join(', '));
+        if (aliases && aliases.length > 1) embed.addField('Aliases', aliases.slice(1).join(', '));
         if (examples)
             embed.addField('Examples', examples.map(e => `${prefix}${command} ${e}`).join('\n'));
         return message.channel.send({ embed });

@@ -25,10 +25,10 @@ export default class extends CommandHandler {
         this.splitPrefix.set(message.channel.id, { nsfw, sfw });
     }
     private async parse(message: Message) {
-        let parsed = await super.parseCommand(message);
+        let parsed = await this.parseCommand(message);
         if (!parsed.command) {
             const overParsed = await this.parseCommandOverwrittenPrefixes(message);
-            if (overParsed.command || (parsed.prefix == null && overParsed.prefix != null)) {
+            if (overParsed.command || (parsed.prefix === null && overParsed.prefix !== null)) {
                 parsed = overParsed;
             }
         }
@@ -44,24 +44,17 @@ export default class extends CommandHandler {
             if (afterPrefix.startsWith('nsfw_') || content.startsWith('nsfw_'))
                 return await this.handleDirectCommand(message, content, command);
             if (!content.length) return await this.handleDirectCommand(message, content, command);
-            if (['help', 'halp', 'h'].includes(alias)) {
-                if (
-                    this.splitPrefix.get(message.guild.id).nsfw.includes(prefix) &&
-                    Array.from(this.client.commandHandler.aliases.keys()).includes(
-                        `nsfw_${content}`
-                    )
-                ) {
-                    message.content = `${prefix}${alias} nsfw_${content}`;
-                    return this.test(message);
-                }
+            if (
+                ['help', 'halp', 'h'].includes(alias) &&
+                this.splitPrefix.get(message.guild.id).nsfw.includes(prefix) &&
+                this.findCommand(`nsfw_${content}`)
+            ) {
+                message.content = `${prefix}${alias} nsfw_${content}`;
+                return this.test(message);
             }
             return await this.handleDirectCommand(message, content, command);
         }
-        if (
-            prefix &&
-            afterPrefix &&
-            Array.from(this.client.commandHandler.aliases.keys()).includes(`nsfw_${afterPrefix}`)
-        ) {
+        if (prefix && afterPrefix && this.findCommand(`nsfw_${afterPrefix}`)) {
             message.content = `${prefix}nsfw_${afterPrefix}`;
             return this.test(message);
         }
