@@ -50,7 +50,7 @@ export default class extends Command {
                 command.description.content = command.description.content.replace('@', command.id);
             } else {
                 command.id = alias;
-                command.aliases = [];
+                command.aliases = [alias];
                 command.description.content = command.description.content.replace('@', alias);
             }
         }
@@ -81,7 +81,7 @@ export default class extends Command {
         if (command.channel) {
             embed.addField('Channel', command.channel === 'guild' ? 'Guild' : 'DM');
         }
-        if (command.aliases.length > 1)
+        if (command.aliases && command.aliases.length > 1)
             embed.addField('Aliases', command.aliases.slice(1).join(', '));
         if (examples)
             embed.addField('Examples', examples.map(e => `${prefix}${command} ${e}`).join('\n'));
