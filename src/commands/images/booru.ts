@@ -2,7 +2,6 @@ import Command from '@inari/struct/bot/Command';
 import { Message } from 'discord.js';
 import he from 'he';
 import { search } from 'booru';
-import config from '@inari/config';
 
 const PROTOCOL_AND_DOMAIN_RE = /^(?:\w+:)?\/\/(\S+)$/;
 const LOCALHOST_DOMAIN_RE = /^localhost[\:?\d]*(?:[^\:?\d]\S*)?$/;

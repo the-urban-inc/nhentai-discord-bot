@@ -41,19 +41,23 @@ export default class extends Command {
                 ? this.client.config.settings.prefix.nsfw[0]
                 : this.client.config.settings.prefix.sfw[0];
 
-        let { id, aliases, description } = command;
+        let {
+            id,
+            aliases,
+            description: { content },
+        } = command;
 
         if (command.areMultipleCommands) {
             if (command.subAliases) {
                 id = Object.keys(command.subAliases).find(key =>
                     command.subAliases[key].includes(alias)
                 );
-                aliases = command.subAliases[command.id];
-                description.content = description.content.replace('@', command.id);
+                aliases = command.subAliases[id];
+                content = content.replace('@', id);
             } else {
                 id = alias;
                 aliases = [alias];
-                description.content = description.content.replace('@', alias);
+                content = content.replace('@', alias);
             }
         }
 
@@ -63,8 +67,8 @@ export default class extends Command {
 
         const embed = this.client.util
             .embed()
-            .setTitle(`${prefix}${id} ${description.usage ? description.usage : ''}`)
-            .setDescription(description.content ?? 'No description specified.');
+            .setTitle(`${prefix}${id} ${command.description.usage ?? ''}`)
+            .setDescription(content ?? 'No description specified.');
 
         if (clientPermissions)
             embed.addField(
@@ -135,7 +139,7 @@ export default class extends Command {
                     const alias = command.aliases[0].replace(/nsfw_/, '');
                     embed.addField(
                         `${command.nsfw ? '`🔞` ' : ''}${prefix}${alias} ${
-                            command.description.usage ? command.description.usage : ''
+                            command.description.usage ?? ''
                         }`,
                         command.description.content ?? 'No description specified.'
                     );
@@ -148,20 +152,19 @@ export default class extends Command {
                     if (command.subAliases) {
                         Object.keys(command.subAliases).forEach(a => {
                             embed.addField(
-                                `${command.nsfw ? '`🔞` ' : ''}${prefix}${a} ${
-                                    command.description.usage ? command.description.usage : ''
+                                `${command.nsfw ? '`🔞` ' : ''}${prefix}${a.replace(/nsfw_/, '')} ${
+                                    command.description.usage ?? ''
                                 }`,
-                                command.description.content.replace('@', a)
+                                command.description.content.replace('@', a.replace(/nsfw_/, ''))
                             );
                         });
                     } else {
                         command.aliases.forEach(a => {
-                            a = a.replace(/nsfw_/, '');
                             embed.addField(
-                                `${command.nsfw ? '`🔞` ' : ''}${prefix}${a} ${
-                                    command.description.usage ? command.description.usage : ''
+                                `${command.nsfw ? '`🔞` ' : ''}${prefix}${a.replace(/nsfw_/, '')} ${
+                                    command.description.usage ?? ''
                                 }`,
-                                command.description.content.replace('@', a)
+                                command.description.content.replace('@', a.replace(/nsfw_/, ''))
                             );
                         });
                     }

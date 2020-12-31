@@ -15,9 +15,11 @@ export default class extends Listener {
         const alias = message.util?.parsed?.alias;
         this.client.logger.log(
             `${message.author.tag} (ID: ${message.author.id}) => ${command.id} (${
-                Object.keys(command.subAliases = {}).find(key =>
+                Object.keys(command.subAliases ?? {}).find(key =>
                     command.subAliases[key].includes(alias)
-                ) ?? alias ?? command.id
+                ) ??
+                alias ??
+                command.id
             })`
         );
     }

@@ -16,20 +16,15 @@ export default class extends Command {
     client: InariClient;
     nsfw?: boolean;
     areMultipleCommands: boolean;
-    isConditionalorRegexCommand?: boolean;
-    subAliases: _;
+    isConditionalorRegexCommand: boolean;
+    subAliases?: _;
     constructor(id: string, options?: InariCommandOptions) {
         options.typing = true;
         super(id, options);
-        const {
-            areMultipleCommands = false,
-            isConditionalorRegexCommand = false,
-            subAliases = {},
-        } = options;
+        const { areMultipleCommands, isConditionalorRegexCommand, subAliases } = options;
         this.areMultipleCommands = Boolean(areMultipleCommands);
         this.isConditionalorRegexCommand = Boolean(isConditionalorRegexCommand);
-        if (this.areMultipleCommands && Object.keys(subAliases).length !== 0)
-            this.subAliases = subAliases;
+        if (this.areMultipleCommands && subAliases) this.subAliases = subAliases;
         if ('nsfw' in options) {
             this.nsfw = Boolean(options.nsfw);
             this.prefix = async message => {
