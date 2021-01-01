@@ -96,7 +96,9 @@ export default class extends Command {
                 .embed()
                 .setColor(0xffac33)
                 .setTitle('Command List')
-                .setDescription(`Use ${prefix}help [command] to see detailed info of a command`)
+                .setDescription(
+                    `Use ${prefix}help [command] for more help. E.g: ${prefix}help g\nHover over commands for info.`
+                )
                 .addField('Command Guide', [
                     '- <> : Required',
                     '- [] : Optional',
@@ -120,57 +122,48 @@ export default class extends Command {
             const publicCommands =
                 message.author.id === this.client.ownerID
                     ? commands.filter((c: Command) => !c.isConditionalorRegexCommand)
-                    : commands.filter(
+                    : (commands.filter(
                           (c: Command) => !c.ownerOnly && !c.isConditionalorRegexCommand
-                      );
-            const multipleCommands = publicCommands.filter(
-                (c: Command) => c.areMultipleCommands
-            ) as Category<string, Command>;
-            const normalCommands = publicCommands.filter(
-                (c: Command) => !c.areMultipleCommands
-            ) as Category<string, Command>;
-            if (normalCommands.size) {
-                const embed = this.client.util.embed().setTitle(title);
-                for (const [id, command] of normalCommands) {
-                    const prefix =
-                        command.nsfw || !('nsfw' in command)
-                            ? this.client.config.settings.prefix.nsfw[0]
-                            : this.client.config.settings.prefix.sfw[0];
-                    const alias = command.aliases[0].replace(/nsfw_/, '');
-                    embed.addField(
-                        `${command.nsfw ? '`🔞` ' : ''}${prefix}${alias} ${
-                            command.description.usage ?? ''
-                        }`,
-                        command.description.content ?? 'No description specified.'
-                    );
-                }
-                display.addPage(embed);
-            }
-            if (multipleCommands.size) {
-                for (const [id, command] of multipleCommands) {
-                    const embed = this.client.util.embed().setTitle(title);
-                    if (command.subAliases) {
-                        Object.keys(command.subAliases).forEach(a => {
-                            embed.addField(
-                                `${command.nsfw ? '`🔞` ' : ''}${prefix}${a.replace(/nsfw_/, '')} ${
-                                    command.description.usage ?? ''
-                                }`,
-                                command.description.content.replace('@', a.replace(/nsfw_/, ''))
-                            );
+                      ) as Category<string, Command>);
+            const embed = this.client.util.embed().setTitle(title);
+            let cmds = [];
+            publicCommands
+                .sort((a: Command, b: Command) =>
+                    a.areMultipleCommands === b.areMultipleCommands
+                        ? 0
+                        : a.areMultipleCommands
+                        ? 1
+                        : -1
+                )
+                .forEach((c: Command) => {
+                    if (c.areMultipleCommands) {
+                        const subCmds = c.subAliases ? Object.keys(c.subAliases) : c.aliases;
+                        cmds.push({
+                            id: `${c.nsfw ? '🔞 ' : ''}${c.id}`,
+                            desc: c.description.content
+                                ? `${c.description.content}\nwhere @ is one of [${subCmds
+                                      .map(c => c.replace(/nsfw_/, ''))
+                                      .join(', ')}]`
+                                : 'No description specified',
                         });
                     } else {
-                        command.aliases.forEach(a => {
-                            embed.addField(
-                                `${command.nsfw ? '`🔞` ' : ''}${prefix}${a.replace(/nsfw_/, '')} ${
-                                    command.description.usage ?? ''
-                                }`,
-                                command.description.content.replace('@', a.replace(/nsfw_/, ''))
-                            );
+                        cmds.push({
+                            id: `${c.nsfw ? '🔞 ' : ''}${c.id}`,
+                            desc: c.description.content ?? 'No description specified',
                         });
                     }
-                    display.addPage(embed);
-                }
-            }
+                });
+            embed.setDescription(
+                cmds
+                    .map(
+                        c =>
+                            `[\`${c.id}\`](https://nhentai.net "${
+                                typeof c.desc !== 'string' ? c.desc.join('\n') : c.desc
+                            }")`
+                    )
+                    .join(' ')
+            );
+            display.addPage(embed);
         }
         return display.run(
             this.client,
