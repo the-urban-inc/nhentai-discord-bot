@@ -123,6 +123,7 @@ export default class extends Command {
                 '',
                 {
                     idle: 300000,
+                    danger: this.danger,
                 }
             );
 

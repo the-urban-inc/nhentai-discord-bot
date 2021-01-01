@@ -11,7 +11,7 @@ import { RichDisplay } from './RichDisplay';
 import { RichMenu } from './RichMenu';
 import { Gallery } from '@inari/struct/nhentai/src/struct';
 import { Tag } from '@inari/struct/nhentai/src/struct';
-import { ICON } from '@inari/utils/constants';
+import { ICON, BANNED_TAGS } from '@inari/utils/constants';
 import { InariClient } from '@inari/struct/bot/Client';
 
 export interface ReactionHandlerOptions extends ReactionCollectorOptions {
@@ -22,6 +22,7 @@ export interface ReactionHandlerOptions extends ReactionCollectorOptions {
     endAuto?: string;
     noAuto?: string;
     startPage?: number;
+    danger?: boolean;
     max?: number;
     maxEmojis?: number;
     maxUsers?: number;
@@ -59,6 +60,7 @@ export class ReactionHandler {
     readonly message: Message;
     private readonly display: RichDisplay | RichMenu;
     private readonly methodMap: Map<string, ReactionMethods>;
+    private readonly danger: boolean;
     private readonly prompt: string;
     private readonly promptAuto: string;
     private readonly stopAuto: string;
@@ -108,6 +110,7 @@ export class ReactionHandler {
         this.messageTimeout = options.messageTimeout ?? 5000;
         this.collectorTimeout = options.collectorTimeout ?? 900000;
         this.dispose = options.dispose ?? true;
+        this.danger = options.danger ?? false;
         this.selection = emojis.has(ReactionMethods.One)
             ? new Promise(resolve => {
                   this.#resolve = resolve;
@@ -250,8 +253,13 @@ export class ReactionHandler {
                 const info = this.client.util
                     .embed()
                     .setAuthor(he.decode(title.english), ICON, `https://nhentai.net/g/${id}`)
-                    .setThumbnail(doujin.getCoverThumbnail())
+                    .setFooter(`ID : ${id}`)
                     .setTimestamp();
+                const rip = this.client.util.hasCommon(
+                    tags.map(x => x.id.toString()),
+                    BANNED_TAGS
+                );
+                if (this.danger || !rip) info.setThumbnail(doujin.getCoverThumbnail());
                 let t = new Map();
                 tags.forEach((tag: Tag) => {
                     let a = t.get(tag.type) || [];

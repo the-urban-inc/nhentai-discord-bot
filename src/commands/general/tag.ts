@@ -131,7 +131,7 @@ export default class extends Command {
                         }`
                     )
                     .setFooter(
-                        ` ${idx + 1} of ${results.length}\u2000•\u2000Page ${page} of ${
+                        `Doujin ${idx + 1} of ${results.length}\u2000•\u2000Page ${page} of ${
                             num_pages || 1
                         }\u2000•\u2000${num_results} doujin(s)`
                     )
@@ -177,6 +177,7 @@ export default class extends Command {
                 '',
                 {
                     idle: 300000,
+                    danger: this.danger,
                 }
             );
             if (!this.danger && this.warning) {

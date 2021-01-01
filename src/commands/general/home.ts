@@ -88,6 +88,7 @@ export default class extends Command {
                     '`🔥` **Popular Now**',
                     {
                         idle: 300000,
+                        danger: this.danger,
                     }
                 );
 
@@ -126,6 +127,7 @@ export default class extends Command {
                     '`🧻` **New Uploads**',
                     {
                         idle: 300000,
+                        danger: this.danger,
                     }
                 );
             }
@@ -164,6 +166,7 @@ export default class extends Command {
                 '',
                 {
                     idle: 300000,
+                    danger: this.danger,
                 }
             );
 
