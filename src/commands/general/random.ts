@@ -45,6 +45,7 @@ export default class extends Command {
                 }).save();
             }
             this.danger = server.settings.danger;
+            this.warning = false;
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));

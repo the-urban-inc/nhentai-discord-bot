@@ -86,24 +86,26 @@ export default class extends Command {
             page = pageNum.toString(),
             dontLogErr = true;
         if (cmd === '') {
-            await this.client.commandHandler
-                .findCommand('home')
-                .exec(message, { page, dontLogErr });
+            const command = this.client.commandHandler.findCommand('home');
+            await command.before(message);
+            await command.exec(message, { page, dontLogErr });
         } else if (cmd === 'g') {
-            await this.client.commandHandler
-                .findCommand('g')
-                .exec(message, { code: path[1], page, dontLogErr });
+            const command = this.client.commandHandler.findCommand('g');
+            await command.before(message);
+            await command.exec(message, { code: path[1], page, dontLogErr });
         } else if (cmd === 'random') {
-            await this.client.commandHandler.findCommand('random').exec(message, { dontLogErr });
+            const command = this.client.commandHandler.findCommand('random');
+            await command.before(message);
+            await command.exec(message, { dontLogErr });
         } else if (cmd === 'search') {
-            await this.client.commandHandler
-                .findCommand('search')
-                .exec(message, { text: q, page, sort, dontLogErr });
+            const command = this.client.commandHandler.findCommand('search');
+            await command.before(message);
+            await command.exec(message, { text: q, page, sort, dontLogErr });
         } else {
             message.util.parsed.alias = cmd;
-            await this.client.commandHandler
-                .findCommand(cmd)
-                .exec(message, { text: path[1], page, sort, dontLogErr });
+            const command = this.client.commandHandler.findCommand(cmd);
+            await command.before(message);
+            await command.exec(message, { text: path[1], page, sort, dontLogErr });
         }
     }
 }
