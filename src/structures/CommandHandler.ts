@@ -1,14 +1,14 @@
-import { CommandHandler, CommandUtil } from 'discord-akairo';
+import { CommandHandler as CH, CommandUtil } from 'discord-akairo';
 import { Message, Collection } from 'discord.js';
-import type { InariClient } from './Client';
+import type { Client } from './Client';
 
 interface Prefix {
     nsfw: string[];
     sfw: string[];
 }
 
-export default class extends CommandHandler {
-    client: InariClient;
+export class CommandHandler extends CH {
+    client: Client;
     splitPrefix: Collection<string, Prefix>;
     async updatePrefix(message: Message) {
         if (!this.splitPrefix) this.splitPrefix = new Collection();

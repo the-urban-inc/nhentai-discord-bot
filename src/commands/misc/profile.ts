@@ -1,7 +1,7 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message, GuildMember } from 'discord.js';
-import { User } from '@inari/models/user';
-import { ICON } from '@inari/utils/constants';
+import { User } from 'src/database/models/user';
+import { ICON } from '@utils/constants';
 import moment from 'moment';
 
 export default class extends Command {
@@ -59,10 +59,7 @@ export default class extends Command {
                         `• **Server Rank** : #${await this.client.db.XP.getServerRanking(message)}`,
                         `• **Global Rank** : #${await this.client.db.XP.getGlobalRanking(exp)}`,
                     ]);
-                if (
-                    more &&
-                    (user.favorites.length || (user.history.length && !user.anonymous))
-                ) {
+                if (more && (user.favorites.length || (user.history.length && !user.anonymous))) {
                     const display = this.client.embeds.richDisplay({ love: false }).addPage(embed);
 
                     if (user.favorites.length) {

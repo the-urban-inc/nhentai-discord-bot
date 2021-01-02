@@ -1,6 +1,7 @@
 import { createConnection } from 'mongoose';
 import chalk from 'chalk';
-import log from '@inari/utils/logger';
+import { Logger } from '@structures/Logger';
+const log = new Logger();
 
 export function connectToDatabase() {
     let connection = createConnection(process.env.MONGODB_URI, {

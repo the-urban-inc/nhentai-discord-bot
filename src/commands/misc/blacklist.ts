@@ -1,6 +1,6 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
-import { User } from '@inari/models/user';
+import { User } from 'src/database/models/user';
 
 export default class extends Command {
     constructor() {
@@ -24,12 +24,10 @@ export default class extends Command {
                 return message.channel.send(this.client.embeds.info('Blacklist not found.'));
             } else {
                 if (!user.blacklists.length)
-                    return message.channel.send(
-                        this.client.embeds.info('Blacklist not found.')
-                    );
+                    return message.channel.send(this.client.embeds.info('Blacklist not found.'));
                 let embed = this.client.util
                     .embed()
-                    .setAuthor(`${member.tag}'s Blacklist`, member.displayAvatarURL())
+                    .setAuthor(`${member.tag}'s Blacklist`, member.displayAvatarURL());
                 let t = new Map<string, string[]>();
                 user.blacklists.forEach(tag => {
                     const { type, name } = tag;

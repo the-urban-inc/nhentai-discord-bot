@@ -1,4 +1,4 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Argument, Category } from 'discord-akairo';
 import { Message } from 'discord.js';
 

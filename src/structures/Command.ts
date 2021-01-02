@@ -1,5 +1,5 @@
-import { Command, CommandOptions } from 'discord-akairo';
-import type { InariClient } from './Client';
+import { Command as C, CommandOptions } from 'discord-akairo';
+import type { Client } from './Client';
 
 type _ = {
     [key: string]: string[];
@@ -12,8 +12,8 @@ export interface InariCommandOptions extends CommandOptions {
     subAliases?: _;
 }
 
-export default class extends Command {
-    client: InariClient;
+export class Command extends C {
+    client: Client;
     nsfw?: boolean;
     areMultipleCommands: boolean;
     isConditionalorRegexCommand: boolean;

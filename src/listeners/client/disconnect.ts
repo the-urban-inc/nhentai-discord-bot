@@ -1,4 +1,4 @@
-import Listener from '@inari/struct/bot/Listener';
+import { Listener } from '@structures/Listener';
 
 export default class extends Listener {
     constructor() {

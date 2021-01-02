@@ -1,4 +1,4 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
 import { Octokit } from '@octokit/rest';
 const { npm_package_repository_url, npm_package_version } = process.env;

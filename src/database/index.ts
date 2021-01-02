@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import log from '@inari/utils/logger';
+import { Logger } from '@structures/Logger';
+const log = new Logger();
 
 export async function init() {
     mongoose.connect(process.env.MONGODB_URI, {
@@ -16,4 +17,4 @@ export async function init() {
 
 export * as Server from './settings/server';
 export * as User from './settings/user';
-export * as XP from './xp/index';
+export * as XP from './xp/xp';

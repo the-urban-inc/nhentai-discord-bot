@@ -1,6 +1,6 @@
-import Inhibitor from '@inari/struct/bot/Inhibitor';
+import { Inhibitor } from '@structures/Inhibitor';
 import { Message, TextChannel, DMChannel, PermissionResolvable } from 'discord.js';
-import { PERMISSIONS } from '@inari/utils/constants';
+import { PERMISSIONS } from '@utils/constants';
 
 export default class extends Inhibitor {
     constructor() {

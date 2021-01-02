@@ -4,15 +4,10 @@
  */
 
 import { Message, ReactionCollector, ReactionCollectorOptions, User } from 'discord.js';
-import he from 'he';
-import moment from 'moment';
 import { Cache } from './Cache';
 import { RichDisplay } from './RichDisplay';
 import { RichMenu } from './RichMenu';
-import { Gallery } from '@inari/struct/nhentai/src/struct';
-import { Tag } from '@inari/struct/nhentai/src/struct';
-import { ICON, BANNED_TAGS } from '@inari/utils/constants';
-import { InariClient } from '@inari/struct/bot/Client';
+import { Client } from '@structures/Client';
 
 export interface ReactionHandlerOptions extends ReactionCollectorOptions {
     stop?: boolean;
@@ -55,7 +50,7 @@ export const enum ReactionMethods {
 
 export class ReactionHandler {
     readonly selection: Promise<number | null>;
-    readonly client: InariClient;
+    readonly client: Client;
     readonly requestMessage: Message;
     readonly message: Message;
     private readonly display: RichDisplay | RichMenu;
@@ -82,7 +77,7 @@ export class ReactionHandler {
         | null = null;
 
     constructor(
-        client: InariClient,
+        client: Client,
         requestMessage: Message,
         message: Message,
         options: ReactionHandlerOptions,
@@ -246,44 +241,9 @@ export class ReactionHandler {
             if (this.message.deleted) return true;
             if (this.#info) return this.update();
             if (!this.display.infoPage) {
-                const pid = this.display.pages[this.#currentPage].id || this.display.info.id;
-                if (!pid) return false;
-                const doujin: Gallery = await this.client.nhentai.g(pid, false);
-                const { title, id, tags, num_pages, upload_date } = doujin.details;
-                const info = this.client.util
-                    .embed()
-                    .setAuthor(he.decode(title.english), ICON, `https://nhentai.net/g/${id}`)
-                    .setFooter(`ID : ${id}`)
-                    .setTimestamp();
-                const rip = this.client.util.hasCommon(
-                    tags.map(x => x.id.toString()),
-                    BANNED_TAGS
-                );
-                if (this.danger || !rip) info.setThumbnail(doujin.getCoverThumbnail());
-                let t = new Map();
-                tags.forEach((tag: Tag) => {
-                    let a = t.get(tag.type) || [];
-                    a.push(`**\`${tag.name}\`**\`(${tag.count.toLocaleString()})\``);
-                    t.set(tag.type, a);
-                });
-                [
-                    ['parody', 'Parodies'],
-                    ['character', 'Characters'],
-                    ['tag', 'Tags'],
-                    ['artist', 'Artists'],
-                    ['group', 'Groups'],
-                    ['language', 'Languages'],
-                    ['category', 'Categories'],
-                ].forEach(
-                    ([key, fieldName]) =>
-                        t.has(key) &&
-                        info.addField(fieldName, this.client.util.gshorten(t.get(key)))
-                );
-                info.addField('Pages', `**\`${num_pages}\`**`).addField(
-                    'Uploaded',
-                    moment(upload_date * 1000).fromNow()
-                );
-                this.display.infoPage = info;
+                const gallery = this.display.pages[this.#currentPage].gallery;
+                if (!gallery) return false;
+                this.display.infoPage = this.client.embeds.displayGalleryInfo(gallery, this.danger).info;
             }
             await this.message.edit(this.message.content, { embed: this.display.infoPage });
             this.#info = true;
@@ -341,9 +301,9 @@ export class ReactionHandler {
             ReactionMethods.Love,
             async function (this: ReactionHandler, user: User): Promise<boolean> {
                 try {
-                    let id = this.display.pages[this.#currentPage]?.id || this.display.info.id;
+                    let id = this.display.pages[this.#currentPage]?.gallery?.id || this.display.info.id;
                     if (!id) return Promise.resolve(false);
-                    const adding = await this.client.db.User.favorite(user, id);
+                    const adding = await this.client.db.User.favorite(user, id.toString());
                     this.message.channel
                         .send(
                             this.client.embeds
@@ -416,7 +376,7 @@ export class ReactionHandler {
             ReactionMethods.Download,
             async function (this: ReactionHandler, user: User): Promise<boolean> {
                 try {
-                    const id = this.display.pages[this.#currentPage]?.id || this.display.info.id;
+                    const id = this.display.pages[this.#currentPage]?.gallery?.id || this.display.info.id;
                     if (!id) return Promise.resolve(false);
                     this.message.channel
                         .send(

@@ -1,13 +1,13 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
-import { User } from '@inari/models/user';
-import { Server } from '@inari/models/server';
-import { Blacklist } from '@inari/models/tag';
-import { List } from '@inari/struct/nhentai/src/struct';
-import { FLAG_EMOJIS, SORT_METHODS, BANNED_TAGS, BLOCKED_MESSAGE } from '@inari/utils/constants';
-import he from 'he';
+import { User } from 'src/database/models/user';
+import { Server } from 'src/database/models/server';
+import { Blacklist } from 'src/database/models/tag';
+import { Sort } from '@api/nhentai';
+import { BLOCKED_MESSAGE } from '@utils/constants';
 
 const TAGS = ['tag', 'artist', 'character', 'parody', 'group', 'language'] as const;
+const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
 
 export default class extends Command {
     constructor() {
@@ -87,7 +87,7 @@ export default class extends Command {
             if (!text)
                 throw new TypeError(`${this.client.util.capitalize(tag)} name was not specified.`);
 
-            if (!SORT_METHODS.includes(sort))
+            if (Object.values(Sort).includes(sort as Sort))
                 throw new TypeError(
                     `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
                         s => `\`${s}\``
@@ -95,15 +95,15 @@ export default class extends Command {
                 );
 
             let pageNum = parseInt(page, 10);
-            let data = (await this.client.nhentai[tag](text.toLowerCase(), pageNum, sort)) as List;
+            let data = await this.client.nhentai[tag](text.toLowerCase(), pageNum, sort as Sort);
 
-            if (!data.results.length) throw new Error('No results, sorry.');
+            if (!data.result.length) throw new Error('No results, sorry.');
 
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
                 throw new RangeError('Page number is not an integer or is out of range.');
 
-            const { tagId, results, num_pages, num_results } = data;
-            const id = tagId.toString(),
+            const { result, tag_id, num_pages, num_results } = data;
+            const id = tag_id.toString(),
                 name = text.toLowerCase();
 
             if (!this.anonymous) {
@@ -117,61 +117,19 @@ export default class extends Command {
                 });
             }
 
-            const display = this.client.embeds
-                .richDisplay({ info: true, follow: true, blacklist: true, download: true })
-                .setInfo({ id, type: tag, name })
-                .useCustomFooters();
-            for (const [idx, { id, title, language, dataTags, thumbnail }] of results.entries()) {
-                let embed = this.client.util
-                    .embed()
-                    .setTitle(`${he.decode(title)}`)
-                    .setURL(`https://nhentai.net/g/${id}`)
-                    .setDescription(
-                        `**ID** : ${id}\u2000•\u2000**Language** : ${
-                            FLAG_EMOJIS[language as keyof typeof FLAG_EMOJIS] || 'N/A'
-                        }`
-                    )
-                    .setFooter(
-                        `Doujin ${idx + 1} of ${results.length}\u2000•\u2000Page ${page} of ${
-                            num_pages || 1
-                        }\u2000•\u2000${num_results} doujin(s)`
-                    )
-                    .setTimestamp();
-                const bTags = this.blacklists.filter(b => dataTags.includes(b.id)),
-                    len = bTags.length;
-                if (len) {
-                    embed.description +=
-                        '\n\nThis gallery contains ' +
-                        (len === 1 ? 'a blacklisted tag' : 'several blacklisted tags') +
-                        '. Therefore, thumbnail image will be hidden.';
-                    let t = new Map<string, string[]>();
-                    bTags.forEach(tag => {
-                        const { type, name } = tag;
-                        let a = t.get(type) || [];
-                        a.push(`\`${name}\``);
-                        t.set(type, a);
-                    });
-                    let s = '';
-                    [
-                        ['parody', 'Parodies'],
-                        ['character', 'Characters'],
-                        ['tag', 'Tags'],
-                        ['artist', 'Artists'],
-                        ['group', 'Groups'],
-                        ['language', 'Languages'],
-                        ['category', 'Categories'],
-                    ].forEach(([key, fieldName]) => {
-                        if (t.has(key)) s += `• **${fieldName}** : ${t.get(key).join(', ')}\n`;
-                    });
-                    embed.addField('Blacklist', this.client.util.shorten(s, '\n', 1024));
-                } else {
-                    const prip = this.client.util.hasCommon(dataTags, BANNED_TAGS);
-                    if (prip) this.warning = true;
-                    if (this.danger || !prip) embed.setImage(thumbnail.s);
+            const { displayList, rip } = this.client.embeds.displayGalleryList(
+                result,
+                this.danger,
+                this.blacklists,
+                {
+                    page: pageNum,
+                    num_pages,
+                    num_results,
+                    additional_options: { follow: true, blacklist: true },
                 }
-                display.addPage(embed, id);
-            }
-            await display.run(
+            );
+            if (rip) this.warning = true;
+            await displayList.run(
                 this.client,
                 message,
                 await message.channel.send('Searching ...'),

@@ -1,4 +1,4 @@
-import Command from '@inari/struct/bot/Command';
+import {Command} from '@structures/Command';
 import { Message } from 'discord.js';
 import axios from 'axios';
 
@@ -29,6 +29,7 @@ const NB_IMAGES = {
     anal: ['hanal'],
     ass: ['hass'],
     boobs: ['hboobs'],
+    nsfw_holo: ['holo'],
     hentai: ['hentai'],
     nsfw_kemonomimi: ['kemonomimi'],
     kitsune: ['hkitsune'],

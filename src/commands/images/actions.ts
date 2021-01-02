@@ -1,4 +1,4 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message, User } from 'discord.js';
 
 const ACTIONS = {
@@ -38,7 +38,11 @@ export default class extends Command {
         try {
             const method = message.util?.parsed?.alias as keyof typeof ACTIONS;
             if (!method) {
-                throw new Error(`Unknown Action. Available actions are: ${Object.keys(ACTIONS).map(x => `${x}`).join(', ')}`);
+                throw new Error(
+                    `Unknown Action. Available actions are: ${Object.keys(ACTIONS)
+                        .map(x => `${x}`)
+                        .join(', ')}`
+                );
             }
             const image = (await this.client.nekoslife.sfw[method]()).url;
             const embed = this.client.util

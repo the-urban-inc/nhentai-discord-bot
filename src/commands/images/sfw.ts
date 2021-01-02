@@ -1,4 +1,4 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
 import axios from 'axios';
 
@@ -17,7 +17,6 @@ const NL_IMAGES = {
 
 const NB_IMAGES = {
     gah: ['gah'],
-    holo: ['holo'],
     kanna: ['kanna'],
     neko: ['neko'],
 } as const;
@@ -57,7 +56,7 @@ export default class extends Command {
                         .then(res => res.data.message);
                     if (nbimage === 'Unknown Image Type')
                         return message.channel.send(this.client.embeds.internalError(nbimage));
-                    image = this.client.util.random([image, nbimage])
+                    image = this.client.util.random([image, nbimage]);
                 }
             } else {
                 image = await axios
@@ -71,7 +70,7 @@ export default class extends Command {
                     return message.channel.send(this.client.embeds.internalError(image));
             }
             if (!image) {
-                throw new Error()
+                throw new Error();
             }
             const embed = this.client.util
                 .embed()

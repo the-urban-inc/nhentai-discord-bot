@@ -1,7 +1,7 @@
-import log from '@inari/utils/logger';
-import { NhentaiAPI } from '@inari/struct/nhentai';
-
-const nh = new NhentaiAPI();
+import { Logger } from '@structures/Logger';
+import { Client, Gallery } from '@api/nhentai';
+const log = new Logger();
+const nh = new Client();
 
 /**
  * Categorize into tags
@@ -18,16 +18,16 @@ export async function check(from: number, to: number, filter: Set<number>) {
         await Promise.all(
             codesToCheck.map(async (code, index) => {
                 await new Promise(r => setTimeout(r, index * 5500));
-                let out = null;
+                let out: Gallery = null;
                 try {
-                    out = await nh.g(code.toString());
+                    out = (await nh.g(code)).gallery;
                 } catch (err) {
                     log.error(err);
                     return;
                 }
-                if (!out || !out.details || !out.details.tags) return;
+                if (!out || !out.tags) return;
                 let tags = new Map<number, string>();
-                for (let tag of out.details.tags) tags.set(tag.id, tag.name);
+                for (let tag of out.tags) tags.set(tag.id, tag.name);
                 return { out, tags };
             })
         )

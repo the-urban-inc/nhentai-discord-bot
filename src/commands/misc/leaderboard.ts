@@ -1,6 +1,6 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
-import { Server } from '@inari/models/server';
+import { Server } from 'src/database/models/server';
 
 export default class extends Command {
     constructor() {
@@ -38,7 +38,8 @@ export default class extends Command {
                         .setTitle(`${message.guild.name}'s leaderboard`)
                         .setThumbnail(message.guild.iconURL())
                         .setFooter(
-                            `Your guild placing stats : Rank [${pos + 1}]\u2000•\u2000Level : ${pervs[pos].level
+                            `Your guild placing stats : Rank [${pos + 1}]\u2000•\u2000Level : ${
+                                pervs[pos].level
                             }\u2000•\u2000Total Score : ${pervs[pos].points}`
                         ),
                     list: 10,

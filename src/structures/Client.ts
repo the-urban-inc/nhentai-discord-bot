@@ -1,20 +1,25 @@
-import { AkairoClient, InhibitorHandler, ListenerHandler } from 'discord-akairo';
+import { AkairoClient, ListenerHandler, InhibitorHandler } from 'discord-akairo';
 import { TextChannel, DMChannel } from 'discord.js';
-import Command from './Command';
-import Inhibitor from './Inhibitor';
-import Listener from './Listener';
-import CommandHandler from './CommandHandler';
-import { NhentaiAPI } from '@inari/struct/nhentai';
-import * as DB from '@inari/struct/db';
-import Logger from '@inari/utils/logger';
-import Embeds from '@inari/utils/embeds';
-import { InariUtil } from '@inari/utils/utils';
-import config from '@inari/config';
+import { Command, CommandHandler, Embeds, Inhibitor, Listener, Logger, Util } from './index';
+import config from '@config';
+import { Client as NhentaiAPI } from '@api/nhentai';
+import * as DB from '@database/index';
 import NekosLifeAPI from 'nekos.life';
 import { fork, ChildProcess } from 'child_process';
 const { DISCORD_TOKEN } = process.env;
 
-export class InariClient extends AkairoClient {
+export class Client extends AkairoClient {
+    public config: typeof config;
+    public db: typeof DB;
+    public embeds: Embeds;
+    public util: Util;
+    public logger: Logger;
+    public commandHandler: CommandHandler;
+    public listenerHandler: ListenerHandler;
+    public inhibitorHandler: InhibitorHandler;
+    public nhentai: NhentaiAPI;
+    public nekoslife: NekosLifeAPI;
+    public notifier: ChildProcess;
     constructor(...options: ConstructorParameters<typeof AkairoClient>) {
         super(
             options[0],
@@ -26,47 +31,44 @@ export class InariClient extends AkairoClient {
                 messageEditHistoryMaxSize: 3,
             })
         );
+        this.config = config;
+        this.db = DB;
+        this.embeds = new Embeds(this);
+        this.util = new Util(this);
+        this.logger = new Logger();
+        this.commandHandler = new CommandHandler(this, {
+            directory: `${__dirname}/../commands/`,
+            prefix: async message => {
+                if (!message.guild) return [...config.settings.prefix.nsfw, ...config.settings.prefix.sfw];
+                if (
+                    !this.commandHandler.splitPrefix ||
+                    !this.commandHandler.splitPrefix.has(message.guild.id)
+                )
+                    await this.commandHandler.updatePrefix(message);
+                let { nsfw, sfw } = this.commandHandler.splitPrefix.get(message.guild.id);
+                return [...nsfw, ...sfw];
+            },
+            classToHandle: Command,
+            allowMention: true,
+            defaultCooldown: 30000,
+            blockBots: true,
+            automateCategories: true,
+            commandUtil: true,
+        });
+        this.inhibitorHandler = new InhibitorHandler(this, {
+            directory: `${__dirname}/../inhibitors/`,
+            classToHandle: Inhibitor,
+        });
+        this.listenerHandler = new ListenerHandler(this, {
+            directory: `${__dirname}/../listeners/`,
+            classToHandle: Listener,
+        });
+        this.nhentai = new NhentaiAPI();
+        this.nekoslife = new NekosLifeAPI();
     }
 
-    config = config;
-    commandHandler = new CommandHandler(this, {
-        directory: `${__dirname}/../../commands/`,
-        prefix: async message => {
-            if (!message.guild) return [...config.settings.prefix.nsfw, ...config.settings.prefix.sfw];
-            if (
-                !this.commandHandler.splitPrefix ||
-                !this.commandHandler.splitPrefix.has(message.guild.id)
-            )
-                await this.commandHandler.updatePrefix(message);
-            let { nsfw, sfw } = this.commandHandler.splitPrefix.get(message.guild.id);
-            return [...nsfw, ...sfw];
-        },
-        classToHandle: Command,
-        allowMention: true,
-        defaultCooldown: 30000,
-        blockBots: true,
-        automateCategories: true,
-        commandUtil: true,
-    });
-    inhibitorHandler = new InhibitorHandler(this, {
-        directory: `${__dirname}/../../inhibitors/`,
-        classToHandle: Inhibitor,
-    });
-    listenerHandler = new ListenerHandler(this, {
-        directory: `${__dirname}/../../listeners/`,
-        classToHandle: Listener,
-    });
-
-    nhentai = new NhentaiAPI();
-    db = DB;
-    util: InariUtil = new InariUtil(this);
-    embeds = Embeds;
-    logger = Logger;
-    nekoslife = new NekosLifeAPI();
-
-    notifier: ChildProcess;
     private setup(): void {
-        this.notifier = fork(`${__dirname}/../../submodules/notifier/index`, [
+        this.notifier = fork(`${__dirname}/../submodules/notifier/index`, [
             '-r',
             'tsconfig-paths/register',
         ]).on(
@@ -91,7 +93,7 @@ export class InariClient extends AkairoClient {
                                     : `Stopped following ${m.type} \`${m.name}\`.`) +
                                     '\nIt may take a while to update.'
                             )
-                            .setFooter(user.tag, user.displayAvatarURL())
+                            .setFooter(user!.tag, user!.displayAvatarURL())
                     )
                     .then(message => message.delete({ timeout: 5000 }));
             }
@@ -100,14 +102,12 @@ export class InariClient extends AkairoClient {
             .useInhibitorHandler(this.inhibitorHandler)
             .useListenerHandler(this.listenerHandler)
             .loadAll();
-
         this.listenerHandler.setEmitters({
             commandHandler: this.commandHandler,
             inhibitorHandler: this.inhibitorHandler,
             listenerHandler: this.listenerHandler,
             process: process,
         });
-
         this.inhibitorHandler.loadAll();
         this.listenerHandler.loadAll();
     }

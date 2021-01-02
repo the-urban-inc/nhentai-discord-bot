@@ -1,4 +1,4 @@
-import config from '@inari/config'
+import config from '@config'
 
 export const PERMISSIONS = [
     'MANAGE_MESSAGES',

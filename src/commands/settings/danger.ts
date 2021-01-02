@@ -1,4 +1,4 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
 
 const REQUIRED_PERMISSIONS = ['MANAGE_GUILD'] as const;
@@ -10,7 +10,8 @@ export default class extends Command {
             channel: 'guild',
             userPermissions: REQUIRED_PERMISSIONS,
             description: {
-                content: "Toggles danger mode (allowing contents involving lolicon, shotacon, gore, etc.)",
+                content:
+                    'Toggles danger mode (allowing contents involving lolicon, shotacon, gore, etc.)',
             },
         });
     }
@@ -19,7 +20,9 @@ export default class extends Command {
         try {
             const danger = await this.client.db.Server.danger(message);
             return message.channel.send(
-                this.client.embeds.info(`Turned ${danger ? 'on' : 'off'} danger mode for this server.`)
+                this.client.embeds.info(
+                    `Turned ${danger ? 'on' : 'off'} danger mode for this server.`
+                )
             );
         } catch (err) {
             this.client.logger.error(err);

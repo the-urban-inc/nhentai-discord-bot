@@ -1,11 +1,12 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message, GuildMember } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
-import { User } from '@inari/models/user';
-import { Server } from '@inari/models/server';
-import { Tag } from '@inari/struct/nhentai/src/struct';
-import { ICON, BANNED_TAGS, BLOCKED_MESSAGE } from '@inari/utils/constants';
+import { User } from 'src/database/models/user';
+import { Server } from 'src/database/models/server';
+import { Tag } from '@api/nhentai';
+import { ICON, BANNED_TAGS, BLOCKED_MESSAGE } from '@utils/constants';
+import { Blacklist } from 'src/database/models/tag';
 
 export default class extends Command {
     constructor() {
@@ -30,9 +31,17 @@ export default class extends Command {
 
     danger = true;
     warning = false;
+    blacklists: Blacklist[] = [];
 
     async before(message: Message) {
         try {
+            let user = await User.findOne({ userID: message.author.id }).exec();
+            if (!user) {
+                user = await new User({
+                    blacklists: [],
+                }).save();
+            }
+            this.blacklists = user.blacklists;
             const server = await Server.findOne({ serverID: message.guild.id }).exec();
             this.danger = server.settings.danger;
         } catch (err) {
@@ -59,45 +68,14 @@ export default class extends Command {
                 );
                 const display = this.client.embeds.richDisplay({ download: true });
                 for (const code of user.favorites) {
-                    const doujin = await this.client.nhentai.g(code, false);
-                    const { title, id, tags, num_pages, upload_date } = doujin.details;
-                    const info = this.client.util
-                        .embed()
-                        .setAuthor(he.decode(title.english), ICON, `https://nhentai.net/g/${id}`)
-                        .setTimestamp();
-                    const rip = !this.client.util.hasCommon(
-                        tags.map(x => x.id.toString()),
-                        BANNED_TAGS
+                    const { gallery } = await this.client.nhentai.g(parseInt(code, 10));
+                    const { info, rip } = this.client.embeds.displayGalleryInfo(
+                        gallery,
+                        this.danger,
+                        this.blacklists
                     );
-
                     if (rip) this.warning = true;
-                    if (this.danger || !rip) info.setThumbnail(doujin.getCoverThumbnail());
-
-                    let t = new Map();
-                    tags.forEach((tag: Tag) => {
-                        let a = t.get(tag.type) || [];
-                        a.push(`**\`${tag.name}\`**\`(${tag.count.toLocaleString()})\``);
-                        t.set(tag.type, a);
-                    });
-
-                    [
-                        ['parody', 'Parodies'],
-                        ['character', 'Characters'],
-                        ['tag', 'Tags'],
-                        ['artist', 'Artists'],
-                        ['group', 'Groups'],
-                        ['language', 'Languages'],
-                        ['category', 'Categories'],
-                    ].forEach(
-                        ([key, fieldName]) =>
-                            t.has(key) &&
-                            info.addField(fieldName, this.client.util.gshorten(t.get(key)))
-                    );
-                    info.addField('Pages', `**\`${num_pages}\`**`).addField(
-                        'Uploaded',
-                        moment(upload_date * 1000).fromNow()
-                    );
-                    display.addPage(info, id.toString());
+                    display.addPage(info, gallery);
                 }
                 await display.run(this.client, message, await msg.edit('Done.'), '', {
                     idle: 300000,

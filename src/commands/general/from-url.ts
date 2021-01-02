@@ -1,7 +1,7 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
 import { URL } from 'url';
-import { Server } from '@inari/models/server';
+import { Server } from 'src/database/models/server';
 
 export default class extends Command {
     constructor() {

@@ -18,10 +18,12 @@
         "downlevelIteration": true,
         "paths": {
             "@notifier/*": ["src/submodules/notifier/*"],
-            "@inari/utils/*": ["src/utils/*"],
-            "@inari/models/*": ["src/struct/db/models/*"],
-            "@inari/struct/*": ["src/struct/*"],
-            "@inari/config": ["config.json"]
+            "@utils/*": ["src/utils/*"],
+            "@database/*": ["src/database/*"],
+            "@models/*": ["src/database/models/*"],
+            "@structures/*": ["src/structures/*"],
+            "@api/*": ["src/api/*"],
+            "@config": ["config.json"]
         },
         "plugins": [
             {

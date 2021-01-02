@@ -1,7 +1,7 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message, version as DiscordVersion } from 'discord.js';
 import { version as AkairoVersion } from 'discord-akairo';
-import { PERMISSIONS } from '@inari/utils/constants';
+import { PERMISSIONS } from '@utils/constants';
 const { npm_package_version, npm_package_repository_url } = process.env;
 
 export default class extends Command {
