@@ -1,7 +1,7 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
 import moment from 'moment';
-import { Server } from '@inari/models/server';
+import { Server } from 'src/database/models/server';
 
 export default class extends Command {
     constructor() {
@@ -30,14 +30,14 @@ export default class extends Command {
                         this.client.embeds.info('There are no recent calls in this server.')
                     );
                 let recent = server.recent.reverse().slice(0, 5);
-                let _ = await Promise.all(recent.map(async (x) => {
-                    return `${(await this.client.users.fetch(x.author)).tag} : **\`${
-                        x.id
-                    }\`** \`${x.name}\` (${moment(x.date).fromNow()})`;
-                }));
-                return message.channel.send(
-                    this.client.embeds.info(_.join('\n'))
+                let _ = await Promise.all(
+                    recent.map(async x => {
+                        return `${(await this.client.users.fetch(x.author)).tag} : **\`${
+                            x.id
+                        }\`** \`${x.name}\` (${moment(x.date).fromNow()})`;
+                    })
                 );
+                return message.channel.send(this.client.embeds.info(_.join('\n')));
             }
         } catch (err) {
             this.client.logger.error(err);

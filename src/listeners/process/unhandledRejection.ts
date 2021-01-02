@@ -1,11 +1,11 @@
-import Listener from '@inari/struct/bot/Listener';
+import { Listener } from '@structures/Listener';
 
 export default class extends Listener {
     constructor() {
         super('unhandledRejection', {
             emitter: 'process',
             event: 'unhandledRejection',
-            category: 'process'
+            category: 'process',
         });
     }
 
@@ -13,4 +13,4 @@ export default class extends Listener {
         this.client.logger.error('An unhandled error occurred.');
         this.client.logger.stackTrace(err);
     }
-};
+}

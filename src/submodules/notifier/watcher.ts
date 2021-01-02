@@ -2,10 +2,10 @@ import interval from 'set-interval';
 import { EventEmitter } from 'events';
 import { check } from './check';
 import { dispatch } from './dispatch';
-import log from '@inari/utils/logger';
-import { NhentaiAPI } from '@inari/struct/nhentai';
-
-const nh = new NhentaiAPI();
+import { Logger } from '@structures/Logger';
+const log = new Logger();
+import { Client } from '@api/nhentai';
+const nh = new Client();
 
 export default class Watcher extends EventEmitter {
     private watch = new Set<number>();
@@ -32,7 +32,7 @@ export default class Watcher extends EventEmitter {
     }
 
     private async getCode() {
-        return +(await nh.homepage()).results[5].id;
+        return +(await nh.home()).result[0].id;
     }
 
     async start() {

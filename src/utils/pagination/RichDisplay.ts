@@ -6,14 +6,15 @@
 import { Message, MessageEmbed as Embed } from 'discord.js';
 import { Cache } from './Cache';
 import { ReactionMethods, ReactionHandlerOptions, ReactionHandler } from './ReactionHandler';
-import { InariClient } from '@inari/struct/bot/Client';
-import { Blacklist } from '@inari/models/tag';
+import { Client } from '@structures/Client';
+import { Blacklist } from 'src/database/models/tag';
+import { Gallery } from '@api/nhentai';
 
 type EmbedOrCallback = Embed | ((embed: Embed) => Embed);
 
 interface Page {
     embed: Embed;
-    id?: string;
+    gallery?: Gallery;
 }
 
 export interface RichDisplayOptions {
@@ -82,7 +83,7 @@ export class RichDisplay {
     }
 
     async run(
-        client: InariClient,
+        client: Client,
         requestMessage: Message,
         message: Message,
         editMessage: string = '',
@@ -142,10 +143,10 @@ export class RichDisplay {
         return this;
     }
 
-    addPage(embed: EmbedOrCallback, id?: string): this {
+    addPage(embed: EmbedOrCallback, gallery?: Gallery): this {
         this.pages.push({
             embed: this.resolveEmbedOrCallback(embed),
-            id: id,
+            gallery,
         });
         return this;
     }

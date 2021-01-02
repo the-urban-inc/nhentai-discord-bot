@@ -15,8 +15,8 @@ enum Color {
     GREY = 'grey',
 }
 
-export default class {
-    static log(...args: any) {
+export class Logger {
+    log(...args: any) {
         const text = this.prepareText(args);
         this.writeToConsole(text, {
             color: Color.GREY,
@@ -24,7 +24,7 @@ export default class {
         });
     }
 
-    static info(...args: any) {
+    info(...args: any) {
         const text = this.prepareText(args);
         this.writeToConsole(text, {
             color: Color.GREEN,
@@ -32,7 +32,7 @@ export default class {
         });
     }
 
-    static warn(...args: any) {
+    warn(...args: any) {
         const text = this.prepareText(args);
         this.writeToConsole(text, {
             color: Color.YELLOW,
@@ -40,7 +40,7 @@ export default class {
         });
     }
 
-    static error(...args: any) {
+    error(...args: any) {
         const text = this.prepareText(args);
         this.writeToConsole(text, {
             color: Color.RED,
@@ -49,7 +49,7 @@ export default class {
         });
     }
 
-    static stackTrace(...args: any) {
+    stackTrace(...args: any) {
         const text = this.prepareText(args);
         this.writeToConsole(text, {
             color: Color.WHITE,
@@ -58,7 +58,7 @@ export default class {
         });
     }
 
-    static writeToConsole(
+    writeToConsole(
         content: string,
         options: { color: Color; tag: string; error?: boolean }
     ) {
@@ -70,13 +70,13 @@ export default class {
         std.write(`${timestamp} ${levelTag} ${text}\n`);
     }
 
-    static clean(item: any) {
+    clean(item: any) {
         if (typeof item === 'string') return item;
         const cleaned = util.inspect(item, { depth: Infinity });
         return cleaned;
     }
 
-    static prepareText(args: any) {
+    prepareText(args: any) {
         const cleanedArgs = [];
         for (const arg of args) {
             cleanedArgs.push(this.clean(arg));

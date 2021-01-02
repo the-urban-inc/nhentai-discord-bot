@@ -1,6 +1,6 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
-import { PERMISSIONS } from '@inari/utils/constants';
+import { PERMISSIONS } from '@utils/constants';
 
 export default class extends Command {
     constructor() {

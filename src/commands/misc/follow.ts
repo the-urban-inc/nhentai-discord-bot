@@ -1,4 +1,4 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
 import { WatchModel } from '@notifier/db/models/record';
 
@@ -17,17 +17,15 @@ export default class extends Command {
     async exec(message: Message) {
         try {
             const member = message.author;
-            const tags = await WatchModel.find({ 'user': member.id }).exec();
+            const tags = await WatchModel.find({ user: member.id }).exec();
             if (!tags) {
                 return message.channel.send(this.client.embeds.info('Follow list not found.'));
             } else {
                 if (!tags.length)
-                    return message.channel.send(
-                        this.client.embeds.info('Follow list not found.')
-                    );
+                    return message.channel.send(this.client.embeds.info('Follow list not found.'));
                 let embed = this.client.util
                     .embed()
-                    .setAuthor(`${member.tag}'s Follow List`, member.displayAvatarURL())
+                    .setAuthor(`${member.tag}'s Follow List`, member.displayAvatarURL());
                 let t = new Map<string, string[]>();
                 tags.forEach(tag => {
                     const { type, name } = tag;

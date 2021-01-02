@@ -1,5 +1,4 @@
-import Command from '@inari/struct/bot/Command';
-import Listener from '@inari/struct/bot/Listener';
+import { Command, Listener } from '@structures/index';
 import { Message } from 'discord.js';
 
 export default class extends Listener {

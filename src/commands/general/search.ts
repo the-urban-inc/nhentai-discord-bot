@@ -1,8 +1,11 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
-import he from 'he';
-import { Server } from '@inari/models/server';
-import { FLAG_EMOJIS, SORT_METHODS, BANNED_TAGS, BLOCKED_MESSAGE } from '@inari/utils/constants';
+import { User } from 'src/database/models/user';
+import { Server } from 'src/database/models/server';
+import { Blacklist } from 'src/database/models/tag';
+import { Sort } from '@api/nhentai';
+import { BLOCKED_MESSAGE } from '@utils/constants';
+const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
 
 export default class extends Command {
     constructor() {
@@ -46,9 +49,17 @@ export default class extends Command {
 
     danger = false;
     warning = false;
+    blacklists: Blacklist[] = [];
 
     async before(message: Message) {
         try {
+            let user = await User.findOne({ userID: message.author.id }).exec();
+            if (!user) {
+                user = await new User({
+                    blacklists: [],
+                }).save();
+            }
+            this.blacklists = user.blacklists;
             let server = await Server.findOne({ serverID: message.guild.id }).exec();
             if (!server) {
                 server = await new Server({
@@ -74,50 +85,31 @@ export default class extends Command {
     ) {
         try {
             if (!text) throw new TypeError('Search text is not specified.');
-
-            if (!SORT_METHODS.includes(sort))
+            if (Object.values(Sort).includes(sort as Sort))
                 throw new TypeError(
                     `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
                         s => `\`${s}\``
                     ).join(', ')}.`
                 );
-
             let pageNum = parseInt(page, 10);
-            const data = await this.client.nhentai.search(text, pageNum, sort);
-
-            if (!data.results.length) throw new Error('No results found.');
-
-            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
+            const data = await this.client.nhentai.search(text, pageNum, sort as Sort);
+            const { result, num_pages, num_results } = data;
+            if (!result.length) throw new Error('No results found.');
+            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > num_pages)
                 throw new RangeError('Page number is not an integer or is out of range.');
-
-            const display = this.client.embeds
-                .richDisplay({ info: true, download: true })
-                .useCustomFooters();
-            for (const [
-                idx,
-                { title, id, language, dataTags, thumbnail },
-            ] of data.results.entries()) {
-                const epage = this.client.util
-                    .embed()
-                    .setTitle(`${he.decode(title)}`)
-                    .setURL(`https://nhentai.net/g/${id}`)
-                    .setDescription(
-                        `**ID** : ${id}\u2000•\u2000**Language** : ${
-                            FLAG_EMOJIS[language as keyof typeof FLAG_EMOJIS] || 'N/A'
-                        }`
-                    )
-                    .setFooter(
-                        `Doujin ${idx + 1} of ${data.results.length}\u2000•\u2000Page ${page} of ${
-                            data.num_pages || 1
-                        }\u2000•\u2000Found ${data.num_results} result(s)`
-                    )
-                    .setTimestamp();
-                const prip = this.client.util.hasCommon(dataTags, BANNED_TAGS);
-                if (prip) this.warning = true;
-                if (this.danger || !prip) epage.setImage(thumbnail.s);
-                display.addPage(epage, id);
-            }
-            await display.run(
+            
+            const { displayList: displaySearch, rip } = this.client.embeds.displayGalleryList(
+                result,
+                this.danger,
+                this.blacklists,
+                {
+                    page: pageNum,
+                    num_pages,
+                    num_results
+                }
+            );
+            if (rip) this.warning = true;
+            await displaySearch.run(
                 this.client,
                 message,
                 await message.channel.send('Searching ...'),

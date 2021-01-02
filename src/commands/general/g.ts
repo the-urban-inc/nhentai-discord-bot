@@ -1,17 +1,15 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
 import he from 'he';
-import moment from 'moment';
-import { User } from '@inari/models/user';
-import { Server } from '@inari/models/server';
-import { Blacklist } from '@inari/models/tag';
-import { Gallery } from '@inari/struct/nhentai/src/struct';
-import { ICON, FLAG_EMOJIS, BANNED_TAGS, BLOCKED_MESSAGE } from '@inari/utils/constants';
+import { User } from 'src/database/models/user';
+import { Server } from 'src/database/models/server';
+import { Blacklist } from 'src/database/models/tag';
+import { BLOCKED_MESSAGE } from '@utils/constants';
 
 export default class extends Command {
     constructor() {
         super('g', {
-            aliases: ['g', 'get', 'doujin', 'read'],
+            aliases: ['g', 'get', 'result', 'read'],
             channel: 'guild',
             nsfw: true,
             description: {
@@ -88,29 +86,26 @@ export default class extends Command {
     ) {
         try {
             if (!code) throw new TypeError('Code is not specified.');
-            const doujin: Gallery = await this.client.nhentai.g(code, more);
-
-            if (!doujin.details) throw new Error("Code doesn't exist.");
+            const codeNum = parseInt(code, 10);
+            if (!codeNum || isNaN(codeNum)) throw new TypeError("Code isn't a number.");
+            const result = await this.client.nhentai.g(codeNum, more);
+            if (!result) throw new Error("Code doesn't exist.");
 
             // points increase
             const min = 30,
                 max = 50;
             const inc = Math.floor(Math.random() * (max - min)) + min;
 
-            let { tags, num_pages, upload_date } = doujin.details;
-            let pageNum = parseInt(page, 10);
-            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > num_pages)
+            const pageNum = parseInt(page, 10);
+            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > result.gallery.num_pages)
                 throw new RangeError('Page number is not an integer or is out of range.');
-            let id = doujin.details.id.toString(),
-                title = he.decode(doujin.details.title.english),
-                date = Date.now();
-            let history = {
-                id,
+            const history = {
+                id: result.gallery.id.toString(),
                 type: 'g',
-                name: title,
+                name: he.decode(result.gallery.title.english),
                 author: message.author.id,
                 guild: message.guild.id,
-                date,
+                date: Date.now(),
             };
 
             if (message.guild && !this.anonymous) {
@@ -124,104 +119,36 @@ export default class extends Command {
                 }
             }
 
-            const info = this.client.util
-                .embed()
-                .setAuthor(title, ICON, `https://nhentai.net/g/${id}`)
-                .setFooter(`ID : ${id}${auto ? '• React with 🇦 to start an auto session' : ''}`)
-                .setTimestamp();
-
-            const rip = this.client.util.hasCommon(
-                tags.map(x => x.id.toString()),
-                BANNED_TAGS
+            const { displayGallery, rip } = this.client.embeds.displayFullGallery(
+                result.gallery,
+                this.danger,
+                auto,
+                this.blacklists
             );
-
             if (rip) this.warning = true;
-            if (this.danger || !rip) info.setThumbnail(doujin.getCoverThumbnail());
-
-            let t = new Map();
-            tags.forEach(tag => {
-                const { id, type, name, count } = tag;
-                let a = t.get(type) || [];
-                let s = `**\`${name}\`**\`(${count.toLocaleString()})\``;
-                if (this.blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
-                a.push(s);
-                t.set(type, a);
-            });
-
-            [
-                ['parody', 'Parodies'],
-                ['character', 'Characters'],
-                ['tag', 'Tags'],
-                ['artist', 'Artists'],
-                ['group', 'Groups'],
-                ['language', 'Languages'],
-                ['category', 'Categories'],
-            ].forEach(
-                ([key, fieldName]) =>
-                    t.has(key) && info.addField(fieldName, this.client.util.gshorten(t.get(key)))
-            );
-
-            // info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
-            //     .addField('Pages', `**\`[${doujin.num_pages}]\`**`);
-            info.addField('Pages', `**\`${num_pages}\`**`).addField(
-                'Uploaded',
-                moment(upload_date * 1000).fromNow()
-            );
-
             if (this.danger || !rip) {
-                const displayDoujin = this.client.embeds
-                    .richDisplay({ auto, download: true })
-                    .setInfo({ id, type: 'g', name: title })
-                    .setInfoPage(info);
-                doujin
-                    .getPages()
-                    .forEach((page: string) =>
-                        displayDoujin.addPage(
-                            this.client.util.embed().setImage(page).setTimestamp()
-                        )
-                    );
-                await displayDoujin.run(
+                await displayGallery.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching for doujin ...'),
+                    await message.channel.send('Searching ...'),
                     '',
                     {
                         startPage: pageNum - 1,
                     }
                 );
             } else {
-                await this.client.embeds
-                    .richDisplay({ image: true })
-                    .addPage(info)
-                    .useCustomFooters()
-                    .run(this.client, message, await message.channel.send('Searching ...'));
+                await displayGallery.run(
+                    this.client,
+                    message,
+                    await message.channel.send('Searching ...')
+                );
             }
 
             if (more) {
-                const { comments, related } = doujin;
-                const displayRelated = this.client.embeds
-                    .richDisplay({ removeRequest: false })
-                    .useCustomFooters();
-                for (const [
-                    idx,
-                    { title, id, language, dataTags, thumbnail },
-                ] of related.entries()) {
-                    const page = this.client.util
-                        .embed()
-                        .setTitle(`${he.decode(title)}`)
-                        .setURL(`https://nhentai.net/g/${id}`)
-                        .setDescription(
-                            `**ID** : ${id}\u2000•\u2000**Language** : ${
-                                FLAG_EMOJIS[language as keyof typeof FLAG_EMOJIS] || 'N/A'
-                            }`
-                        )
-                        .setFooter(`Doujin ${idx + 1} of ${related.length}`)
-                        .setTimestamp();
-                    const prip = this.client.util.hasCommon(dataTags, BANNED_TAGS);
-                    if (prip) this.warning = true;
-                    if (this.danger || !prip) page.setImage(thumbnail.s);
-                    displayRelated.addPage(page, id);
-                }
+                const { related, comments } = result;
+
+                const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(related, this.danger);
+                if (rip) this.warning = true;
                 await displayRelated.run(
                     this.client,
                     message,
@@ -230,32 +157,7 @@ export default class extends Command {
                 );
 
                 if (!comments.length) return;
-                const displayComments = this.client.embeds
-                    .richDisplay({ love: false, removeRequest: false })
-                    .useCustomFooters();
-                for (const [
-                    idx,
-                    {
-                        poster: { username, avatar_url },
-                        body,
-                        post_date,
-                    },
-                ] of comments.entries()) {
-                    displayComments.addPage(
-                        this.client.util
-                            .embed()
-                            .setAuthor(
-                                `${he.decode(username)}`,
-                                `https://i5.nhentai.net/${avatar_url}`
-                            )
-                            .setDescription(body)
-                            .setFooter(
-                                `Comment ${idx + 1} of ${
-                                    comments.length
-                                }\u2000•\u2000Posted ${moment(post_date * 1000).fromNow()}`
-                            )
-                    );
-                }
+                const displayComments = this.client.embeds.displayCommentList(comments);
                 await displayComments.run(
                     this.client,
                     message,

@@ -1,6 +1,6 @@
 import { AkairoClient, ClientUtil } from 'discord-akairo';
 
-export class InariUtil extends ClientUtil {
+export class Util extends ClientUtil {
     constructor(client: AkairoClient) {
         super(client);
     }

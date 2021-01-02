@@ -3,14 +3,15 @@ import he from 'he';
 import moment from 'moment';
 import { WatchModel } from './db/models/record';
 import type { check } from './check';
-import log from '@inari/utils/logger';
-import { ICON } from '@inari/utils/constants';
-import { InariClient } from '@inari/struct/bot/Client';
+import { ICON } from '@utils/constants';
+import { Client } from '@structures/Client';
+import { Logger } from '@structures/Logger';
+const log = new Logger();
 
 type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;
 type _ = ThenArg<ReturnType<typeof check>>;
 
-const client = new InariClient({
+const client = new Client({
     messageCacheMaxSize: 1,
 });
 
@@ -35,17 +36,17 @@ export async function dispatch(_: _) {
 
             targets.forEach(d => {
                 const doujin = d.out;
-                let { tags, num_pages, upload_date } = doujin.details;
-                let id = doujin.details.id,
-                    title = he.decode(doujin.details.title.english);
+                let { tags, num_pages, upload_date } = doujin;
+                let id = doujin.id,
+                    title = he.decode(doujin.title.english);
                 // check if this user were sent this target
                 if (!cache.has(userId)) cache.set(userId, new Set<number>());
-                if (cache.get(userId).has(id)) return;
-                cache.get(userId).add(id);
+                if (cache.get(userId).has(+id)) return;
+                cache.get(userId).add(+id);
 
                 let info = new MessageEmbed()
                     .setAuthor(title, ICON, `https://nhentai.net/g/${id}`)
-                    .setThumbnail(doujin.getCoverThumbnail())
+                    .setThumbnail(client.nhentai.getCoverThumbnail(doujin))
                     .setFooter(`ID : ${id} • Followed tags are wrapped in brackets []`)
                     .setTimestamp();
                 let t = new Map();

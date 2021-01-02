@@ -7,7 +7,7 @@ import { Message } from 'discord.js';
 import { Cache } from './Cache';
 import { ReactionMethods, ReactionHandler, ReactionHandlerOptions } from './ReactionHandler';
 import { RichDisplay, RichDisplayOptions } from './RichDisplay';
-import { InariClient } from '@inari/struct/bot/Client';
+import { Client } from '@structures/Client';
 
 const choiceMethods = [
     ReactionMethods.One,
@@ -62,7 +62,7 @@ export class RichMenu extends RichDisplay {
     }
 
     async run(
-        client: InariClient,
+        client: Client,
         requestMessage: Message,
         message: Message,
         editMessage: string = '',

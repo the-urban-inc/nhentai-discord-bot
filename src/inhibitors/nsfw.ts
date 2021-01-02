@@ -1,5 +1,4 @@
-import Command from '@inari/struct/bot/Command';
-import Inhibitor from '@inari/struct/bot/Inhibitor';
+import { Command, Inhibitor } from '@structures/index';
 import { Message, DMChannel } from 'discord.js';
 
 export default class extends Inhibitor {
@@ -12,7 +11,7 @@ export default class extends Inhibitor {
     exec(message: Message, command: Command) {
         // bypass check for DM
         if (message.channel instanceof DMChannel) return false;
-        let ok = !message.channel.nsfw && command.nsfw
+        let ok = !message.channel.nsfw && command.nsfw;
         if (ok)
             message.channel.send(
                 this.client.embeds.clientError('🔞 This command cannot be run in a SFW channel.')

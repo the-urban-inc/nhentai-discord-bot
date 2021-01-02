@@ -1,4 +1,4 @@
-import Command from '@inari/struct/bot/Command';
+import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
 
 const REQUIRED_PERMISSIONS = ['MANAGE_GUILD'] as const;
@@ -10,7 +10,7 @@ export default class extends Command {
             channel: 'guild',
             userPermissions: REQUIRED_PERMISSIONS,
             description: {
-                content: "Toggles url mode (can call g, tag, etc. with urls)",
+                content: 'Toggles url mode (can call g, tag, etc. with urls)',
             },
         });
     }
