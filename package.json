@@ -49,7 +49,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "rimraf build/ && ttsc",
         "lint": "eslint src/**/* --ext .ts",
-        "start": "node --trace-warnings build/src/index.js",
+        "start": "node --trace-warnings --trace-deprecation build/src/index.js",
         "dev": "ts-node --compiler ttypescript src/index.ts",
         "wipe": "ts-node --compiler ttypescript scripts/wipe.ts"
     },
