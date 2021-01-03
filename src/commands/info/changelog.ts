@@ -19,14 +19,15 @@ export default class extends Command {
     }
 
     async exec(message: Message) {
-        const [repo, owner] = npm_package_repository_url
+        let [repo, owner] = npm_package_repository_url
             .split('/')
             .filter(a => a)
             .reverse();
+        repo = repo.replace('.git', '');
         const { data } = await client.repos.listCommits({
-            repo: repo.replace('.git', ''),
+            repo,
             owner,
-            per_page: 10,
+            per_page: 5,
         });
         const embed = this.client.util
             .embed()
