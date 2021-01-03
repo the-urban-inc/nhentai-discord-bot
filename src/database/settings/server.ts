@@ -16,25 +16,18 @@ export async function prefix(
     action: 'add' | 'remove' | 'clear' | 'list',
     prefix?: string
 ) {
-    let server = await Server.findOne({ serverID: message.guild.id }).exec();
-    const _ = { id: prefix, author: message.author.id, date: Date.now() };
-    if (!server) {
-        const prefixes = action === 'add' ? [_] : [];
-        await new Server({
-            serverID: message.guild.id,
-            settings: { prefixes: { type: prefixes }, },
-        }).save();
-        return prefixes;
-    } else {
-        let prefixes = server.settings.prefixes[type];
-        const hasPrefix = prefixes.some(pfx => pfx.id === prefix);
-        if (!hasPrefix && action === 'add') prefixes.push(_);
-        else if (hasPrefix && action === 'remove')
-            prefixes = prefixes.filter(pfx => pfx.id !== prefix);
-        server.settings.prefixes[type] = action === 'clear' ? [] : prefixes;
-        await server.save();
-        return prefixes;
-    }
+    const prefixDoc = { id: prefix, author: message.author.id, date: Date.now() };
+    const updateType = type === 'nsfw' ? 'settings.prefixes.nsfw' : 'settings.prefixes.sfw';
+    const server = await Server.findOneAndUpdate(
+        { serverID: message.guild.id },
+        action === 'add' || 'list'
+            ? { $push: { [updateType]: { $each: action === 'add' ? [prefixDoc] : [] } } }
+            : action === 'remove'
+            ? { $pull: { [updateType]: { id: prefix } } }
+            : { $set: { [updateType]: [] } },
+        { upsert: true }
+    ).exec();
+    return server.settings.prefixes[type];
 }
 
 export async function danger(message: Message) {
@@ -42,7 +35,7 @@ export async function danger(message: Message) {
     if (!server) {
         await new Server({
             serverID: message.guild.id,
-            settings: { danger: true }
+            settings: { danger: true },
         }).save();
         return true;
     } else {
@@ -57,7 +50,7 @@ export async function url(message: Message) {
     if (!server) {
         await new Server({
             serverID: message.guild.id,
-            settings: { url: true }
+            settings: { url: true },
         }).save();
         return true;
     } else {
