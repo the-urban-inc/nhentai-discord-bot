@@ -16,14 +16,6 @@ export class Client {
         return res;
     }
 
-    private async fromID(tag_id: number, page = 1, sort = Sort.Recent): Promise<Search> {
-        return await this.fetch<Search>(`/api/galleries/tagged`, {
-            tag_id,
-            page,
-            sort,
-        }).then(res => res.data);
-    }
-
     private async tagID($: CheerioStatic): Promise<number | null> {
         const id =
             parseInt(
@@ -56,16 +48,16 @@ export class Client {
     }
 
     private async popularNow($: CheerioStatic): Promise<Gallery[]> {
-        return $('.index-popular .gallery')
+        return Promise.all($('.index-popular .gallery')
             .toArray()
-            .map((e, i) => {
+            .map(async (e, i) => {
                 const id = $(e)
                     .find('.cover')
                     ?.attr('href')
                     ?.match(/(?<=\/g\/).+(?=\/)/);
                 if (!id || !id[0]) throw new Error('Invalid ID');
-                return <Gallery>(this.g(parseInt(id[0], 10)) as unknown);
-            });
+                return (await this.g(parseInt(id[0], 10))).gallery;
+            }));
     }
 
     public async g(
@@ -104,12 +96,12 @@ export class Client {
         return await this.g(id, more);
     }
 
-    public async home(page = 1): Promise<Search & { popular_now?: Gallery[] }> {
+    public async home(page?: number): Promise<Search & { popular_now?: Gallery[] }> {
         const results = await this.fetch<Search>(`/api/galleries/all`, { page }).then(
             res => res.data
         );
-        if (page === 1) return results;
-        const popular_now = await this.fetch(`/`, { page }).then(async res => {
+        if (page !== 1) return results;
+        const popular_now = await this.fetch(`/`).then(async res => {
             const $ = Cheerio.load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
@@ -124,8 +116,8 @@ export class Client {
 
     public async search(
         query: string,
-        page = 1,
-        sort = Sort.Recent
+        page?: number,
+        sort?: Sort
     ): Promise<Search & { num_results: number }> {
         const num_results = await this.fetch(`/search/`, { q: query, page, sort }).then(
             async res => {
@@ -144,11 +136,19 @@ export class Client {
         };
     }
 
+    private async fromID(tag_id: number, page?: number, sort?: Sort): Promise<Search> {
+        return await this.fetch<Search>(`/api/galleries/tagged`, {
+            tag_id,
+            page,
+            sort,
+        }).then(res => res.data);
+    }
+
     public async tag(
         query: string,
-        page = 1,
-        sort = Sort.Recent
-    ): Promise<Search & { tag_id: number, num_results: number }> {
+        page?: number,
+        sort?: Sort
+    ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/tag/${query}`).then(async res => {
             const $ = Cheerio.load(<string>res.data, {
                 decodeEntities: false,
@@ -165,9 +165,9 @@ export class Client {
 
     public async artist(
         query: string,
-        page = 1,
-        sort = Sort.Recent
-    ): Promise<Search & { tag_id: number, num_results: number }> {
+        page?: number,
+        sort?: Sort
+    ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/artist/${query}`).then(async res => {
             const $ = Cheerio.load(<string>res.data, {
                 decodeEntities: false,
@@ -184,9 +184,9 @@ export class Client {
 
     public async character(
         query: string,
-        page = 1,
-        sort = Sort.Recent
-    ): Promise<Search & { tag_id: number, num_results: number }> {
+        page?: number,
+        sort?: Sort
+    ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/character/${query}`).then(async res => {
             const $ = Cheerio.load(<string>res.data, {
                 decodeEntities: false,
@@ -203,9 +203,9 @@ export class Client {
 
     public async group(
         query: string,
-        page = 1,
-        sort = Sort.Recent
-    ): Promise<Search & { tag_id: number, num_results: number }> {
+        page?: number,
+        sort?: Sort
+    ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/group/${query}`).then(async res => {
             const $ = Cheerio.load(<string>res.data, {
                 decodeEntities: false,
@@ -222,9 +222,9 @@ export class Client {
 
     public async parody(
         query: string,
-        page = 1,
-        sort = Sort.Recent
-    ): Promise<Search & { tag_id: number, num_results: number }> {
+        page?: number,
+        sort?: Sort
+    ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/parody/${query}`).then(async res => {
             const $ = Cheerio.load(<string>res.data, {
                 decodeEntities: false,
@@ -241,9 +241,9 @@ export class Client {
 
     public async language(
         query: string,
-        page = 1,
-        sort = Sort.Recent
-    ): Promise<Search & { tag_id: number, num_results: number }> {
+        page?: number,
+        sort?: Sort
+    ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/language/${query}`).then(async res => {
             const $ = Cheerio.load(<string>res.data, {
                 decodeEntities: false,
