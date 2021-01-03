@@ -7,7 +7,7 @@ import { Message, MessageEmbed as Embed } from 'discord.js';
 import { Cache } from './Cache';
 import { ReactionMethods, ReactionHandlerOptions, ReactionHandler } from './ReactionHandler';
 import { Client } from '@structures/Client';
-import { Blacklist } from 'src/database/models/tag';
+import { Blacklist } from '@models/tag';
 import { Gallery } from '@api/nhentai';
 
 type EmbedOrCallback = Embed | ((embed: Embed) => Embed);

@@ -1,9 +1,9 @@
 import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
 import he from 'he';
-import { User } from 'src/database/models/user';
-import { Server } from 'src/database/models/server';
-import { Blacklist } from 'src/database/models/tag';
+import { User } from '@models/user';
+import { Server } from '@models/server';
+import { Blacklist } from '@models/tag';
 import { BLOCKED_MESSAGE } from '@utils/constants';
 
 export default class extends Command {
@@ -176,7 +176,7 @@ export default class extends Command {
         } catch (err) {
             if (dontLogErr) return;
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
+            return message.channel.send(this.client.embeds.clientError(err));
         }
     }
 }

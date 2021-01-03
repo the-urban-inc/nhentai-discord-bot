@@ -1,7 +1,7 @@
 import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
 import { URL } from 'url';
-import { Server } from 'src/database/models/server';
+import { Server } from '@models/server';
 
 export default class extends Command {
     constructor() {

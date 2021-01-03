@@ -2,11 +2,11 @@ import { Command } from '@structures/Command';
 import { Message, GuildMember } from 'discord.js';
 import he from 'he';
 import moment from 'moment';
-import { User } from 'src/database/models/user';
-import { Server } from 'src/database/models/server';
+import { User } from '@models/user';
+import { Server } from '@models/server';
 import { Tag } from '@api/nhentai';
 import { ICON, BANNED_TAGS, BLOCKED_MESSAGE } from '@utils/constants';
-import { Blacklist } from 'src/database/models/tag';
+import { Blacklist } from '@models/tag';
 
 export default class extends Command {
     constructor() {
@@ -77,7 +77,7 @@ export default class extends Command {
                     if (rip) this.warning = true;
                     display.addPage(info, gallery);
                 }
-                await display.run(this.client, message, await msg.edit('Done.'), '', {
+                await display.run(this.client, message, await msg.edit('Done.'), 'Galleries are sorted by date added', {
                     idle: 300000,
                 });
 
