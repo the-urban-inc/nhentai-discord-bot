@@ -69,6 +69,9 @@ export class Client extends AkairoClient {
         });
         this.nhentai = new NhentaiAPI();
         this.nekoslife = new NekosLifeAPI();
+    }
+
+    async start(): Promise<void> {
         this.notifier = fork(`${__dirname}/../submodules/notifier/index`, [
             '-r',
             'tsconfig-paths/register',
@@ -99,9 +102,6 @@ export class Client extends AkairoClient {
                     .then(message => message.delete({ timeout: 5000 }));
             }
         );
-    }
-
-    async start(): Promise<void> {
         this.inhibitorHandler.loadAll();
         this.listenerHandler.setEmitters({
             commandHandler: this.commandHandler,
