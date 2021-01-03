@@ -20,7 +20,7 @@ export default class extends Command {
             description: {
                 content: "Edits server's custom prefix list.",
                 usage: '<nsfw|sfw> <add <prefix>|remove <prefix>|clear|list>',
-                examples: ['add lmao', 'remove lol', 'clear', 'list'],
+                examples: ['nsfw add lmao', 'sfw remove lol', 'nsfw clear', 'sfw list'],
             },
             args: [
                 {
@@ -87,7 +87,7 @@ export default class extends Command {
                     .embed()
                     .setTitle('Custom Prefix List')
                     .setDescription(
-                        `You can still use the default prefixes ${this.client.config.settings.prefix[nsfw]}.`
+                        `You can still use the default prefix ${this.client.config.settings.prefix[nsfw]}.`
                     ),
                 list: 5,
             });
