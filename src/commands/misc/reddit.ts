@@ -27,7 +27,9 @@ export default class extends Command {
                 .embed()
                 .setAuthor(`${data['title']}`, ICON, `https://reddit.com${data['permalink']}`)
                 .setFooter(
-                    `Author: ${data['author']} | Upvote ratio: ${data['upvote_ratio'] * 100}%`
+                    `Author: ${data['author']}\u2000•\u2000Upvote ratio: ${
+                        data['upvote_ratio'] * 100
+                    }%`
                 );
             if (data['url'].match('.jpg') || data['url'].match('.png')) embed.setImage(data['url']);
             else embed.setImage(data['url'] + '.jpg');
