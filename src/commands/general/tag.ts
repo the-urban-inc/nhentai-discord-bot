@@ -1,8 +1,8 @@
 import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
-import { User } from 'src/database/models/user';
-import { Server } from 'src/database/models/server';
-import { Blacklist } from 'src/database/models/tag';
+import { User } from '@models/user';
+import { Server } from '@models/server';
+import { Blacklist } from '@models/tag';
 import { Sort } from '@api/nhentai';
 import { BLOCKED_MESSAGE } from '@utils/constants';
 
@@ -87,7 +87,7 @@ export default class extends Command {
             if (!text)
                 throw new TypeError(`${this.client.util.capitalize(tag)} name was not specified.`);
 
-            if (Object.values(Sort).includes(sort as Sort))
+            if (!Object.values(Sort).includes(sort as Sort))
                 throw new TypeError(
                     `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
                         s => `\`${s}\``
@@ -95,14 +95,16 @@ export default class extends Command {
                 );
 
             let pageNum = parseInt(page, 10);
-            let data = await this.client.nhentai[tag](text.toLowerCase(), pageNum, sort as Sort);
+            const data =
+                sort === 'recent'
+                    ? await this.client.nhentai[tag](text.toLowerCase(), pageNum)
+                    : await this.client.nhentai[tag](text.toLowerCase(), pageNum, sort as Sort);
+            const { result, tag_id, num_pages, num_results } = data;
+            if (!result.length) throw new Error('No results, sorry.');
 
-            if (!data.result.length) throw new Error('No results, sorry.');
-
-            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
+            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > num_pages)
                 throw new RangeError('Page number is not an integer or is out of range.');
 
-            const { result, tag_id, num_pages, num_results } = data;
             const id = tag_id.toString(),
                 name = text.toLowerCase();
 
@@ -129,16 +131,12 @@ export default class extends Command {
                 }
             );
             if (rip) this.warning = true;
-            await displayList.run(
-                this.client,
-                message,
-                await message.channel.send('Searching ...'),
-                '',
-                {
+            await displayList
+                .setInfo({ id, type: tag, name })
+                .run(this.client, message, await message.channel.send('Searching ...'), '', {
                     idle: 300000,
                     danger: this.danger,
-                }
-            );
+                });
             if (!this.danger && this.warning) {
                 return this.client.embeds
                     .richDisplay({ image: true, removeRequest: false })
@@ -151,7 +149,7 @@ export default class extends Command {
         } catch (err) {
             if (dontLogErr) return;
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
+            return message.channel.send(this.client.embeds.clientError(err));
         }
     }
 }

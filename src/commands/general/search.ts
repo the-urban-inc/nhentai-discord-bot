@@ -1,8 +1,8 @@
 import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
-import { User } from 'src/database/models/user';
-import { Server } from 'src/database/models/server';
-import { Blacklist } from 'src/database/models/tag';
+import { User } from '@models/user';
+import { Server } from '@models/server';
+import { Blacklist } from '@models/tag';
 import { Sort } from '@api/nhentai';
 import { BLOCKED_MESSAGE } from '@utils/constants';
 const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
@@ -29,7 +29,7 @@ export default class extends Command {
                 {
                     id: 'text',
                     type: 'string',
-                    match: 'text',
+                    match: 'rest',
                 },
                 {
                     id: 'page',
@@ -85,19 +85,22 @@ export default class extends Command {
     ) {
         try {
             if (!text) throw new TypeError('Search text is not specified.');
-            if (Object.values(Sort).includes(sort as Sort))
+            if (!Object.values(Sort).includes(sort as Sort))
                 throw new TypeError(
                     `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
                         s => `\`${s}\``
                     ).join(', ')}.`
                 );
             let pageNum = parseInt(page, 10);
-            const data = await this.client.nhentai.search(text, pageNum, sort as Sort);
+            const data =
+                sort === 'recent'
+                    ? await this.client.nhentai.search(text, pageNum)
+                    : await this.client.nhentai.search(text, pageNum, sort as Sort);
             const { result, num_pages, num_results } = data;
             if (!result.length) throw new Error('No results found.');
             if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > num_pages)
                 throw new RangeError('Page number is not an integer or is out of range.');
-            
+
             const { displayList: displaySearch, rip } = this.client.embeds.displayGalleryList(
                 result,
                 this.danger,
@@ -105,7 +108,7 @@ export default class extends Command {
                 {
                     page: pageNum,
                     num_pages,
-                    num_results
+                    num_results,
                 }
             );
             if (rip) this.warning = true;
@@ -132,7 +135,7 @@ export default class extends Command {
         } catch (err) {
             if (dontLogErr) return;
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
+            return message.channel.send(this.client.embeds.clientError(err));
         }
     }
 }
