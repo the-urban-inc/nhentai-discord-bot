@@ -39,7 +39,8 @@ export class Client extends AkairoClient {
         this.commandHandler = new CommandHandler(this, {
             directory: `${__dirname}/../commands/`,
             prefix: async message => {
-                if (!message.guild) return [...config.settings.prefix.nsfw, ...config.settings.prefix.sfw];
+                if (!message.guild)
+                    return [...config.settings.prefix.nsfw, ...config.settings.prefix.sfw];
                 if (
                     !this.commandHandler.splitPrefix ||
                     !this.commandHandler.splitPrefix.has(message.guild.id)
@@ -54,7 +55,10 @@ export class Client extends AkairoClient {
             blockBots: true,
             automateCategories: true,
             commandUtil: true,
-        });
+        })
+            .useInhibitorHandler(this.inhibitorHandler)
+            .useListenerHandler(this.listenerHandler)
+            .loadAll();
         this.inhibitorHandler = new InhibitorHandler(this, {
             directory: `${__dirname}/../inhibitors/`,
             classToHandle: Inhibitor,
@@ -65,9 +69,6 @@ export class Client extends AkairoClient {
         });
         this.nhentai = new NhentaiAPI();
         this.nekoslife = new NekosLifeAPI();
-    }
-
-    private setup(): void {
         this.notifier = fork(`${__dirname}/../submodules/notifier/index`, [
             '-r',
             'tsconfig-paths/register',
@@ -98,22 +99,17 @@ export class Client extends AkairoClient {
                     .then(message => message.delete({ timeout: 5000 }));
             }
         );
-        this.commandHandler
-            .useInhibitorHandler(this.inhibitorHandler)
-            .useListenerHandler(this.listenerHandler)
-            .loadAll();
+    }
+
+    async start(): Promise<void> {
+        this.inhibitorHandler.loadAll();
         this.listenerHandler.setEmitters({
             commandHandler: this.commandHandler,
             inhibitorHandler: this.inhibitorHandler,
             listenerHandler: this.listenerHandler,
             process: process,
         });
-        this.inhibitorHandler.loadAll();
         this.listenerHandler.loadAll();
-    }
-
-    async start(): Promise<void> {
-        this.setup();
         await this.db.init();
         await super.login(DISCORD_TOKEN);
         const owner = (await super.fetchApplication()).owner!.id;
