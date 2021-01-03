@@ -10,7 +10,7 @@ export class Client {
 
     private async fetch<T>(path: string, query?: SearchQuery): Promise<AxiosResponse<T>> {
         const q = qs.stringify(query);
-        const url = `${path}${q ? `?${q}` : ''}`;
+        const url = `${this.baseURL}${path}${q ? `?${q}` : ''}`;
         const res = await axios.get(url);
         if (res.data.error) throw new Error(res.data.error);
         return res;
@@ -105,7 +105,7 @@ export class Client {
     }
 
     public async home(page = 1): Promise<Search & { popular_now?: Gallery[] }> {
-        const results = await this.fetch<Search>(`/api/galleries/search/all`, { page }).then(
+        const results = await this.fetch<Search>(`/api/galleries/all`, { page }).then(
             res => res.data
         );
         if (page === 1) return results;
