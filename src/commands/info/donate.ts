@@ -1,6 +1,5 @@
 import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
-const { DONATE } = process.env;
 
 export default class extends Command {
     constructor() {
@@ -14,9 +13,10 @@ export default class extends Command {
     }
 
     async exec(message: Message) {
-        if (!DONATE) return;
+        const donate = this.client.config.settings.donateLink;
+        if (!donate) return;
         const embed = this.client.embeds.info(
-            `If you really like me and want to support my creator, you can consider donating to my creator's [Paypal](${DONATE}). Do note that donating will not grant you any kinds of perks in return. Please do not donate if you're financially struggling.`
+            `If you really like me and want to support my creator, you can consider donating to my creator's [Paypal](${donate}). Do note that donating will not grant you any kinds of perks in return. Please do not donate if you're financially struggling.`
         );
         return message.channel.send({ embed });
     }
