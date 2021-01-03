@@ -1,8 +1,9 @@
 import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
-import he from 'he';
+import { User } from 'src/database/models/user';
 import { Server } from 'src/database/models/server';
-import { FLAG_EMOJIS, BANNED_TAGS, BLOCKED_MESSAGE } from '@utils/constants';
+import { Blacklist } from 'src/database/models/tag';
+import { BLOCKED_MESSAGE } from '@utils/constants';
 
 export default class extends Command {
     constructor() {
@@ -28,9 +29,17 @@ export default class extends Command {
 
     danger = false;
     warning = false;
+    blacklists: Blacklist[] = [];
 
     async before(message: Message) {
         try {
+            let user = await User.findOne({ userID: message.author.id }).exec();
+            if (!user) {
+                user = await new User({
+                    blacklists: [],
+                }).save();
+            }
+            this.blacklists = user.blacklists;
             let server = await Server.findOne({ serverID: message.guild.id }).exec();
             if (!server) {
                 server = await new Server({
@@ -49,15 +58,21 @@ export default class extends Command {
         try {
             let pageNum = parseInt(page, 10);
             const data = await this.client.nhentai.home(pageNum);
-
-            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > data.num_pages)
+            if (!data) throw new Error('Unable to parse homepage.');
+            const { result, num_pages } = data;
+            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > num_pages)
                 throw new RangeError('Page number is not an integer or is out of range.');
 
             if (pageNum === 1) {
                 const popularNow = data.popular_now;
                 const { displayList: displayPopular, rip } = this.client.embeds.displayGalleryList(
                     popularNow,
-                    this.danger
+                    this.danger,
+                    this.blacklists,
+                    {
+                        page: pageNum,
+                        num_pages,
+                    }
                 );
                 if (rip) this.warning = true;
                 await displayPopular.run(
@@ -72,10 +87,15 @@ export default class extends Command {
                 );
             }
 
-            const newUploads = data.result;
+            const newUploads = result;
             const { displayList: displayNew, rip } = this.client.embeds.displayGalleryList(
                 newUploads,
-                this.danger
+                this.danger,
+                this.blacklists,
+                {
+                    page: pageNum,
+                    num_pages,
+                }
             );
             if (rip) this.warning = true;
             displayNew.run(
@@ -101,7 +121,7 @@ export default class extends Command {
         } catch (err) {
             if (dontLogErr) return;
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
+            return message.channel.send(this.client.embeds.clientError(err));
         }
     }
 }
