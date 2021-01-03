@@ -5,7 +5,7 @@ import he from 'he';
 import moment from 'moment';
 import { Gallery, Comment, Language } from '@api/nhentai';
 import { ICON, BANNED_TAGS, FLAG_EMOJIS } from '@utils/constants';
-import { Blacklist } from 'src/database/models/tag';
+import { Blacklist } from '@models/tag';
 
 export class Embeds {
     public client: Client;
@@ -134,7 +134,7 @@ export class Embeds {
         }
     ) {
         let rip = false;
-        const { page, num_pages, num_results, additional_options } = options;
+        const { page = 0, num_pages = 0, num_results = 0, additional_options = {} } = options || {};
         const displayList = this.richDisplay({
             info: true,
             download: true,
@@ -152,16 +152,15 @@ export class Embeds {
                 .setTitle(`${he.decode(title.english)}`)
                 .setURL(`https://nhentai.net/g/${id}`)
                 .setDescription(
-                    `**ID** : ${id}` + FLAG_EMOJIS[language]
-                        ? `\u2000•\u2000**Language** : ${FLAG_EMOJIS[language]}`
-                        : ''
+                    `**ID** : ${id}` +
+                        (FLAG_EMOJIS[language]
+                            ? `\u2000•\u2000**Language** : ${FLAG_EMOJIS[language]}`
+                            : '')
                 )
                 .setFooter(
-                    `Gallery ${idx + 1} of ${galleries.length}` + page
-                        ? `\u2000•\u2000Page ${page} of ${num_pages || 1}`
-                        : '' + num_results
-                        ? `\u2000•\u2000${num_results} galleries(s)`
-                        : ''
+                    `Gallery ${idx + 1} of ${galleries.length}` +
+                        (page ? `\u2000•\u2000Page ${page} of ${num_pages || 1}` : '') +
+                        (num_results ? `\u2000•\u2000${num_results} galleries` : '')
                 )
                 .setTimestamp();
             const bTags = blacklists.filter(b => tags.some(tag => tag.id.toString() === b.id)),
@@ -197,7 +196,8 @@ export class Embeds {
                 BANNED_TAGS
             );
             if (prip) rip = true;
-            if (danger || !prip) thumb.setImage(this.client.nhentai.getCoverThumbnail(gallery));
+            if ((danger || !prip) && !len)
+                thumb.setImage(this.client.nhentai.getCoverThumbnail(gallery));
             displayList.addPage(thumb, gallery);
         }
         return { displayList, rip };
