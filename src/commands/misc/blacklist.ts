@@ -1,6 +1,6 @@
 import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
-import { User } from 'src/database/models/user';
+import { User } from '@models/user';
 
 export default class extends Command {
     constructor() {

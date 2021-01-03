@@ -1,6 +1,6 @@
 import { Command } from '@structures/Command';
 import { Message, GuildMember } from 'discord.js';
-import { User } from 'src/database/models/user';
+import { User } from '@models/user';
 import { ICON } from '@utils/constants';
 import moment from 'moment';
 
