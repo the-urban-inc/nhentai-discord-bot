@@ -1,7 +1,8 @@
 import { Gallery, Related, Comment, Search, SearchQuery, Sort, ImageT } from './lib/structures';
 import axios, { AxiosResponse } from 'axios';
+import { load } from 'cheerio';
+type Root = ReturnType<typeof load>;
 import qs from 'qs';
-import Cheerio from 'cheerio';
 
 export class Client {
     public baseURL = 'https://nhentai.net';
@@ -16,7 +17,7 @@ export class Client {
         return res;
     }
 
-    private async tagID($: CheerioStatic): Promise<number | null> {
+    private async tagID($: Root): Promise<number | null> {
         const id =
             parseInt(
                 ($('.tag')
@@ -28,7 +29,7 @@ export class Client {
         return id;
     }
 
-    private async numResults($: CheerioStatic): Promise<number> {
+    private async numResults($: Root): Promise<number> {
         let num_results = 0;
         if (
             $('meta[name=description]').length > 0 &&
@@ -47,7 +48,7 @@ export class Client {
         return num_results;
     }
 
-    private async popularNow($: CheerioStatic): Promise<Gallery[]> {
+    private async popularNow($: Root): Promise<Gallery[]> {
         return Promise.all($('.index-popular .gallery')
             .toArray()
             .map(async (e, i) => {
@@ -102,7 +103,7 @@ export class Client {
         );
         if (page !== 1) return results;
         const popular_now = await this.fetch(`/`).then(async res => {
-            const $ = Cheerio.load(<string>res.data, {
+            const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
             });
@@ -121,7 +122,7 @@ export class Client {
     ): Promise<Search & { num_results: number }> {
         const num_results = await this.fetch(`/search/`, { q: query, page, sort }).then(
             async res => {
-                const $ = Cheerio.load(<string>res.data, {
+                const $ = load(<string>res.data, {
                     decodeEntities: false,
                     xmlMode: false,
                 });
@@ -150,7 +151,7 @@ export class Client {
         sort?: Sort
     ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/tag/${query}`).then(async res => {
-            const $ = Cheerio.load(<string>res.data, {
+            const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
             });
@@ -169,7 +170,7 @@ export class Client {
         sort?: Sort
     ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/artist/${query}`).then(async res => {
-            const $ = Cheerio.load(<string>res.data, {
+            const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
             });
@@ -188,7 +189,7 @@ export class Client {
         sort?: Sort
     ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/character/${query}`).then(async res => {
-            const $ = Cheerio.load(<string>res.data, {
+            const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
             });
@@ -207,7 +208,7 @@ export class Client {
         sort?: Sort
     ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/group/${query}`).then(async res => {
-            const $ = Cheerio.load(<string>res.data, {
+            const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
             });
@@ -226,7 +227,7 @@ export class Client {
         sort?: Sort
     ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/parody/${query}`).then(async res => {
-            const $ = Cheerio.load(<string>res.data, {
+            const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
             });
@@ -245,7 +246,7 @@ export class Client {
         sort?: Sort
     ): Promise<Search & { tag_id: number; num_results: number }> {
         const { id, num_results } = await this.fetch(`/language/${query}`).then(async res => {
-            const $ = Cheerio.load(<string>res.data, {
+            const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
             });
