@@ -23,7 +23,7 @@ export default class extends Command {
         const embed = this.client.util
             .embed()
             .setThumbnail(this.client.user.displayAvatarURL())
-            .setTitle(`Hey ${message.author.username}, I'm Inari!`) // ${this.client.user.tag}
+            .setTitle(`Hey ${message.author.username}, I'm ${this.client.user.tag}!`)
             .setDescription(this.client.config.description)
             .addField('❯ Discord', [
                 `• **Guilds** : ${this.client.guilds.cache.size}`,

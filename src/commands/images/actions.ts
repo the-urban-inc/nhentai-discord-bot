@@ -22,7 +22,7 @@ export default class extends Command {
             description: {
                 content: 'Sends an anime image of a @. Ping a person to do it to them.',
                 usage: '[user]',
-                example: ['slap', 'poke @Inari#7217'],
+                example: ['slap', 'poke @nhentai#7217'],
             },
             args: [
                 {

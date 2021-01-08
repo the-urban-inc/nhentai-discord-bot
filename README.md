@@ -1,9 +1,9 @@
 <div align="center">
-  <img width="200" height="200" alt="inari" src="https://i.imgur.com/wAYngvM.jpg"><br>
+  <img width="200" height="200" alt="nhentai" src="https://i.imgur.com/cGT4RMd.png"><br>
 
-  <img alt="inari" width="175" src="https://i.imgur.com/9tgcn0G.png"><br>
+   <img alt="nhentai" src="https://i.imgur.com/my4t1Hb.png"><br>
 
-[![Invite inari](https://img.shields.io/badge/invite-me-7289da.svg?style=flat-square&logo=discord)](https://discordapp.com/api/oauth2/authorize?client_id=663743798722953258&permissions=387136&scope=bot)
+[![Invite nhentai](https://img.shields.io/badge/invite-me-7289da.svg?style=flat-square&logo=discord)](https://discordapp.com/api/oauth2/authorize?client_id=663743798722953258&permissions=387136&scope=bot)
 [![Join the support server](https://img.shields.io/badge/join-the%20support%20server-7289da.svg?style=flat-square&logo=discord)](https://discord.gg/8PX6QZb)
 [![Library](https://img.shields.io/badge/library-discord.js-blue.svg?style=flat-square)](https://discord.js.org/#/)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
@@ -14,7 +14,7 @@
 ---
 
 # About
-Inari is an open source nhentai Discord bot powered by [TypeScript](https://www.typescriptlang.org/) with [discord.js](https://discord.js.org/#/) using the [Akairo](https://discord-akairo.github.io/#/) framework.
+nhentai is an open source nhentai Discord bot powered by [TypeScript](https://www.typescriptlang.org/) with [discord.js](https://discord.js.org/#/) using the [Akairo](https://discord-akairo.github.io/#/) framework.
 
 # Features
 - Almost every basic features of the **[nhentai](https://nhentai.net/)** website.
@@ -32,8 +32,8 @@ Inari is an open source nhentai Discord bot powered by [TypeScript](https://www.
 # Installation
 
 ```
-git clone https://github.com/the-urban-inc/Inari.git
-cd Inari
+git clone https://github.com/the-urban-inc/nhentai-discord-bot.git
+cd nhentai-discord-bot
 npm install
 npm build
 ```
@@ -65,12 +65,12 @@ Edit the `config.json` file if you prefer different prefixes or inserting your o
 
 # Contributing
 
-1. [Fork the repository](https://github.com/the-urban-inc/Inari/fork)
-2. Clone your fork: `git clone https://github.com/your-username/Inari.git`
+1. [Fork the repository](https://github.com/the-urban-inc/nhentai-discord-bot/fork)
+2. Clone your fork: `git clone https://github.com/your-username/nhentai-discord-bot.git`
 3. Create your feature branch: `git checkout -b my-new-feature`
 4. Commit your changes: `git commit -am 'Add some feature'`
 5. Push to the branch: `git push origin my-new-feature`
 6. Submit a pull request
 
 # License
-Inari is licensed under the **[MIT License](https://github.com/the-urban-inc/Inari/blob/master/LICENSE)**
+nhentai is licensed under the **[MIT License](https://github.com/the-urban-inc/nhentai-discord-bot/blob/master/LICENSE)**

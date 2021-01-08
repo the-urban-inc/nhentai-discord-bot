@@ -13,7 +13,7 @@ export default class extends Command {
                 content:
                     "Views someone's profile.\nAdd --more to view favorite list, blacklist and recent calls (will not show up if the user has anonymous mode turned on).",
                 usage: '[user]',
-                examples: ['', '@Inari#7217'],
+                examples: ['', '@nhentai#7217'],
             },
             args: [
                 {

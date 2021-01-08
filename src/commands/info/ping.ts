@@ -7,7 +7,7 @@ export default class extends Command {
             aliases: ['ping', 'hello'],
             channel: 'guild',
             description: {
-                content: 'Pings Inari.',
+                content: 'Pings nhentai.',
             },
         });
     }

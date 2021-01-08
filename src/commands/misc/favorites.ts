@@ -18,7 +18,7 @@ export default class extends Command {
                 content:
                     "Check your (or your buddy's) favorites list.\nTo add a doujin to your favorites list, react with `❤️`",
                 usage: '[user]',
-                examples: ['', '@Inari#7217'],
+                examples: ['', '@nhentai#7217'],
             },
             args: [
                 {

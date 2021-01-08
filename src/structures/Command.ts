@@ -1,11 +1,11 @@
-import { Command as C, CommandOptions } from 'discord-akairo';
+import { Command as C, CommandOptions as CO } from 'discord-akairo';
 import type { Client } from './Client';
 
 type _ = {
     [key: string]: string[];
 };
 
-export interface InariCommandOptions extends CommandOptions {
+export interface CommandOptions extends CO {
     nsfw?: boolean;
     areMultipleCommands?: boolean;
     isConditionalorRegexCommand?: boolean;
@@ -18,7 +18,7 @@ export class Command extends C {
     areMultipleCommands: boolean;
     isConditionalorRegexCommand: boolean;
     subAliases?: _;
-    constructor(id: string, options?: InariCommandOptions) {
+    constructor(id: string, options?: CommandOptions) {
         options.typing = true;
         super(id, options);
         const { areMultipleCommands, isConditionalorRegexCommand, subAliases } = options;
