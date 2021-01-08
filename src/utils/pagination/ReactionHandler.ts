@@ -111,7 +111,7 @@ export class ReactionHandler {
                   this.#resolve = resolve;
               })
             : Promise.resolve(null);
-        this.#currentPage = options.startPage ?? (this.display.infoPage ? -1 : 0);
+        this.#currentPage = options.startPage ?? 0;
         this.run([...emojis.values()]);
         this.collector = this.message.createReactionCollector(() => true, {
             max: options.max,
