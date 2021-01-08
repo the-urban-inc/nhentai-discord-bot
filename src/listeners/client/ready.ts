@@ -9,24 +9,37 @@ export default class extends Listener {
         });
     }
 
+    cur = 0;
+
+    async getRandomCode() {
+        const data = await this.client.nhentai.random();
+        return data?.gallery?.id?.toString() ?? '177013';
+    }
+
+    async changePresence() {
+        await this.client.user.setPresence({
+            activity: [
+                {
+                    name: [
+                        'Abandon all hope, ye who enter here',
+                        'ここから入らんとする者は一切の希望を放棄せよ',
+                    ][Math.round(Math.random())],
+                },
+                { name: await this.getRandomCode(), type: <const>'WATCHING' },
+                {
+                    name: `your commands • ${this.client.config.settings.prefix.nsfw[0]}help`,
+                    type: <const>'LISTENING',
+                },
+            ][this.cur],
+        });
+        this.cur = (this.cur + 1) % 3;
+        setTimeout(this.changePresence, 300000);
+    }
+
     exec() {
         this.client.logger.info(
             `[READY] Logged in as ${this.client.user.tag}! ID: ${this.client.user.id}`
         );
-        this.client.user.setActivity('your commands', { type: 'LISTENING' });
-        this.client.setTimeout(() => {
-            this.client.setInterval(async () => {
-                let code = '177013';
-                const data = await this.client.nhentai
-                    .random()
-                    .then(data => data)
-                    .catch(err => this.client.logger.error(err));
-                code = data ? data.gallery.id.toString() : code;
-                this.client.user.setActivity(
-                    `${code} • ${this.client.config.settings.prefix.nsfw[0]}help`,
-                    { type: 'WATCHING' }
-                );
-            }, 300000);
-        }, 10000);
+        this.changePresence();
     }
 }
