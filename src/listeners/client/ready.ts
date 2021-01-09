@@ -33,7 +33,7 @@ export default class extends Listener {
             ][this.cur],
         });
         this.cur = (this.cur + 1) % 3;
-        setTimeout(this.changePresence, 300000);
+        setTimeout(this.changePresence.bind(this), 300000);
     }
 
     exec() {
