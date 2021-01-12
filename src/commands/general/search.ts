@@ -85,6 +85,11 @@ export default class extends Command {
     ) {
         try {
             if (!text) throw new TypeError('Search text is not specified.');
+            if (/^\d+$/.test(text.replace('#', ''))) {
+                const command = this.client.commandHandler.findCommand('g');
+                await command.before(message);
+                return command.exec(message, { code: text.replace('#', ''), page: '1' });
+            }
             if (!Object.values(Sort).includes(sort as Sort))
                 throw new TypeError(
                     `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
