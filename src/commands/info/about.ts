@@ -7,7 +7,7 @@ const { npm_package_version, npm_package_repository_url } = process.env;
 export default class extends Command {
     constructor() {
         super('about', {
-            aliases: ['about', 'info', 'information', 'stats'],
+            aliases: ['about', 'stats'],
             channel: 'guild',
             description: {
                 content: 'Responds with detailed bot information.',
