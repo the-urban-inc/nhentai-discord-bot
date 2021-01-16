@@ -8,9 +8,9 @@ export default class extends Command {
     constructor() {
         super('about', {
             aliases: ['about', 'stats'],
-            channel: 'guild',
             description: {
-                content: 'Responds with detailed bot information.',
+                content: 'Shows detailed bot information. Currently, the number of users is incorrect.',
+                examples: ['\nAbout me!']
             },
         });
     }

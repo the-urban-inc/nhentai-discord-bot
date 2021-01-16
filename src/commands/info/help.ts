@@ -15,11 +15,13 @@ export default class extends Command {
     constructor() {
         super('help', {
             aliases: ['help', 'halp', 'h'],
-            channel: 'guild',
             description: {
-                content: 'Displays a list of commands or information about a command.',
+                content: 'Shows a list of commands or information about a command.',
                 usage: '[command]',
-                examples: ['', 'home', 'booru'],
+                examples: [
+                    '\nShows a list of commands (after the first page).',
+                    ' home\nShows information about `home` command.',
+                ],
             },
             args: [
                 {
@@ -44,77 +46,93 @@ export default class extends Command {
         let {
             id,
             aliases,
-            description: { content },
+            description: { content, examples, additionalInfo },
         } = command;
-
         if (command.areMultipleCommands) {
-            if (command.subAliases) {
-                id = Object.keys(command.subAliases).find(key =>
-                    command.subAliases[key].includes(alias)
-                );
-                aliases = command.subAliases[id];
-                content = content.replace('@', id);
-            } else {
-                id = alias;
-                aliases = [alias];
-                content = content.replace('@', alias);
-            }
+            id = Object.keys(command.subAliases).find(
+                key => key === alias || command.subAliases[key].aliases?.includes(alias)
+            );
+            aliases = command.subAliases[id].aliases ?? [alias];
+            content = command.subAliases[id].description;
+            examples = command.subAliases[id].examples;
+            additionalInfo = command.subAliases[id].additionalInfo;
         }
 
         const clientPermissions = command.clientPermissions as string[];
         const userPermissions = command.userPermissions as string[];
-        const examples = command.description.examples as string[];
 
         const embed = this.client.util
             .embed()
-            .setTitle(`${prefix}${id} ${command.description.usage ?? ''}`)
-            .setDescription(content ?? 'No description specified.');
+            .setTitle(`${prefix}${id}`)
+            .setDescription(`\`\`\`${content ?? 'No description specified.'}\`\`\``);
+
+        embed.addField('Usage', `${prefix}${id} ${command.description.usage ?? ''}`);
+
+        if (examples)
+            embed.addField(
+                'Examples',
+                examples
+                    .map((e: string) => {
+                        const [example = '', description = ''] = e
+                            .replace('\n', '\x01')
+                            .split('\x01');
+                        return `• \`${prefix}${id}${example}\`\n${description}`;
+                    })
+                    .join('\n')
+            );
 
         if (clientPermissions)
             embed.addField(
                 'Required Bot Permissions',
-                clientPermissions.map(p => this.client.util.toTitleCase(p)).join(', ')
+                clientPermissions.map(p => this.client.util.toTitleCase(p)).join(', '),
+                true
             );
+
         if (userPermissions)
             embed.addField(
                 'Required User Permissions',
-                userPermissions.map(p => this.client.util.toTitleCase(p)).join(', ')
+                userPermissions.map(p => this.client.util.toTitleCase(p)).join(', '),
+                true
             );
-        if (command.channel) {
-            embed.addField('Channel', command.channel === 'guild' ? 'Guild' : 'DM');
-        }
+
         if (aliases && aliases.length > 1) embed.addField('Aliases', aliases.slice(1).join(', '));
-        if (examples)
-            embed.addField('Examples', examples.map(e => `${prefix}${command} ${e}`).join('\n'));
+
+        if (additionalInfo) embed.addField('More', additionalInfo);
+
         return message.channel.send({ embed });
     }
 
     async execCommandList(message: Message) {
         const prefix = this.client.config.settings.prefix.nsfw[0];
+        const prefixList = this.client.commandHandler.splitPrefix.get(message.guild.id);
         const display = this.client.embeds.richDisplay({ love: false }).addPage(
             this.client.util
                 .embed()
                 .setColor(0xffac33)
                 .setTitle('Command List')
                 .setDescription(
-                    `Use ${prefix}help [command] for more help. E.g: ${prefix}help g\nHover over commands for info.`
+                    `Use \`${prefix}help [command]\` for more help. E.g: \`${prefix}help g\`.\nCommands with the \`🔞\` icon are NSFW commands and can only be used in NSFW channels with NSFW prefix(es) (${prefixList.nsfw.join(
+                        ', '
+                    )}).\nCommands in the Images category that isn't NSFW can only be used SFW prefix(es) (${prefixList.sfw.join(
+                        ', '
+                    )}).\nOther commands can be used with both types of prefix.`
                 )
                 .addField('Command Guide', [
-                    '- <> : Required',
-                    '- [] : Optional',
-                    '- () : Choose 1',
+                    '• <> : Required',
+                    '• [] : Optional',
+                    '• () : Choose 1',
                 ])
                 .addField('Emote Guide', [
-                    '- ⏪ ⏩ : Jump to first/last page',
-                    '- ◀ ▶ : Jump to previous/next page',
-                    '- ↗️ : Jump to specified page',
-                    '- ℹ️ : Jump to info page/View info of a doujin in doujin list view',
-                    `- 🇦 ⏹ : Turn on/off auto browsing mode (add --auto to use this feature in ${prefix}g and ${prefix}random command)`,
-                    '- ❤️ : Add/Remove a doujin to/from favorites',
-                    '- 🔖 : Follow/Unfollow a tag/artist/parody/etc.',
-                    '- 🏴 : Blacklist a tag/artist/parody/etc.',
-                    '- 📥 : Download current doujin',
-                    '- 🗑 : Delete bot message',
+                    '• ⏪ ⏩ : Jumps to first/last page',
+                    '• ◀ ▶ : Jumps to previous/next page',
+                    '• ↗️ : Jumps to specified page',
+                    '• ℹ️ : Jumps to info page/View info of a doujin in doujin list view',
+                    `• 🇦 ⏹ : Turns on/off auto browsing mode (add --auto to use this feature in ${prefix}g and ${prefix}random command)`,
+                    '• ❤️ : Adds/Removes a doujin to/from favorites',
+                    '• 🔖 : Follows/Unfollows a tag/artist/parody/etc.',
+                    '• 🏴 : Blacklists a tag/artist/parody/etc.',
+                    '• 📥 : Downloads current doujin',
+                    '• 🗑 : Deletes bot message',
                 ])
         );
         for (const [category, commands] of this.client.commandHandler.categories) {
@@ -126,7 +144,7 @@ export default class extends Command {
                           (c: Command) => !c.ownerOnly && !c.isConditionalorRegexCommand
                       ) as Category<string, Command>);
             const embed = this.client.util.embed().setTitle(title);
-            let cmds = [];
+            let cmds: string[] = [];
             publicCommands
                 .sort((a: Command, b: Command) =>
                     a.areMultipleCommands === b.areMultipleCommands
@@ -137,32 +155,20 @@ export default class extends Command {
                 )
                 .forEach((c: Command) => {
                     if (c.areMultipleCommands) {
-                        const subCmds = c.subAliases ? Object.keys(c.subAliases) : c.aliases;
-                        cmds.push({
-                            id: `${c.nsfw ? '🔞 ' : ''}${c.id}`,
-                            desc: c.description.content
-                                ? `${c.description.content}\nwhere @ is one of [${subCmds
-                                      .map(c => c.replace(/nsfw_/, ''))
-                                      .join(', ')}]`
-                                : 'No description specified',
-                        });
+                        const subCmds = c.areMultipleCommands
+                            ? Object.keys(c.subAliases)
+                            : c.aliases;
+                        cmds = cmds.concat(
+                            subCmds.map(
+                                sc => `${c.nsfw ? '`🔞`' : ''}__\`${sc.replace(/nsfw_/, '')}\`__`
+                            )
+                        );
+                        cmds.push(cmds.pop() + '\n\n');
                     } else {
-                        cmds.push({
-                            id: `${c.nsfw ? '🔞 ' : ''}${c.id}`,
-                            desc: c.description.content ?? 'No description specified',
-                        });
+                        cmds.push(`${c.nsfw ? '`🔞`' : ''}__\`${c.id}\`__`);
                     }
                 });
-            embed.setDescription(
-                cmds
-                    .map(
-                        c =>
-                            `[\`${c.id}\`](https://nhentai.net "${
-                                typeof c.desc !== 'string' ? c.desc.join('\n') : c.desc
-                            }")`
-                    )
-                    .join(' ')
-            );
+            embed.setDescription(cmds.join(' '));
             display.addPage(embed);
         }
         return display.run(

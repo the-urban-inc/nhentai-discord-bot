@@ -6,9 +6,9 @@ export default class extends Command {
     constructor() {
         super('invite', {
             aliases: ['invite', 'join'],
-            channel: 'guild',
             description: {
-                content: 'Invite me to your server!',
+                content: 'Shows invite link and GitHub link.',
+                examples: ['\nInvite me to your server!'],
             },
         });
     }

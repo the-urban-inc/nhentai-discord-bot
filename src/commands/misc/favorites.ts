@@ -1,24 +1,23 @@
 import { Command } from '@structures/Command';
 import { Message, GuildMember } from 'discord.js';
-import he from 'he';
-import moment from 'moment';
 import { User } from '@models/user';
 import { Server } from '@models/server';
-import { Tag } from '@api/nhentai';
-import { ICON, BANNED_TAGS, BLOCKED_MESSAGE } from '@utils/constants';
+import { BLOCKED_MESSAGE } from '@utils/constants';
 import { Blacklist } from '@models/tag';
 
 export default class extends Command {
     constructor() {
         super('favorites', {
             aliases: ['favorites', 'favourites'],
-            channel: 'guild',
             nsfw: true,
             description: {
                 content:
-                    "Check your (or your buddy's) favorites list.\nTo add a doujin to your favorites list, react with `❤️`",
+                    "Shows your (or your buddy's) favorites list.\nTo add a gallery to your favorites list, react with ❤️.",
                 usage: '[user]',
-                examples: ['', '@nhentai#7217'],
+                examples: [
+                    '\nShows your own favorites list.',
+                    " @nhentai#7217\nShows nhentai's favorites list.",
+                ],
             },
             args: [
                 {
@@ -77,9 +76,15 @@ export default class extends Command {
                     if (rip) this.warning = true;
                     display.addPage(info, gallery);
                 }
-                await display.run(this.client, message, await msg.edit('Done.'), 'Galleries are sorted by date added', {
-                    idle: 300000,
-                });
+                await display.run(
+                    this.client,
+                    message,
+                    await msg.edit('Done.'),
+                    'Galleries are sorted by date added',
+                    {
+                        idle: 300000,
+                    }
+                );
 
                 if (!this.danger && this.warning) {
                     return this.client.embeds

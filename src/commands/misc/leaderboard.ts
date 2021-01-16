@@ -6,9 +6,9 @@ export default class extends Command {
     constructor() {
         super('leaderboard', {
             aliases: ['leaderboard', 'top'],
-            channel: 'guild',
             description: {
-                content: "Views server's leaderboard",
+                content: "Shows server's leaderboard.",
+                examples: ['\nHow come you ranked higher than me???']
             },
         });
     }

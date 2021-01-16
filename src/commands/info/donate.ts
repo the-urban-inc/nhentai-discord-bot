@@ -5,9 +5,9 @@ export default class extends Command {
     constructor() {
         super('donate', {
             aliases: ['donate', 'support'],
-            channel: 'guild',
             description: {
                 content: 'Show support to the bot creator!',
+                examples: ['\ndonos.'],
             },
         });
     }

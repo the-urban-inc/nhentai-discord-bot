@@ -7,11 +7,11 @@ export default class extends Command {
     constructor() {
         super('danger', {
             aliases: ['danger', 'fucktos', 'toggle-danger'],
-            channel: 'guild',
             userPermissions: REQUIRED_PERMISSIONS,
             description: {
                 content:
                     'Toggles danger mode (allowing contents involving lolicon, shotacon, gore, etc.)',
+                examples: ['\nSteppin into the dangerous zone eh?']
             },
         });
     }

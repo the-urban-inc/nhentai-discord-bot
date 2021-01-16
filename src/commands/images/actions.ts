@@ -2,6 +2,73 @@ import { Command } from '@structures/Command';
 import { Message, User } from 'discord.js';
 
 const ACTIONS = {
+    tickle: {
+        description: 'Tickle a person or get tickled.',
+        examples: [
+            '\nTickle tickle ...',
+            ' @nhentai#7217\nTickle nhentai!',
+            ' 663743798722953258\nAlso works with user ID!',
+        ],
+    },
+    slap: {
+        description: 'Slap a person or get slapped.',
+        examples: [
+            '\n*slap\* ...',
+            ' @nhentai#7217\nSlap nhentai!',
+            ' 663743798722953258\nAlso works with user ID!',
+        ],
+    },
+    poke: {
+        description: 'Poke a person or get poked.',
+        examples: [
+            '\nPoke, poke ...',
+            ' @nhentai#7217\nPoke nhentai!',
+            ' 663743798722953258\nAlso works with user ID!',
+        ],
+    },
+    pat: {
+        description: 'Pat a person or get a pat.',
+        examples: [
+            '\nThere, there ...',
+            ' @nhentai#7217\nGive nhentai a pat.',
+            ' 663743798722953258\nAlso works with user ID!',
+        ],
+    },
+    kiss: {
+        description: 'Kiss a person or get a kiss.',
+        examples: [
+            '\nChuuu ...',
+            ' @nhentai#7217\nGive nhentai a kiss.',
+            ' 663743798722953258\nAlso works with user ID!',
+        ],
+    },
+    hug: {
+        description: 'Hug a person or get a hug.',
+        examples: [
+            '\n*squeeze\* ...',
+            ' @nhentai#7217\nHug nhentai.',
+            ' 663743798722953258\nAlso works with user ID!',
+        ],
+    },
+    feed: {
+        description: 'Feed a person or get fed.',
+        examples: [
+            "\nSay 'Aaaa' ...",
+            ' @nhentai#7217\nFeed nhentai.',
+            ' 663743798722953258\nAlso works with user ID!',
+        ],
+    },
+    cuddle: {
+        description: 'Cuddle a person or get a cuddle.',
+        examples: [
+            '\n*squeeze\* ...',
+            ' @nhentai#7217\nCuddle nhentai.',
+            ' 663743798722953258\nAlso works with user ID!',
+        ],
+    },
+};
+
+const ACTIONS_PAST_TENSE = {
     tickle: 'tickled',
     slap: 'slapped',
     poke: 'poked',
@@ -16,13 +83,10 @@ export default class extends Command {
     constructor() {
         super('action', {
             aliases: Object.keys(ACTIONS),
-            areMultipleCommands: true,
-            channel: 'guild',
+            subAliases: ACTIONS,
             nsfw: false,
             description: {
-                content: 'Sends an anime image of a @. Ping a person to do it to them.',
                 usage: '[user]',
-                example: ['slap', 'poke @nhentai#7217'],
             },
             args: [
                 {
@@ -49,8 +113,8 @@ export default class extends Command {
                 .embed()
                 .setTitle(
                     user === message.author
-                        ? `You just got ${ACTIONS[method]}!`
-                        : `${message.author.tag} ${ACTIONS[method]} ${user.tag}!`
+                        ? `You just got ${ACTIONS_PAST_TENSE[method]}!`
+                        : `${message.author.tag} ${ACTIONS_PAST_TENSE[method]} ${user.tag}!`
                 )
                 .setDescription(`[Click here if image failed to load](${image})`)
                 .setImage(image);

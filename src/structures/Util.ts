@@ -1,5 +1,9 @@
 import { AkairoClient, ClientUtil } from 'discord-akairo';
 
+const PROTOCOL_AND_DOMAIN_RE = /^(?:\w+:)?\/\/(\S+)$/;
+const LOCALHOST_DOMAIN_RE = /^localhost[\:?\d]*(?:[^\:?\d]\S*)?$/;
+const NON_LOCALHOST_DOMAIN_RE = /^[^\s\.]+\.\S{2,}$/;
+
 export class Util extends ClientUtil {
     constructor(client: AkairoClient) {
         super(client);
@@ -119,6 +123,20 @@ export class Util extends ClientUtil {
 
     hasCommon<T>(a: T[], b: T[]) {
         return [...new Set(a)].some(x => new Set(b).has(x));
+    }
+
+    isUrl(s: string) {
+        if (typeof s !== 'string') return false;
+        const match = s.match(PROTOCOL_AND_DOMAIN_RE);
+        if (!match) return false;
+        const everythingAfterProtocol = match[1];
+        if (!everythingAfterProtocol) return false;
+        if (
+            LOCALHOST_DOMAIN_RE.test(everythingAfterProtocol) ||
+            NON_LOCALHOST_DOMAIN_RE.test(everythingAfterProtocol)
+        )
+            return true;
+        return false;
     }
 
     pad(text: string, width: number, char = '0') {

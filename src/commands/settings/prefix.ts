@@ -1,8 +1,11 @@
 import { Command } from '@structures/Command';
 import { Message } from 'discord.js';
+import config from '@config';
 
 const MAX_LEN = 100;
 const REQUIRED_PERMISSIONS = ['MANAGE_GUILD'] as const;
+const PREFIX = config.settings.prefix.nsfw[0];
+const PREFIXES = config.settings.prefix.sfw.join(', ');
 
 const ACTIONS = {
     add: 'Added',
@@ -20,7 +23,13 @@ export default class extends Command {
             description: {
                 content: "Edits server's custom prefix list.",
                 usage: '<nsfw|sfw> <add <prefix>|remove <prefix>|clear|list>',
-                examples: ['nsfw add lmao', 'sfw remove lol', 'nsfw clear', 'sfw list'],
+                examples: [
+                    ' nsfw add lmao\nAdds `lmao` as a NSFW prefix.',
+                    " sfw remove lol\nRemoves `lol` from SFW prefix list (does nothing if `lol` doesn't exist)",
+                    ` nsfw remove ${PREFIX}\nDoes nothing.`,
+                    ` sfw clear\nClears out the SFW prefix list (does not clear the default prefix(es) (${PREFIXES}))`,
+                    ' nsfw list\nShows the NSFW prefix list.',
+                ],
             },
             args: [
                 {

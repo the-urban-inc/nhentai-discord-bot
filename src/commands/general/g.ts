@@ -9,14 +9,17 @@ import { BLOCKED_MESSAGE } from '@utils/constants';
 export default class extends Command {
     constructor() {
         super('g', {
-            aliases: ['g', 'get', 'result', 'read'],
-            channel: 'guild',
+            aliases: ['g', 'gallery', 'read'],
             nsfw: true,
             description: {
-                content:
-                    'Searches for a code on nhentai.\nRun with `--more` to include `More Like This` and `Comments`.',
-                usage: '<code> [--more] [--auto]',
-                examples: ['177013', '265918 --auto'],
+                content: 'Searches for a code on nhentai.',
+                usage: '<code> [--more] [--auto] [--page=pagenum]',
+                examples: [
+                    ' 177013\nShows info of `177013`.',
+                    ' 177013 --page=5\nImmediately starts reading at page 5.',
+                    ' 265918 --more\nShows info of `265918`, with the addition of similar galleries and comments made on the main site.',
+                    ' 315281 --auto\nAdds the option of reading `315281` with auto mode, meaning nhentai will turn the pages for you after a set number of seconds (your choice).',
+                ],
             },
             args: [
                 {
@@ -89,7 +92,7 @@ export default class extends Command {
             const codeNum = parseInt(code, 10);
             if (!codeNum || isNaN(codeNum)) throw new TypeError("Code isn't a number.");
             const result = await this.client.nhentai.g(codeNum, more);
-            if (!result) throw new Error("Code doesn't exist.");
+            if (!result || !result.gallery) throw new Error("Code doesn't exist.");
 
             // points increase
             const min = 30,
@@ -147,7 +150,10 @@ export default class extends Command {
             if (more) {
                 const { related, comments } = result;
 
-                const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(related, this.danger);
+                const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(
+                    related,
+                    this.danger
+                );
                 if (rip) this.warning = true;
                 await displayRelated.run(
                     this.client,

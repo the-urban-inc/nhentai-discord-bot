@@ -5,11 +5,11 @@ import { WatchModel } from '@notifier/db/models/record';
 export default class extends Command {
     constructor() {
         super('follow', {
-            aliases: ['follow'],
-            channel: 'guild',
+            aliases: ['follow', 'followlist'],
             nsfw: true,
             description: {
-                content: 'View your follow list',
+                content: 'Shows your own follow list.',
+                examples: ['\nShows your own follow list.']
             },
         });
     }

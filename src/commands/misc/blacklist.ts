@@ -6,10 +6,10 @@ export default class extends Command {
     constructor() {
         super('blacklist', {
             aliases: ['blacklist'],
-            channel: 'guild',
             nsfw: true,
             description: {
-                content: 'View your blacklist',
+                content: 'Shows your own blacklist.',
+                examples: ['\nEverybody has stuffs they dislike.']
             },
         });
     }

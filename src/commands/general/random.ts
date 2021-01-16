@@ -9,13 +9,15 @@ export default class extends Command {
     constructor() {
         super('random', {
             aliases: ['random'],
-            channel: 'guild',
             nsfw: true,
             description: {
-                content:
-                    'Random doujin.\nRun with `--more` to include `More Like This` and `Comments`.',
+                content: 'Shows a random gallery.',
                 usage: '[--more] [--auto]',
-                examples: ['', '--more', '--auto'],
+                examples: [
+                    '\nShows info of a random gallery.',
+                    ' --more\nShows info of a random gallery, with the addition of similar galleries and comments made on the main site.',
+                    ' --auto\nAdds the option of reading the gallery with auto mode, meaning nhentai will turn the pages for you after a set number of seconds (your choice).',
+                ],
             },
             args: [
                 {

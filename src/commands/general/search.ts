@@ -5,25 +5,30 @@ import { Server } from '@models/server';
 import { Blacklist } from '@models/tag';
 import { Sort } from '@api/nhentai';
 import { BLOCKED_MESSAGE } from '@utils/constants';
+import config from '@config';
 const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
 
 export default class extends Command {
     constructor() {
         super('search', {
             aliases: ['search'],
-            channel: 'guild',
             nsfw: true,
             description: {
-                content: [
-                    'Searches nhentai for given query.',
-                    '• You can search for multiple terms at the same time, and this will return only galleries that contain both terms. For example, `anal tanlines` finds all galleries that contain both `anal` and `tanlines`.',
-                    '• You can exclude terms by prefixing them with `-`. For example, `anal tanlines -yaoi` matches all galleries matching `anal` and `tanlines` but not `yaoi`.',
-                    '• Exact searches can be performed by wrapping terms in double quotes. For example, `"big breasts"` only matches galleries with "big breasts" somewhere in the title or in tags.',
-                    '• These can be combined with tag namespaces for finer control over the query: `parodies:railgun -tag:"big breasts"`.',
-                    '• You can search for galleries with a specific number of pages with `pages:20`, or with a page range: `pages:>20 pages:<=30`.',
-                    '• You can search for galleries uploaded within some timeframe with `uploaded:20d`. Valid units are `h`, `d`, `w`, `m`, `y`. You can use ranges as well: `uploaded:>20d uploaded:<30d`.',
-                ],
+                content: `Searches nhentai for given query.`,
                 usage: `<text> [--page=pagenum] [--sort=(${SORT_METHODS.join('/')})]`,
+                examples: [
+                    ' #110631\nDirectly views info of `110631`.',
+                    ' 110631\nAlso works without `#`.',
+                    ` tag:"big breasts" pages:>15 -milf\nSearches for galleries with over 15 pages that contain \`big breasts\` but without tag \`milf\` and displays them as a list of thumbnails.`,
+                    ` naruto uploaded:7d\nSearches for galleries with titles contain \`naruto\` and were uploaded within 7 days and displays them as a list of thumbnails.`,
+                ],
+                additionalInfo:
+                    '• You can search for multiple terms at the same time, and this will return only galleries that contain both terms. For example, `anal tanlines` finds all galleries that contain both `anal` and `tanlines`.\n' +
+                    '• You can exclude terms by prefixing them with `-`. For example, `anal tanlines -yaoi` matches all galleries matching `anal` and `tanlines` but not `yaoi`.\n' +
+                    '• Exact searches can be performed by wrapping terms in double quotes. For example, `"big breasts"` only matches galleries with "big breasts" somewhere in the title or in tags.\n' +
+                    '• These can be combined with tag namespaces for finer control over the query: `parodies:railgun -tag:"big breasts"`.\n' +
+                    '• You can search for galleries with a specific number of pages with `pages:20`, or with a page range: `pages:>20 pages:<=30`.\n' +
+                    '• You can search for galleries uploaded within some timeframe with `uploaded:20d`. Valid units are `h`, `d`, `w`, `m`, `y`. You can use ranges as well: `uploaded:>20d uploaded:<30d`.',
             },
             args: [
                 {

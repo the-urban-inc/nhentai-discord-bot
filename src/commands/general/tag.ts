@@ -6,19 +6,74 @@ import { Blacklist } from '@models/tag';
 import { Sort } from '@api/nhentai';
 import { BLOCKED_MESSAGE } from '@utils/constants';
 
-const TAGS = ['tag', 'artist', 'character', 'parody', 'group', 'language'] as const;
+const TAGS = {
+    tag: {
+        description: 'Searches nhentai for specified tag.',
+        examples: [
+            ' stockings\nSearches for galleries that contains the tag `stockings` and displays the 1st result page as a list of thumbnails (sorted by upload date).',
+            ' big breasts --page=3\nSearches for galleries that contains the tag `big breasts` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
+            ' small breasts --sort=popular\nSearches for galleries that contains the tag `small breasts`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
+        ],
+    },
+    artist: {
+        description: 'Searches nhentai for specified artist.',
+        examples: [
+            ' hiten\nSearches for galleries from the artist `hiten` and displays the 1st result page as a list of thumbnails (sorted by upload date).',
+            ' napata --page=3\nSearches for galleries from the artist `napata` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
+            ' alp --sort=popular\nSearches for galleries from the artist `alp`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
+        ],
+    },
+    category: {
+        description: 'Searches nhentai for specified category.',
+        examples: [
+            ' non-h\nSearches for galleries from the category `non-h` and displays the 1st result page as a list of thumbnails (sorted by upload date).',
+            ' doujin --page=3\nSearches for galleries from the category `doujinshi` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
+            ' manga --sort=popular\nSearches for galleries from the category `manga`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
+        ],
+    },
+    character: {
+        description: 'Searches nhentai for specified character.',
+        examples: [
+            ' asuka langley soryu\nSearches for galleries that feature the character `asuka langley soryu` and displays the 1st result page as a list of thumbnails (sorted by upload date).',
+            ' reimu hakurei --page=3\nSearches for galleries that feature the character `reimu hakurei` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
+            ' patchouli knowledge --sort=popular\nSearches for galleries that feature the character `patchouli knowledge`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
+        ],
+    },
+    group: {
+        description: 'Searches nhentai for specified group.',
+        examples: [
+            ' crimson comics\nSearches for galleries from the group `crimson comics` and displays the 1st result page as a list of thumbnails (sorted by upload date).',
+            ' digital lover --page=3\nSearches for galleries from the group `digital lover` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
+            ' studio wallaby --sort=popular\nSearches for galleries from the group `studio wallaby`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
+        ],
+    },
+    language: {
+        description: 'Searches nhentai for specified language.',
+        examples: [
+            ' japanese\nSearches for galleries in `japanese` and displays the 1st result page as a list of thumbnails (sorted by upload date).',
+            ' english --page=3\nSearches for galleries in `english` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
+            ' chinese --sort=popular\nSearches for galleries in `chinese`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
+        ],
+    },
+    parody: {
+        description: 'Searches nhentai for specified parody.',
+        examples: [
+            ' original\nSearches for `original` galleries and displays the 1st result page as a list of thumbnails (sorted by upload date).',
+            ' touhou project --page=3\nSearches for galleries that are parodies of `touhou project` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
+            ' kantai collection --sort=popular\nSearches for galleries that are parodies of `kantai collection`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
+        ],
+    },
+};
 const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
 
 export default class extends Command {
     constructor() {
         super('tag', {
-            aliases: ['tag', 'artist', 'character', 'parody', 'group', 'language', 'category'],
-            areMultipleCommands: true,
-            channel: 'guild',
+            aliases: Object.keys(TAGS),
+            subAliases: TAGS,
             nsfw: true,
             description: {
-                content: 'Searches nhentai for specifed @',
-                usage: `[--page=pagenum] [--sort=(${SORT_METHODS.join('/')})]`,
+                usage: `<query> [--page=pagenum] [--sort=(${SORT_METHODS.join('/')})]`,
             },
             args: [
                 {
@@ -82,7 +137,7 @@ export default class extends Command {
         }: { text: string; page: string; sort: string; dontLogErr?: boolean }
     ) {
         try {
-            const tag = message.util.parsed.alias as typeof TAGS[number];
+            const tag = message.util.parsed.alias as keyof typeof TAGS;
 
             if (!text)
                 throw new TypeError(`${this.client.util.capitalize(tag)} name was not specified.`);

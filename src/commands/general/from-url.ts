@@ -6,7 +6,6 @@ import { Server } from '@models/server';
 export default class extends Command {
     constructor() {
         super('from-url', {
-            channel: 'guild',
             nsfw: true,
             isConditionalorRegexCommand: true,
         });
@@ -53,6 +52,7 @@ export default class extends Command {
                 '/group/',
                 '/parody/',
                 '/language/',
+                '/info/',
             ].some(path => (path === '/' ? url.pathname === path : url.pathname.startsWith(path)));
         } catch (err) {
             return false;
@@ -101,6 +101,9 @@ export default class extends Command {
             const command = this.client.commandHandler.findCommand('search');
             await command.before(message);
             await command.exec(message, { text: q, page, sort, dontLogErr });
+        } else if (cmd === 'info') {
+            const command = this.client.commandHandler.findCommand('info');
+            await command.exec(message, {});
         } else {
             message.util.parsed.alias = cmd;
             const command = this.client.commandHandler.findCommand(cmd);

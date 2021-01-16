@@ -8,12 +8,11 @@ export default class extends Command {
     constructor() {
         super('profile', {
             aliases: ['profile'],
-            channel: 'guild',
             description: {
                 content:
-                    "Views someone's profile.\nAdd --more to view favorite list, blacklist and recent calls (will not show up if the user has anonymous mode turned on).",
+                    "Shows your (or your buddy's) profile.\nAdd --more to view favorite list, blacklist and recent calls (will not show up if the user has anonymous mode turned on).",
                 usage: '[user]',
-                examples: ['', '@nhentai#7217'],
+                examples: ['\nShows your own profile.', ' @nhentai#7217\nShows nhentai\'s profile.'],
             },
             args: [
                 {

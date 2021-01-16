@@ -7,10 +7,11 @@ export default class extends Command {
     constructor() {
         super('recent', {
             aliases: ['recent'],
-            channel: 'guild',
             nsfw: true,
             description: {
-                content: "Stalking people's fetishes.",
+                content:
+                    'Shows recent nhentai-related command calls in this server.\nIf someone has anonymous mode on, his/her command calls will not be recorded.',
+                examples: ["\nStalking people's fetishes."],
             },
         });
     }

@@ -9,10 +9,10 @@ export default class extends Command {
     constructor() {
         super('reddit', {
             aliases: ['reddit'],
-            channel: 'guild',
             nsfw: true,
             description: {
-                content: 'Random post on r/nhentai.',
+                content: 'Shows random post on r/nhentai.',
+                examples: ['\nSauce?'],
             },
         });
     }

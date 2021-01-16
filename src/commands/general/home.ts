@@ -9,12 +9,15 @@ export default class extends Command {
     constructor() {
         super('home', {
             aliases: ['home', 'homepage'],
-            channel: 'guild',
             nsfw: true,
             description: {
-                content: 'nhentai homepage.',
+                content:
+                    "Shows nhentai homepage. Includes 'Popular Now' section for the first page.",
                 usage: '[--page=pagenum]',
-                examples: ['', '-p=3'],
+                examples: [
+                    '\nShows a list of galleries (thumbnails) in the homepage.',
+                    ' --page=3\nSame as above but for page 3.',
+                ],
             },
             args: [
                 {

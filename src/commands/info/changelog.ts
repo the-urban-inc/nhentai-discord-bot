@@ -11,9 +11,9 @@ export default class extends Command {
     constructor() {
         super('changelog', {
             aliases: ['changelog', 'updates', 'commits'],
-            channel: 'guild',
             description: {
-                content: "Responds with the bot's latest 10 commits.",
+                content: "Shows the bot's latest 5 commits.",
+                examples: ['\nNerdy stuffs.']
             },
         });
     }

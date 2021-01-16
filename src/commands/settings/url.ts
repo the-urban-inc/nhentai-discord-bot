@@ -7,10 +7,12 @@ export default class extends Command {
     constructor() {
         super('url', {
             aliases: ['url', 'toggle-url'],
-            channel: 'guild',
             userPermissions: REQUIRED_PERMISSIONS,
             description: {
-                content: 'Toggles url mode (can call g, tag, etc. with urls)',
+                content: 'Toggles url mode (allows calling g, tag, etc. with urls)',
+                examples: [
+                    '\nTry pasting a link from nhentai.net (not image link) and see what happens when url mode is on.',
+                ],
             },
         });
     }

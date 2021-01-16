@@ -5,10 +5,10 @@ export default class extends Command {
     constructor() {
         super('anonymous', {
             aliases: ['anonymous', 'incognito', 'hide', 'anon', 'toggle-anonymous', 'toggle-anon'],
-            channel: 'guild',
             description: {
                 content:
-                    "Toggles anonymity. Nhentai will not record your browsing history as well as your received EXP if it's on. It's turned on by default.",
+                    "Toggles anonymity. nhentai will not record your browsing history as well as your received EXP if it's on. It's turned on by default.",
+                examples: ['\nFun fact: This is the command with the most aliases.'],
             },
         });
     }
