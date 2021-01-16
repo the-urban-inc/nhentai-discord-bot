@@ -4,6 +4,34 @@ import { load } from 'cheerio';
 type Root = ReturnType<typeof load>;
 import qs from 'qs';
 
+export interface GalleryResult {
+    gallery: Gallery;
+    related?: Gallery[];
+    comments?: Comment[];
+}
+
+export interface HomeResult {
+    popular_now?: Gallery[];
+    result: Gallery[];
+    num_pages: number;
+    per_page: number;
+}
+
+export interface SearchResult {
+    result: Gallery[];
+    num_results: number;
+    num_pages: number;
+    per_page: number;
+}
+
+export interface TagResult {
+    tag_id: number;
+    result: Gallery[];
+    num_results: number;
+    num_pages: number;
+    per_page: number;
+}
+
 export class Client {
     public baseURL = 'https://nhentai.net';
     public baseImageURL = 'https://i.nhentai.net';
@@ -49,26 +77,21 @@ export class Client {
     }
 
     private async popularNow($: Root): Promise<Gallery[]> {
-        return Promise.all($('.index-popular .gallery')
-            .toArray()
-            .map(async (e, i) => {
-                const id = $(e)
-                    .find('.cover')
-                    ?.attr('href')
-                    ?.match(/(?<=\/g\/).+(?=\/)/);
-                if (!id || !id[0]) throw new Error('Invalid ID');
-                return (await this.g(parseInt(id[0], 10))).gallery;
-            }));
+        return Promise.all(
+            $('.index-popular .gallery')
+                .toArray()
+                .map(async (e, i) => {
+                    const id = $(e)
+                        .find('.cover')
+                        ?.attr('href')
+                        ?.match(/(?<=\/g\/).+(?=\/)/);
+                    if (!id || !id[0]) throw new Error('Invalid ID');
+                    return (await this.g(parseInt(id[0], 10))).gallery;
+                })
+        );
     }
 
-    public async g(
-        id: number,
-        more = false
-    ): Promise<{
-        gallery: Gallery;
-        related?: Gallery[];
-        comments?: Comment[];
-    }> {
+    public async g(id: number, more = false): Promise<GalleryResult> {
         const gallery = await this.fetch<Gallery>(`/api/gallery/${id}`).then(res => res.data);
         if (!more) return { gallery };
         const related = await this.fetch<Related>(`/api/gallery/${id}/related`).then(
@@ -80,13 +103,7 @@ export class Client {
         return { gallery, related: related.result, comments };
     }
 
-    public async random(
-        more = false
-    ): Promise<{
-        gallery: Gallery;
-        related?: Gallery[];
-        comments?: Comment[];
-    }> {
+    public async random(more = false): Promise<GalleryResult> {
         const id = await this.fetch(`/random`).then(
             res =>
                 +res.request.res.responseUrl.match(
@@ -97,7 +114,7 @@ export class Client {
         return await this.g(id, more);
     }
 
-    public async home(page?: number): Promise<Search & { popular_now?: Gallery[] }> {
+    public async home(page?: number): Promise<HomeResult> {
         const results = await this.fetch<Search>(`/api/galleries/all`, { page }).then(
             res => res.data
         );
@@ -115,11 +132,7 @@ export class Client {
         };
     }
 
-    public async search(
-        query: string,
-        page?: number,
-        sort?: Sort
-    ): Promise<Search & { num_results: number }> {
+    public async search(query: string, page?: number, sort?: Sort): Promise<SearchResult> {
         const num_results = await this.fetch(`/search/`, { q: query, page, sort }).then(
             async res => {
                 const $ = load(<string>res.data, {
@@ -145,11 +158,7 @@ export class Client {
         }).then(res => res.data);
     }
 
-    public async tag(
-        query: string,
-        page?: number,
-        sort?: Sort
-    ): Promise<Search & { tag_id: number; num_results: number }> {
+    public async tag(query: string, page?: number, sort?: Sort): Promise<TagResult> {
         const { id, num_results } = await this.fetch(`/tag/${query}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
@@ -164,11 +173,7 @@ export class Client {
         return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
     }
 
-    public async artist(
-        query: string,
-        page?: number,
-        sort?: Sort
-    ): Promise<Search & { tag_id: number; num_results: number }> {
+    public async artist(query: string, page?: number, sort?: Sort): Promise<TagResult> {
         const { id, num_results } = await this.fetch(`/artist/${query}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
@@ -183,11 +188,7 @@ export class Client {
         return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
     }
 
-    public async character(
-        query: string,
-        page?: number,
-        sort?: Sort
-    ): Promise<Search & { tag_id: number; num_results: number }> {
+    public async character(query: string, page?: number, sort?: Sort): Promise<TagResult> {
         const { id, num_results } = await this.fetch(`/character/${query}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
@@ -202,11 +203,7 @@ export class Client {
         return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
     }
 
-    public async group(
-        query: string,
-        page?: number,
-        sort?: Sort
-    ): Promise<Search & { tag_id: number; num_results: number }> {
+    public async group(query: string, page?: number, sort?: Sort): Promise<TagResult> {
         const { id, num_results } = await this.fetch(`/group/${query}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
@@ -221,11 +218,7 @@ export class Client {
         return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
     }
 
-    public async parody(
-        query: string,
-        page?: number,
-        sort?: Sort
-    ): Promise<Search & { tag_id: number; num_results: number }> {
+    public async parody(query: string, page?: number, sort?: Sort): Promise<TagResult> {
         const { id, num_results } = await this.fetch(`/parody/${query}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
@@ -240,11 +233,7 @@ export class Client {
         return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
     }
 
-    public async language(
-        query: string,
-        page?: number,
-        sort?: Sort
-    ): Promise<Search & { tag_id: number; num_results: number }> {
+    public async language(query: string, page?: number, sort?: Sort): Promise<TagResult> {
         const { id, num_results } = await this.fetch(`/language/${query}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
