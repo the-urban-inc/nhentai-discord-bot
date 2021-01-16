@@ -74,40 +74,51 @@ export default class extends Command {
             );
         }
         let tagsArray = tags.split(' ');
-        search(site, tagsArray, { limit: 3, random: true })
+        search(site, tagsArray, { limit: 25, random: true }) // 25 is more than enough for a page
             .then(async res => {
                 let dataPosts = res.posts;
-                if (!dataPosts.length)
+                if (!dataPosts.length) {
                     return message.channel.send(
                         this.client.embeds.clientError('No results found.')
                     );
-                dataPosts = dataPosts.filter(x => isUrl(x.fileUrl));
-                if (!dataPosts.length)
+                }
+                dataPosts = dataPosts.filter(x => this.client.util.isUrl(x.fileUrl));
+                if (!dataPosts.length) {
                     return message.channel.send(
                         this.client.embeds.clientError('No results found.')
                     );
-                let data = this.client.util.random(dataPosts);
-                const image = data.fileUrl,
-                    tags = data.tags,
-                    original = data.postView;
-                const embed = this.client.util
-                    .embed()
-                    .setDescription(
-                        `**Tags** : ${this.client.util.shorten(
-                            tags
-                                .map((x: string) => `\`${he.decode(x).replace(/_/g, ' ')}\``)
-                                .join('\u2000'),
-                            '\u2000'
-                        )}\n\n[Original post](${original})\u2000•\u2000[Click here if image failed to load](${image})`
-                    )
-                    .setImage(image);
-                return this.client.embeds
-                    .richDisplay({ image: true })
-                    .addPage(embed)
-                    .useCustomFooters()
-                    .run(this.client, message, await message.channel.send('Searching ...'), '', {
+                }
+                const display = this.client.embeds.richDisplay({ love: false }).useCustomFooters();
+                dataPosts.forEach((data, idx) => {
+                    const image = data.fileUrl,
+                        tags = data.tags,
+                        original = data.postView;
+                    display.addPage(
+                        this.client.util
+                            .embed()
+                            .setDescription(
+                                `**Tags** : ${this.client.util.shorten(
+                                    tags
+                                        .map(
+                                            (x: string) => `\`${he.decode(x).replace(/_/g, ' ')}\``
+                                        )
+                                        .join('\u2000'),
+                                    '\u2000'
+                                )}\n\n[Original post](${original})\u2000•\u2000[Click here if image failed to load](${image})`
+                            )
+                            .setImage(image)
+                            .setFooter(`Post ${idx + 1} of ${dataPosts.length}`)
+                    );
+                });
+                return display.run(
+                    this.client,
+                    message,
+                    await message.channel.send('Searching ...'),
+                    '',
+                    {
                         time: 180000,
-                    });
+                    }
+                );
             })
             .catch(err => {
                 this.client.logger.error(err);
