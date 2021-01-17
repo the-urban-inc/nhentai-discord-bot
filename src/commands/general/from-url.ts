@@ -34,7 +34,8 @@ export default class extends Command {
                 !message.content ||
                 message.content === '' ||
                 message.content === '.' ||
-                message.content.startsWith('?')
+                message.content.startsWith('?') ||
+                message.content.startsWith('#')
             )
                 return false;
             const url = new URL(
