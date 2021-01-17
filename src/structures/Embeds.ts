@@ -12,6 +12,11 @@ export class Embeds {
     constructor(client: Client) {
         this.client = client;
     }
+
+    default() {
+        return new MessageEmbed().setColor('#000000');
+    }
+
     richDisplay(options?: RichDisplayOptions) {
         return new RichDisplay(options);
     }
@@ -46,8 +51,7 @@ export class Embeds {
         const { tags, num_pages, upload_date } = gallery;
         const id = gallery.id.toString(),
             title = he.decode(gallery.title.english);
-        const info = this.client.util
-            .embed()
+        const info = this.default()
             .setAuthor(title, ICON, `https://nhentai.net/g/${id}`)
             .setFooter(`ID : ${id}`)
             .setTimestamp();
@@ -109,7 +113,7 @@ export class Embeds {
             this.client.nhentai
                 .getPages(gallery)
                 .forEach((page: string) =>
-                    displayGallery.addPage(this.client.util.embed().setImage(page).setTimestamp())
+                    displayGallery.addPage(this.default().setImage(page).setTimestamp())
                 );
             return { displayGallery, rip };
         } else {
@@ -147,8 +151,7 @@ export class Embeds {
             if (tags.some(tag => tag.id === 6346)) language = Language.Japanese;
             else if (tags.some(tag => tag.id === 12227)) language = Language.English;
             else if (tags.some(tag => tag.id === 29963)) language = Language.Chinese;
-            const thumb = this.client.util
-                .embed()
+            const thumb = this.default()
                 .setTitle(`${he.decode(title.english)}`)
                 .setURL(`https://nhentai.net/g/${id}`)
                 .setDescription(
@@ -217,8 +220,7 @@ export class Embeds {
             },
         ] of comments.entries()) {
             displayComments.addPage(
-                this.client.util
-                    .embed()
+                this.default()
                     .setAuthor(`${he.decode(username)}`, `https://i5.nhentai.net/${avatar_url}`)
                     .setDescription(body)
                     .setFooter(

@@ -23,8 +23,8 @@ export default class extends Command {
                 .get('https://reddit.com/r/nhentai/random.json')
                 .then(res => res.data[0]['data']['children'][0]['data']);
             if (!data) throw new Error('No results found.');
-            let embed = this.client.util
-                .embed()
+            let embed = this.client.embeds
+                .default()
                 .setAuthor(`${data['title']}`, ICON, `https://reddit.com${data['permalink']}`)
                 .setFooter(
                     `Author: ${data['author']}\u2000•\u2000Upvote ratio: ${

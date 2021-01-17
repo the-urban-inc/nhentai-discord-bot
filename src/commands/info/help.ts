@@ -61,8 +61,8 @@ export default class extends Command {
         const clientPermissions = command.clientPermissions as string[];
         const userPermissions = command.userPermissions as string[];
 
-        const embed = this.client.util
-            .embed()
+        const embed = this.client.embeds
+            .default()
             .setTitle(`${prefix}${id}`)
             .setDescription(`\`\`\`${content ?? 'No description specified.'}\`\`\``);
 
@@ -106,9 +106,8 @@ export default class extends Command {
         const prefix = this.client.config.settings.prefix.nsfw[0];
         const prefixList = this.client.commandHandler.splitPrefix.get(message.guild.id);
         const display = this.client.embeds.richDisplay({ love: false }).addPage(
-            this.client.util
-                .embed()
-                .setColor(0xffac33)
+            this.client.embeds
+                .default()
                 .setTitle('Command List')
                 .setDescription(
                     `Use \`${prefix}help [command]\` for more help. E.g: \`${prefix}help g\`.\nCommands with the \`🔞\` icon are NSFW commands and can only be used in NSFW channels with NSFW prefix(es) (${prefixList.nsfw.join(
@@ -143,7 +142,7 @@ export default class extends Command {
                     : (commands.filter(
                           (c: Command) => !c.ownerOnly && !c.isConditionalorRegexCommand
                       ) as Category<string, Command>);
-            const embed = this.client.util.embed().setTitle(title);
+            const embed = this.client.embeds.default().setTitle(title);
             let cmds: string[] = [];
             publicCommands
                 .sort((a: Command, b: Command) =>

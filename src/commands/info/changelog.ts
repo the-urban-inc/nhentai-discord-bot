@@ -13,7 +13,7 @@ export default class extends Command {
             aliases: ['changelog', 'updates', 'commits'],
             description: {
                 content: "Shows the bot's latest 5 commits.",
-                examples: ['\nNerdy stuffs.']
+                examples: ['\nNerdy stuffs.'],
             },
         });
     }
@@ -29,8 +29,8 @@ export default class extends Command {
             owner,
             per_page: 5,
         });
-        const embed = this.client.util
-            .embed()
+        const embed = this.client.embeds
+            .default()
             .setTitle(`[${repo}:master] Latest ${data.length} commit(s)`)
             .setURL(`https://github.com/${owner}/${repo}/commits/master`)
             .setDescription(

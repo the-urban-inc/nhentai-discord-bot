@@ -9,8 +9,9 @@ export default class extends Command {
         super('about', {
             aliases: ['about', 'stats'],
             description: {
-                content: 'Shows detailed bot information. Currently, the number of users is incorrect.',
-                examples: ['\nAbout me!']
+                content:
+                    'Shows detailed bot information. Currently, the number of users is incorrect.',
+                examples: ['\nAbout me!'],
             },
         });
     }
@@ -20,8 +21,8 @@ export default class extends Command {
             .split('/')
             .filter(a => a)
             .reverse();
-        const embed = this.client.util
-            .embed()
+        const embed = this.client.embeds
+            .default()
             .setThumbnail(this.client.user.displayAvatarURL())
             .setTitle(`Hey ${message.author.username}, I'm ${this.client.user.tag}!`)
             .setDescription(this.client.config.description)
@@ -46,7 +47,10 @@ export default class extends Command {
                 `• **Node.js** : ${process.version}`,
                 `• **Discord.js** : v${DiscordVersion}`,
                 `• **Akairo** : v${AkairoVersion}`,
-                `• **Github** : [Click here](https://github.com/${owner}/${repo.replace('.git', '')})`,
+                `• **Github** : [Click here](https://github.com/${owner}/${repo.replace(
+                    '.git',
+                    ''
+                )})`,
             ]);
         return message.channel.send({ embed });
     }

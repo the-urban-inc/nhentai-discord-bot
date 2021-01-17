@@ -9,7 +9,7 @@ export default class extends Command {
             nsfw: true,
             description: {
                 content: 'Shows your own follow list.',
-                examples: ['\nShows your own follow list.']
+                examples: ['\nShows your own follow list.'],
             },
         });
     }
@@ -23,8 +23,8 @@ export default class extends Command {
             } else {
                 if (!tags.length)
                     return message.channel.send(this.client.embeds.info('Follow list not found.'));
-                let embed = this.client.util
-                    .embed()
+                let embed = this.client.embeds
+                    .default()
                     .setAuthor(`${member.tag}'s Follow List`, member.displayAvatarURL());
                 let t = new Map<string, string[]>();
                 tags.forEach(tag => {

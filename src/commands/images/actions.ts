@@ -13,7 +13,7 @@ const ACTIONS = {
     slap: {
         description: 'Slap a person or get slapped.',
         examples: [
-            '\n*slap\* ...',
+            '\n*slap* ...',
             ' @nhentai#7217\nSlap nhentai!',
             ' 663743798722953258\nAlso works with user ID!',
         ],
@@ -45,7 +45,7 @@ const ACTIONS = {
     hug: {
         description: 'Hug a person or get a hug.',
         examples: [
-            '\n*squeeze\* ...',
+            '\n*squeeze* ...',
             ' @nhentai#7217\nHug nhentai.',
             ' 663743798722953258\nAlso works with user ID!',
         ],
@@ -61,7 +61,7 @@ const ACTIONS = {
     cuddle: {
         description: 'Cuddle a person or get a cuddle.',
         examples: [
-            '\n*squeeze\* ...',
+            '\n*squeeze* ...',
             ' @nhentai#7217\nCuddle nhentai.',
             ' 663743798722953258\nAlso works with user ID!',
         ],
@@ -109,8 +109,8 @@ export default class extends Command {
                 );
             }
             const image = (await this.client.nekoslife.sfw[method]()).url;
-            const embed = this.client.util
-                .embed()
+            const embed = this.client.embeds
+                .default()
                 .setTitle(
                     user === message.author
                         ? `You just got ${ACTIONS_PAST_TENSE[method]}!`

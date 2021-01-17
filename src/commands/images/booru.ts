@@ -11,7 +11,8 @@ const SITES = {
             ' mammal\nShows a post with tag `mammal`.',
             '\nThis will show a random post with any tag.',
         ],
-        additionalInfo: 'Mission: To archive the best/strangest/most excellent animal/anthro-related artwork, **regardless of content**, for all those who wish to view it.'
+        additionalInfo:
+            'Mission: To archive the best/strangest/most excellent animal/anthro-related artwork, **regardless of content**, for all those who wish to view it.',
     },
     e926: {
         aliases: ['e9'],
@@ -20,7 +21,8 @@ const SITES = {
             ' mammal\nShows a post with tag `mammal`.',
             '\nThis will show a random post with any tag.',
         ],
-        additionalInfo: 'Mission: To archive the best/strangest/most excellent animal/anthro-related artwork, **regardless of content**, for all those who wish to view it.'
+        additionalInfo:
+            'Mission: To archive the best/strangest/most excellent animal/anthro-related artwork, **regardless of content**, for all those who wish to view it.',
     },
     hypnohub: {
         aliases: ['hypno', 'hh'],
@@ -37,7 +39,8 @@ const SITES = {
             ' 1girl\nShows a post with tag `1girl`.',
             '\nThis will show a random post with any tag.',
         ],
-        additionalInfo: 'Danbooru [dahn-boh-ruh] (noun):\n1. (_on donmai.us_) A repository of high-quality anime-style art and doujinshi.\n2. A taggable imageboard, with sophisticated features for keeping, organizing and finding pictures.\n3. (_Japanese_) Corrugated cardboard box.'
+        additionalInfo:
+            'Danbooru [dahn-boh-ruh] (noun):\n1. (_on donmai.us_) A repository of high-quality anime-style art and doujinshi.\n2. A taggable imageboard, with sophisticated features for keeping, organizing and finding pictures.\n3. (_Japanese_) Corrugated cardboard box.',
     },
     konac: {
         aliases: ['kcom', 'kc'],
@@ -73,13 +76,12 @@ const SITES = {
     },
     rule34: {
         aliases: ['r34'],
-        description:
-            'Shows a random post with given tag from rule34.xxx.',
+        description: 'Shows a random post with given tag from rule34.xxx.',
         examples: [
             ' female\nShows a post with tag `female`.',
             '\nThis will show a random post with any tag.',
         ],
-        additionalInfo: 'Rule#34 : If it exists there is porn of it. If not, start uploading.'
+        additionalInfo: 'Rule#34 : If it exists there is porn of it. If not, start uploading.',
     },
     safebooru: {
         aliases: ['safe', 'sb'],
@@ -88,17 +90,17 @@ const SITES = {
             ' 1girl\nShows a post with tag `1girl`.',
             '\nThis will show a random post with any tag.',
         ],
-        additionalInfo: 'Safebooru: An offspring of Gelbooru hosted by a different person but running the same software. Safebooru has been created after danbooru dropped the project.'
+        additionalInfo:
+            'Safebooru: An offspring of Gelbooru hosted by a different person but running the same software. Safebooru has been created after danbooru dropped the project.',
     },
     tbib: {
         aliases: ['tb', 'big'],
-        description:
-            'Shows a random post with given tag from tbib.org.',
+        description: 'Shows a random post with given tag from tbib.org.',
         examples: [
             ' 1girl\nShows a post with tag `1girl`.',
             '\nThis will show a random post with any tag.',
         ],
-        additionalInfo: 'TBIB: Stands for The Big Image Board.'
+        additionalInfo: 'TBIB: Stands for The Big Image Board.',
     },
     xbooru: {
         aliases: ['xb'],
@@ -107,17 +109,16 @@ const SITES = {
             ' 1girl\nShows a post with tag `1girl`.',
             '\nThis will show a random post with any tag.',
         ],
-        additionalInfo: 'X marks the spot.'
+        additionalInfo: 'X marks the spot.',
     },
     paheal: {
         aliases: ['pa'],
-        description:
-            'Shows a random post with given tag from rule34.paheal.net.',
+        description: 'Shows a random post with given tag from rule34.paheal.net.',
         examples: [
             ' Porkyman\nShows a post with tag `Porkyman`.',
             '\nThis will show a random post with any tag.',
         ],
-        additionalInfo: 'Currently broken.'
+        additionalInfo: 'Currently broken.',
     },
     derpibooru: {
         aliases: ['derpi', 'dp', 'derp'],
@@ -126,7 +127,8 @@ const SITES = {
             ' safe\nShows a post with tag `safe`.',
             '\nThis will show a random post with any tag.',
         ],
-        additionalInfo: 'Derpibooru: An image repository which lets people bring together art from all over the internet, annotate the images with tags and an original source URL for easy searching, and discuss the artwork.'
+        additionalInfo:
+            'Derpibooru: An image repository which lets people bring together art from all over the internet, annotate the images with tags and an original source URL for easy searching, and discuss the artwork.',
     },
 };
 
@@ -181,8 +183,8 @@ export default class extends Command {
                         tags = data.tags,
                         original = data.postView;
                     display.addPage(
-                        this.client.util
-                            .embed()
+                        this.client.embeds
+                            .default()
                             .setDescription(
                                 `**Tags** : ${this.client.util.shorten(
                                     tags

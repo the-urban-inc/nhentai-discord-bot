@@ -133,8 +133,8 @@ export default class extends Command {
             if (!image) {
                 throw new Error();
             }
-            const embed = this.client.util
-                .embed()
+            const embed = this.client.embeds
+                .default()
                 .setDescription(`[Click here if image failed to load](${image})`)
                 .setImage(image);
             return this.client.embeds

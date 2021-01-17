@@ -15,8 +15,8 @@ export default class extends Command {
 
     exec(message: Message) {
         return message.channel.send(
-            this.client.util
-                .embed()
+            this.client.embeds
+                .default()
                 .addField(
                     'Features',
                     '• No, we are not going to add a forum, ever. Fuck forums.\n' +

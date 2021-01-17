@@ -9,7 +9,7 @@ export default class extends Command {
             nsfw: true,
             description: {
                 content: 'Shows your own blacklist.',
-                examples: ['\nEverybody has stuffs they dislike.']
+                examples: ['\nEverybody has stuffs they dislike.'],
             },
         });
     }
@@ -25,8 +25,8 @@ export default class extends Command {
             } else {
                 if (!user.blacklists.length)
                     return message.channel.send(this.client.embeds.info('Blacklist not found.'));
-                let embed = this.client.util
-                    .embed()
+                let embed = this.client.embeds
+                    .default()
                     .setAuthor(`${member.tag}'s Blacklist`, member.displayAvatarURL());
                 let t = new Map<string, string[]>();
                 user.blacklists.forEach(tag => {

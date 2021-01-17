@@ -12,7 +12,7 @@ export default class extends Command {
                 content:
                     "Shows your (or your buddy's) profile.\nAdd --more to view favorite list, blacklist and recent calls (will not show up if the user has anonymous mode turned on).",
                 usage: '[user]',
-                examples: ['\nShows your own profile.', ' @nhentai#7217\nShows nhentai\'s profile.'],
+                examples: ['\nShows your own profile.', " @nhentai#7217\nShows nhentai's profile."],
             },
             args: [
                 {
@@ -43,8 +43,8 @@ export default class extends Command {
                 const progress = Math.floor((exp / next) * 100);
                 const totalBar = '░░░░░░░░░░░░░░░░';
                 const progressBar = '▒'; // ░░░░░
-                const embed = this.client.util
-                    .embed()
+                const embed = this.client.embeds
+                    .default()
                     .setAuthor(`nhentai profile`, ICON, 'https://nhentai.net')
                     .setTitle(`${member.displayName} [${member.user.tag}]`)
                     .setColor(member.displayHexColor)
@@ -63,8 +63,8 @@ export default class extends Command {
 
                     if (user.favorites.length) {
                         display.addPage(
-                            this.client.util
-                                .embed()
+                            this.client.embeds
+                                .default()
                                 .setTitle('Favorites')
                                 .setThumbnail(member.user.displayAvatarURL())
                                 .setDescription(user.favorites.map(x => `• ${x}`).join('\n'))
@@ -72,8 +72,8 @@ export default class extends Command {
                     }
 
                     if (user.history.length && !user.anonymous) {
-                        let embed = this.client.util
-                            .embed()
+                        let embed = this.client.embeds
+                            .default()
                             .setTitle('Recent calls')
                             .setThumbnail(member.user.displayAvatarURL());
                         let history = user.history.reverse().slice(0, 10);

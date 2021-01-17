@@ -8,7 +8,7 @@ export default class extends Command {
             aliases: ['leaderboard', 'top'],
             description: {
                 content: "Shows server's leaderboard.",
-                examples: ['\nHow come you ranked higher than me???']
+                examples: ['\nHow come you ranked higher than me???'],
             },
         });
     }
@@ -25,16 +25,16 @@ export default class extends Command {
             const pos = pervs.findIndex(x => x.id == message.author.id);
             if (!pervs.length)
                 return message.channel.send(
-                    this.client.util
-                        .embed()
+                    this.client.embeds
+                        .default()
                         .setTitle(`${message.guild.name}'s leaderboard`)
                         .setThumbnail(message.guild.iconURL())
                         .setDescription('Looks like nobody has any points. *cricket noises')
                 );
             const list = this.client.embeds
                 .richMenu({
-                    template: this.client.util
-                        .embed()
+                    template: this.client.embeds
+                        .default()
                         .setTitle(`${message.guild.name}'s leaderboard`)
                         .setThumbnail(message.guild.iconURL())
                         .setFooter(

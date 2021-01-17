@@ -92,8 +92,8 @@ export default class extends Command {
                 );
             }
             const list = this.client.embeds.richMenu({
-                template: this.client.util
-                    .embed()
+                template: this.client.embeds
+                    .default()
                     .setTitle('Custom Prefix List')
                     .setDescription(
                         `You can still use the default prefix ${this.client.config.settings.prefix[nsfw]}.`

@@ -20,8 +20,7 @@ const IMAGES = {
     blowjob: {
         description: 'Shows a random NSFW blowjob picture.\nImages from nekos.life.',
         examples: ['\nS U C C.'],
-        additionalInfo:
-            '[Blowjob Guide](https://www.urbandictionary.com/define.php?term=blowjob)',
+        additionalInfo: '[Blowjob Guide](https://www.urbandictionary.com/define.php?term=blowjob)',
     },
     boobs: {
         description: 'Shows a random NSFW boobs picture.\nImages from nekos.life or nekobot.xyz.',
@@ -214,8 +213,8 @@ export default class extends Command {
             if (!image) {
                 throw new Error();
             }
-            const embed = this.client.util
-                .embed()
+            const embed = this.client.embeds
+                .default()
                 .setDescription(`[Click here if image failed to load](${image})`)
                 .setImage(image);
             return this.client.embeds

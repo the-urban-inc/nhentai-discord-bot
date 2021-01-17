@@ -5,7 +5,6 @@ import { Server } from '@models/server';
 import { Blacklist } from '@models/tag';
 import { Sort } from '@api/nhentai';
 import { BLOCKED_MESSAGE } from '@utils/constants';
-import config from '@config';
 const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
 
 export default class extends Command {
