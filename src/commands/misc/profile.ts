@@ -87,10 +87,11 @@ export default class extends Command {
                     return display.run(
                         this.client,
                         message,
-                        await message.channel.send('Loading ...')
+                        message, // await message.channel.send('Loading ...')
+                        `> **Viewing profile • [** ${message.author.tag} **]**`
                     );
                 }
-                return message.channel.send(embed);
+                return message.channel.send(`> **Viewing profile • [** ${message.author.tag} **]**`, embed);
             }
         } catch (err) {
             this.client.logger.error(err);

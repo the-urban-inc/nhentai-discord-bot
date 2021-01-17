@@ -202,8 +202,8 @@ export default class extends Command {
                 return display.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching ...'),
-                    '',
+                    message, // await message.channel.send('Searching ...'),
+                    `> **Searching for posts • [** ${message.author.tag} **]**`,
                     {
                         time: 180000,
                     }

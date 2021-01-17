@@ -80,7 +80,7 @@ export default class extends Command {
                     this.client,
                     message,
                     await msg.edit('Done.'),
-                    'Galleries are sorted by date added',
+                    `> **Galleries are sorted by date added • [** ${message.author.tag} **]**`,
                     {
                         idle: 300000,
                     }
@@ -91,7 +91,11 @@ export default class extends Command {
                         .richDisplay({ image: true, removeRequest: false })
                         .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
                         .useCustomFooters()
-                        .run(this.client, message, await message.channel.send('Loading ...'));
+                        .run(
+                            this.client,
+                            message,
+                            message // await message.channel.send('Loading ...')
+                        );
                 }
             }
         } catch (err) {

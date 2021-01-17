@@ -81,8 +81,8 @@ export default class extends Command {
                 await displayPopular.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching ...'),
-                    '`🔥` **Popular Now**',
+                    message, // await message.channel.send('Searching ...'),
+                    '> `🔥` **Popular Now**',
                     {
                         idle: 300000,
                         danger: this.danger,
@@ -104,8 +104,8 @@ export default class extends Command {
             displayNew.run(
                 this.client,
                 message,
-                await message.channel.send('Searching ...'),
-                pageNum === 1 ? '`🧻` **New Uploads**' : '',
+                message, // await message.channel.send('Searching ...'),
+                pageNum === 1 ? '> `🧻` **New Uploads**' : '',
                 {
                     idle: 300000,
                     danger: this.danger,
@@ -117,9 +117,15 @@ export default class extends Command {
                     .richDisplay({ image: true, removeRequest: false })
                     .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
                     .useCustomFooters()
-                    .run(this.client, message, await message.channel.send('Loading ...'), '', {
-                        time: 300000,
-                    });
+                    .run(
+                        this.client,
+                        message,
+                        message, // await message.channel.send('Loading ...'),
+                        '',
+                        {
+                            time: 300000,
+                        }
+                    );
             }
         } catch (err) {
             if (dontLogErr) return;

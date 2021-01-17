@@ -94,20 +94,20 @@ export class RichDisplay {
         if (this.options.removeRequest !== false) this.options.removeRequest = true;
         let msg: Message;
         if (message.editable) {
-            await message.edit(editMessage, {
-                embed:
-                    !isNaN(options.startPage) && options.startPage > 0
-                        ? this.pages[options.startPage].embed
-                        : this.infoPage ?? this.pages[0].embed,
-            });
+            await message.edit(
+                editMessage,
+                !isNaN(options.startPage) && options.startPage > 0
+                    ? this.pages[options.startPage].embed
+                    : this.infoPage ?? this.pages[0].embed
+            );
             msg = message;
         } else {
-            msg = await message.channel.send(editMessage, {
-                embed:
-                    !isNaN(options.startPage) && options.startPage > 0
-                        ? this.pages[options.startPage].embed
-                        : this.infoPage ?? this.pages[0].embed,
-            });
+            msg = await message.channel.send(
+                editMessage,
+                !isNaN(options.startPage) && options.startPage > 0
+                    ? this.pages[options.startPage].embed
+                    : this.infoPage ?? this.pages[0].embed
+            );
         }
 
         return new ReactionHandler(client, requestMessage, msg, options, this, this._emojis);

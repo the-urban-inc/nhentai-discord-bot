@@ -124,8 +124,8 @@ export default class extends Command {
             await displaySearch.run(
                 this.client,
                 message,
-                await message.channel.send('Searching ...'),
-                '',
+                message, // await message.channel.send('Searching ...'),
+                `> **Searching for galleries • [** ${message.author.tag} **]**`,
                 {
                     idle: 300000,
                     danger: this.danger,
@@ -137,9 +137,15 @@ export default class extends Command {
                     .richDisplay({ image: true, removeRequest: false })
                     .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
                     .useCustomFooters()
-                    .run(this.client, message, await message.channel.send('Loading ...'), '', {
-                        time: 300000,
-                    });
+                    .run(
+                        this.client,
+                        message,
+                        message, // await message.channel.send('Loading ...'),
+                        '',
+                        {
+                            time: 300000,
+                        }
+                    );
             }
         } catch (err) {
             if (dontLogErr) return;

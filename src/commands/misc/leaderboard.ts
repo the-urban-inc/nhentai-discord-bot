@@ -58,8 +58,8 @@ export default class extends Command {
             return list.run(
                 this.client,
                 message,
-                await message.channel.send('Loading leaderboard ...'),
-                '',
+                message, // await message.channel.send('Loading leaderboard ...'),
+                `> **Viewing server rankings • [** ${message.author.tag} **]**`,
                 {
                     time: 180000,
                 }

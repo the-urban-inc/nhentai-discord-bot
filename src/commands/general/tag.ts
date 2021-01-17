@@ -186,20 +186,30 @@ export default class extends Command {
                 }
             );
             if (rip) this.warning = true;
-            await displayList
-                .setInfo({ id, type: tag, name })
-                .run(this.client, message, await message.channel.send('Searching ...'), '', {
+            await displayList.setInfo({ id, type: tag, name }).run(
+                this.client,
+                message,
+                message, // await message.channel.send('Searching ...'),
+                `> **Searching for ${tag} • [** ${message.author.tag} **]**`,
+                {
                     idle: 300000,
                     danger: this.danger,
-                });
+                }
+            );
             if (!this.danger && this.warning) {
                 return this.client.embeds
                     .richDisplay({ image: true, removeRequest: false })
                     .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
                     .useCustomFooters()
-                    .run(this.client, message, await message.channel.send('Loading ...'), '', {
-                        time: 300000,
-                    });
+                    .run(
+                        this.client,
+                        message,
+                        message, // await message.channel.send('Loading ...'),
+                        '',
+                        {
+                            time: 300000,
+                        }
+                    );
             }
         } catch (err) {
             if (dontLogErr) return;

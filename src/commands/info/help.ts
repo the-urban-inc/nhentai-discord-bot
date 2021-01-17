@@ -173,7 +173,7 @@ export default class extends Command {
         return display.run(
             this.client,
             message,
-            await message.channel.send('Loading command list...'),
+            message, // await message.channel.send('Loading command list...'),
             '',
             {
                 time: 180000,

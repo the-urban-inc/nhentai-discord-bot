@@ -80,14 +80,15 @@ export default class extends Command {
                 await displayGallery.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching ...'),
-                    ''
+                    message, // await message.channel.send('Searching ...'),
+                    `> **Searching for random gallery • [** ${message.author.tag} **]**`
                 );
             } else {
                 await displayGallery.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching ...')
+                    message, // await message.channel.send('Searching ...')
+                    `> **Searching for random gallery • [** ${message.author.tag} **]**`
                 );
             }
 
@@ -103,8 +104,8 @@ export default class extends Command {
                 await displayRelated.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching ...'),
-                    '**More Like This**'
+                    message, // await message.channel.send('Searching ...'),
+                    '> **More Like This**'
                 );
 
                 if (!comments.length) return;
@@ -112,8 +113,8 @@ export default class extends Command {
                 await displayComments.run(
                     this.client,
                     message,
-                    await message.channel.send('Searching ...'),
-                    '`💬` **Comments**'
+                    message, // await message.channel.send('Searching ...'),
+                    '> `💬` **Comments**'
                 );
             }
 
@@ -122,7 +123,11 @@ export default class extends Command {
                     .richDisplay({ image: true, removeRequest: false })
                     .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
                     .useCustomFooters()
-                    .run(this.client, message, await message.channel.send('Loading ...'));
+                    .run(
+                        this.client,
+                        message,
+                        message // await message.channel.send('Loading ...')
+                    );
             }
         } catch (err) {
             if (dontLogErr) return;

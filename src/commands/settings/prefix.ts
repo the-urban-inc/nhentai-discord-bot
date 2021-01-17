@@ -109,7 +109,11 @@ export default class extends Command {
                     }\u2000•\u2000**Date added** : ${new Date(pfx.date).toUTCString()}`
                 );
             });
-            return list.run(this.client, message, await message.channel.send('Fetching list...'));
+            return list.run(
+                this.client,
+                message,
+                message // await message.channel.send('Fetching list...')
+            );
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));

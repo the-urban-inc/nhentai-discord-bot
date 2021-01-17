@@ -37,9 +37,15 @@ export default class extends Command {
                 .richDisplay({ image: true })
                 .addPage(embed)
                 .useCustomFooters()
-                .run(this.client, message, await message.channel.send('Searching ...'), '', {
-                    time: 180000,
-                });
+                .run(
+                    this.client,
+                    message,
+                    message, // await message.channel.send('Searching ...'),
+                    '',
+                    {
+                        time: 180000,
+                    }
+                );
         } catch (err) {
             this.client.logger.error(err);
             return message.channel.send(this.client.embeds.internalError(err));
