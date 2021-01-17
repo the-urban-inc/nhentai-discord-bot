@@ -1,4 +1,4 @@
-import { Command } from '@structures/Command';
+import { Command } from '@structures';
 import { Message } from 'discord.js';
 import moment from 'moment';
 import { Server } from '@models/server';

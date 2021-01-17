@@ -1,4 +1,4 @@
-import { Inhibitor } from '@structures/Inhibitor';
+import { Inhibitor } from '@structures';
 import { Message } from 'discord.js';
 
 export default class extends Inhibitor {

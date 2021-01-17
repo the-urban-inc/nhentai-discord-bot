@@ -2,7 +2,7 @@ import interval from 'set-interval';
 import { EventEmitter } from 'events';
 import { check } from './check';
 import { dispatch } from './dispatch';
-import { Logger } from '@structures/Logger';
+import { Logger } from '@structures';
 const log = new Logger();
 import { Client } from '@api/nhentai';
 const nh = new Client();

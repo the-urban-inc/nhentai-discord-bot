@@ -1,4 +1,4 @@
-import { Command } from '@structures/Command';
+import { Command } from '@structures';
 import { CommandHandler, InhibitorHandler, ListenerHandler } from 'discord-akairo';
 import { Message } from 'discord.js';
 

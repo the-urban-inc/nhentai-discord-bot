@@ -1,4 +1,4 @@
-import { Command } from '@structures/Command';
+import { Command } from '@structures';
 import { Message } from 'discord.js';
 import { Octokit } from '@octokit/rest';
 const { npm_package_repository_url, npm_package_version } = process.env;

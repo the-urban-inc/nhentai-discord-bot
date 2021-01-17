@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import { Logger } from '@structures/Logger';
-const log = new Logger();
+import { Logger } from '@structures';
 
 export async function init() {
+    const log = new Logger();
     mongoose.connect(process.env.MONGODB_URI, {
         useNewUrlParser: true,
         autoIndex: true,

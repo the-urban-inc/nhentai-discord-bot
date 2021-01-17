@@ -1,4 +1,4 @@
-import { Command } from '@structures/Command';
+import { Command } from '@structures';
 import { Message, User } from 'discord.js';
 
 const ACTIONS = {

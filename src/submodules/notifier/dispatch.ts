@@ -4,8 +4,7 @@ import moment from 'moment';
 import { WatchModel } from './db/models/record';
 import type { check } from './check';
 import { ICON } from '@utils/constants';
-import { Client } from '@structures/Client';
-import { Logger } from '@structures/Logger';
+import { Client, Logger } from '@structures';
 const log = new Logger();
 
 type ThenArg<T> = T extends PromiseLike<infer U> ? U : T;

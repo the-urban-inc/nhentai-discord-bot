@@ -1,4 +1,4 @@
-import { Logger } from '@structures/Logger';
+import { Logger } from '@structures';
 import { Client, Gallery } from '@api/nhentai';
 const log = new Logger();
 const nh = new Client();

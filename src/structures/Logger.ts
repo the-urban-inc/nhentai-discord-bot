@@ -58,10 +58,7 @@ export class Logger {
         });
     }
 
-    writeToConsole(
-        content: string,
-        options: { color: Color; tag: string; error?: boolean }
-    ) {
+    writeToConsole(content: string, options: { color: Color; tag: string; error?: boolean }) {
         const { color = Color.GREY, tag = 'Log', error = false } = options;
         const timestamp = chalk.cyan(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]:`);
         const levelTag = chalk.bold(`[${tag}]:`);

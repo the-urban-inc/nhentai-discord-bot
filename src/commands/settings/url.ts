@@ -1,4 +1,4 @@
-import { Command } from '@structures/Command';
+import { Command } from '@structures';
 import { Message } from 'discord.js';
 
 const REQUIRED_PERMISSIONS = ['MANAGE_GUILD'] as const;

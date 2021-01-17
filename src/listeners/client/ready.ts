@@ -1,4 +1,4 @@
-import { Listener } from '@structures/Listener';
+import { Listener } from '@structures';
 
 export default class extends Listener {
     constructor() {

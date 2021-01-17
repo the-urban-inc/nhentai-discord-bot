@@ -1,4 +1,4 @@
-import { Command, Inhibitor } from '@structures/index';
+import { Command, Inhibitor } from '@structures';
 import { Message, DMChannel } from 'discord.js';
 
 export default class extends Inhibitor {

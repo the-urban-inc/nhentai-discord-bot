@@ -7,7 +7,7 @@ import { Message, ReactionCollector, ReactionCollectorOptions, User } from 'disc
 import { Cache } from './Cache';
 import { RichDisplay } from './RichDisplay';
 import { RichMenu } from './RichMenu';
-import { Client } from '@structures/Client';
+import { Client } from '@structures';
 
 export interface ReactionHandlerOptions extends ReactionCollectorOptions {
     stop?: boolean;

@@ -6,7 +6,7 @@ import { connectToDatabase } from './db';
 import { WatchRecord, IWatchRecord } from './db/models/record';
 import Watcher from './watcher';
 import { Queue } from 'queue-ts';
-import { Logger } from '@structures/Logger';
+import { Logger } from '@structures';
 const logger = new Logger();
 
 const connection = connectToDatabase();

@@ -1,4 +1,4 @@
-import { Inhibitor } from '@structures/Inhibitor';
+import { Inhibitor } from '@structures';
 import { Message, TextChannel, DMChannel, PermissionResolvable } from 'discord.js';
 import { PERMISSIONS } from '@utils/constants';
 

@@ -21,7 +21,7 @@
             "@utils/*": ["src/utils/*"],
             "@database/*": ["src/database/*"],
             "@models/*": ["src/database/models/*"],
-            "@structures/*": ["src/structures/*"],
+            "@structures": ["src/structures/index.ts"],
             "@api/*": ["src/api/*"],
             "@config": ["config.json"]
         },

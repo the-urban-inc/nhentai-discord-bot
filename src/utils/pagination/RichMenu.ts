@@ -7,7 +7,7 @@ import { Message } from 'discord.js';
 import { Cache } from './Cache';
 import { ReactionMethods, ReactionHandler, ReactionHandlerOptions } from './ReactionHandler';
 import { RichDisplay, RichDisplayOptions } from './RichDisplay';
-import { Client } from '@structures/Client';
+import { Client } from '@structures';
 
 const choiceMethods = [
     ReactionMethods.One,

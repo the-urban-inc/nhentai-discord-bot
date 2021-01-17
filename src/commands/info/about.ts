@@ -1,4 +1,4 @@
-import { Command } from '@structures/Command';
+import { Command } from '@structures';
 import { Message, version as DiscordVersion } from 'discord.js';
 import { version as AkairoVersion } from 'discord-akairo';
 import { PERMISSIONS } from '@utils/constants';

@@ -6,7 +6,7 @@
 import { Message, MessageEmbed as Embed } from 'discord.js';
 import { Cache } from './Cache';
 import { ReactionMethods, ReactionHandlerOptions, ReactionHandler } from './ReactionHandler';
-import { Client } from '@structures/Client';
+import { Client } from '@structures';
 import { Blacklist } from '@models/tag';
 import { Gallery } from '@api/nhentai';
 

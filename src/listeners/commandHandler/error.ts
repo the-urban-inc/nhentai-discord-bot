@@ -1,4 +1,4 @@
-import { Listener } from '@structures/Listener';
+import { Listener } from '@structures';
 import { Message, TextChannel } from 'discord.js';
 
 export default class extends Listener {

@@ -1,6 +1,6 @@
 import { createConnection } from 'mongoose';
 import chalk from 'chalk';
-import { Logger } from '@structures/Logger';
+import { Logger } from '@structures';
 const log = new Logger();
 
 export function connectToDatabase() {

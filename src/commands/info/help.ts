@@ -1,4 +1,4 @@
-import { Command } from '@structures/Command';
+import { Command } from '@structures';
 import { Argument, Category } from 'discord-akairo';
 import { Message } from 'discord.js';
 
