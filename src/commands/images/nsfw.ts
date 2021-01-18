@@ -1,6 +1,8 @@
 import { Command } from '@structures';
 import { Message } from 'discord.js';
 import axios from 'axios';
+import config from '@config';
+const PREFIX = config.settings.prefix.nsfw[0];
 
 const IMAGES = {
     anal: {
@@ -171,17 +173,19 @@ export default class extends Command {
         super('nsfw-image', {
             aliases: [...new Set(Object.keys(NL_IMAGES).concat(Object.keys(NB_IMAGES)))],
             subAliases: IMAGES,
-            channel: 'guild',
             nsfw: true,
+            error: {
+                'No Result': {
+                    message: 'Failed to fetch image!',
+                    example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
+                },
+            },
         });
     }
 
     async exec(message: Message) {
         try {
             const method = message.util?.parsed?.alias;
-            if (!method) {
-                throw new Error('Unknown Category');
-            }
             let image = null;
             if (Object.keys(NL_IMAGES).includes(method)) {
                 image = (
@@ -195,8 +199,13 @@ export default class extends Command {
                             )}`
                         )
                         .then(res => res.data.message);
-                    if (nbimage === 'Unknown Image Type')
-                        return message.channel.send(this.client.embeds.internalError(nbimage));
+                    if (nbimage === 'Unknown Image Type') {
+                        return this.client.commandHandler.emitError(
+                            new Error('No Result'),
+                            message,
+                            this
+                        );
+                    }
                     image = this.client.util.random([image, nbimage]);
                 }
             } else {
@@ -207,11 +216,16 @@ export default class extends Command {
                         )}`
                     )
                     .then(res => res.data.message);
-                if (image === 'Unknown Image Type')
-                    return message.channel.send(this.client.embeds.internalError(image));
+                if (image === 'Unknown Image Type') {
+                    return this.client.commandHandler.emitError(
+                        new Error('No Result'),
+                        message,
+                        this
+                    );
+                }
             }
-            if (!image) {
-                throw new Error();
+            if (!image || !this.client.util.isUrl(image)) {
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
             const embed = this.client.embeds
                 .default()
@@ -232,7 +246,6 @@ export default class extends Command {
                 );
         } catch (err) {
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
         }
     }
 }

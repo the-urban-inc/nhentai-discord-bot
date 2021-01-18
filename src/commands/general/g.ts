@@ -16,10 +16,24 @@ export default class extends Command {
                 usage: '<code> [--more] [--auto] [--page=pagenum]',
                 examples: [
                     ' 177013\nShows info of `177013`.',
-                    ' 177013 --page=5\nImmediately starts reading at page 5.',
+                    ' 177013 --page=5\nImmediately starts reading `177013` at page 5.',
                     ' 265918 --more\nShows info of `265918`, with the addition of similar galleries and comments made on the main site.',
                     ' 315281 --auto\nAdds the option of reading `315281` with auto mode, meaning nhentai will turn the pages for you after a set number of seconds (your choice).',
                 ],
+            },
+            error: {
+                'Invalid Query': {
+                    message: 'Please provide a valid code!',
+                    example: ' 177013\nto show info of `177013`.',
+                },
+                'No Result': {
+                    message: 'No gallery found!',
+                    example: 'Try again with a different code.',
+                },
+                'Invalid Page Index': {
+                    message: 'Please provide a page index within range!',
+                    example: ' 177013 --page=5\nto immediately start reading `177013` at page 5.',
+                },
             },
             args: [
                 {
@@ -88,11 +102,33 @@ export default class extends Command {
         }: { code: string; more?: boolean; auto?: boolean; page?: string; dontLogErr?: boolean }
     ) {
         try {
-            if (!code) throw new TypeError('Code is not specified.');
+            if (!code) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Query'),
+                    message,
+                    this
+                );
+            }
+
             const codeNum = parseInt(code, 10);
-            if (!codeNum || isNaN(codeNum)) throw new TypeError("Code isn't a number.");
-            const result = await this.client.nhentai.g(codeNum, more);
-            if (!result || !result.gallery) throw new Error("Code doesn't exist.");
+            if (!codeNum || isNaN(codeNum)) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Query'),
+                    message,
+                    this
+                );
+            }
+
+            const result = await this.client.nhentai
+                .g(codeNum, more)
+                .catch(err => this.client.logger.error(err.message));
+
+            if (!result || !result.gallery) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+            }
 
             // points increase
             const min = 30,
@@ -100,8 +136,15 @@ export default class extends Command {
             const inc = Math.floor(Math.random() * (max - min)) + min;
 
             const pageNum = parseInt(page, 10);
-            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > result.gallery.num_pages)
-                throw new RangeError('Page number is not an integer or is out of range.');
+            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > result.gallery.num_pages) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Page Index'),
+                    message,
+                    this
+                );
+            }
+
             const history = {
                 id: result.gallery.id.toString(),
                 type: 'g',
@@ -117,7 +160,11 @@ export default class extends Command {
                 const leveledUp = await this.client.db.XP.save('add', 'exp', message, inc);
                 if (leveledUp) {
                     message.channel
-                        .send(this.client.embeds.info('Congratulations! You have leveled up!'))
+                        .send(
+                            this.client.embeds
+                                .info('Congratulations! You have leveled up!')
+                                .setFooter(message.author.tag, message.author.displayAvatarURL())
+                        )
                         .then(message => message.delete({ timeout: 10000 }));
                 }
             }
@@ -185,9 +232,7 @@ export default class extends Command {
                     );
             }
         } catch (err) {
-            if (dontLogErr) return;
-            this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.clientError(err));
+            return this.client.logger.error(err.message);
         }
     }
 }

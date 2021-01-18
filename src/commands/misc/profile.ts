@@ -3,6 +3,8 @@ import { Message, GuildMember } from 'discord.js';
 import { User } from '@models/user';
 import { ICON } from '@utils/constants';
 import moment from 'moment';
+import config from '@config';
+const PREFIX = config.settings.prefix.nsfw[0];
 
 export default class extends Command {
     constructor() {
@@ -13,6 +15,12 @@ export default class extends Command {
                     "Shows your (or your buddy's) profile.\nAdd --more to view favorite list, blacklist and recent calls (will not show up if the user has anonymous mode turned on).",
                 usage: '[user]',
                 examples: ['\nShows your own profile.', " @nhentai#7217\nShows nhentai's profile."],
+            },
+            error: {
+                'No Result': {
+                    message: 'User not found!',
+                    example: `The user probably hasn't used any commands that record him/her into the database yet. If you are 100% sure otherwise, join the support server (${PREFIX}support) and report it to the admin/mods.`,
+                },
             },
             args: [
                 {
@@ -35,7 +43,11 @@ export default class extends Command {
                 userID: member.id,
             }).exec();
             if (!user) {
-                return message.channel.send(this.client.embeds.clientError('User not found.'));
+                return this.client.commandHandler.emitError(
+                    new Error('No Result'),
+                    message,
+                    this
+                );
             } else {
                 const exp = user.points,
                     level = user.level,

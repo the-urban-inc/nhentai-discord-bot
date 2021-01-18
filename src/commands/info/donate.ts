@@ -4,7 +4,7 @@ import { Message } from 'discord.js';
 export default class extends Command {
     constructor() {
         super('donate', {
-            aliases: ['donate', 'support'],
+            aliases: ['donate'],
             description: {
                 content: 'Show support to the bot creator!',
                 examples: ['\ndonos.'],

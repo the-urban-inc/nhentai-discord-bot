@@ -19,13 +19,27 @@ export default class extends Command {
             const member = message.author;
             const tags = await WatchModel.find({ user: member.id }).exec();
             if (!tags) {
-                return message.channel.send(this.client.embeds.info('Follow list not found.'));
+                return message.channel.send(
+                    this.client.embeds
+                        .default()
+                        .setTitle('Follow List')
+                        .setDescription("You haven't followed anything!")
+                        .setFooter(member.tag, member.displayAvatarURL())
+                );
             } else {
-                if (!tags.length)
-                    return message.channel.send(this.client.embeds.info('Follow list not found.'));
+                if (!tags.length) {
+                    return message.channel.send(
+                        this.client.embeds
+                            .default()
+                            .setTitle('Follow List')
+                            .setDescription("You haven't followed anything!")
+                            .setFooter(member.tag, member.displayAvatarURL())
+                    );
+                }
                 let embed = this.client.embeds
                     .default()
-                    .setAuthor(`${member.tag}'s Follow List`, member.displayAvatarURL());
+                    .setTitle(`Follow List`)
+                    .setFooter(member.tag, member.displayAvatarURL());
                 let t = new Map<string, string[]>();
                 tags.forEach(tag => {
                     const { type, name } = tag;

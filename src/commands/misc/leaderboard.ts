@@ -27,7 +27,7 @@ export default class extends Command {
                 return message.channel.send(
                     this.client.embeds
                         .default()
-                        .setTitle(`${message.guild.name}'s leaderboard`)
+                        .setTitle(`${message.guild.name}`)
                         .setThumbnail(message.guild.iconURL())
                         .setDescription('Looks like nobody has any points. *cricket noises')
                 );
@@ -35,7 +35,7 @@ export default class extends Command {
                 .richMenu({
                     template: this.client.embeds
                         .default()
-                        .setTitle(`${message.guild.name}'s leaderboard`)
+                        .setTitle(`${message.guild.name}`)
                         .setThumbnail(message.guild.iconURL())
                         .setFooter(
                             `Your guild placing stats : Rank [${pos + 1}]\u2000•\u2000Level : ${

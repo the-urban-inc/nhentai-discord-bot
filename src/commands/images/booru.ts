@@ -137,14 +137,19 @@ export default class extends Command {
         super('booru', {
             aliases: Object.keys(SITES).concat(...Object.values(SITES).map(x => x.aliases)),
             subAliases: SITES,
-            channel: 'guild',
             nsfw: true,
             description: {
-                usage: '[tags]',
+                usage: '[tag]',
+            },
+            error: {
+                'No Result': {
+                    message: 'No result found!',
+                    example: 'Try again with a different tag.',
+                },
             },
             args: [
                 {
-                    id: 'tags',
+                    id: 'tag',
                     match: 'rest',
                     default: '',
                 },
@@ -152,29 +157,25 @@ export default class extends Command {
         });
     }
 
-    exec(message: Message, { tags }: { tags: string }) {
+    exec(message: Message, { tag }: { tag: string }) {
         type _ = keyof typeof SITES;
         const site = message.util?.parsed?.alias as _ | typeof SITES[_]['aliases'][number];
-        if (!site) {
-            return message.channel.send(
-                this.client.embeds.clientError(
-                    'Unknown or unsupported site. Supported sites are: [e621](https://e621.net/), [e926](https://e926.net/), [hypnohub](https://hypnohub.net/), [danbooru](https://danbooru.donmai.us/), [konac (konachan.com)](https://konachan.com/), [konan (konachan.net)](https://konachan.net/), [yandere](https://yande.re/), [gelbooru](https://gelbooru.com/), [rule34](https://rule34.xxx/), [safebooru](https://safebooru.org/), [tbib](https://tbib.org/), [xbooru](https://xbooru.com/), [paheal (rule34.paheal.net)](https://rule34.paheal.net/), [derpibooru](https://derpibooru.org/).'
-                )
-            );
-        }
-        let tagsArray = tags.split(' ');
-        search(site, tagsArray, { limit: 25, random: true }) // 25 is more than enough for a page
+        search(site, tag.replace(/ /g, '_'), { limit: 25, random: true }) // 25 is more than enough for a page
             .then(async res => {
                 let dataPosts = res.posts;
                 if (!dataPosts.length) {
-                    return message.channel.send(
-                        this.client.embeds.clientError('No results found.')
+                    return this.client.commandHandler.emitError(
+                        new Error('No Result'),
+                        message,
+                        this
                     );
                 }
                 dataPosts = dataPosts.filter(x => this.client.util.isUrl(x.fileUrl));
                 if (!dataPosts.length) {
-                    return message.channel.send(
-                        this.client.embeds.clientError('No results found.')
+                    return this.client.commandHandler.emitError(
+                        new Error('No Result'),
+                        message,
+                        this
                     );
                 }
                 const display = this.client.embeds.richDisplay({ love: false }).useCustomFooters();
@@ -210,8 +211,7 @@ export default class extends Command {
                 );
             })
             .catch(err => {
-                this.client.logger.error(err);
-                return message.channel.send(this.client.embeds.internalError(err));
+                this.client.logger.error(err.message);
             });
     }
 }

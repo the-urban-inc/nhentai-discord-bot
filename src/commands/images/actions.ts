@@ -1,5 +1,7 @@
 import { Command } from '@structures';
 import { Message, User } from 'discord.js';
+import config from '@config';
+const PREFIX = config.settings.prefix.nsfw[0];
 
 const ACTIONS = {
     tickle: {
@@ -88,6 +90,12 @@ export default class extends Command {
             description: {
                 usage: '[user]',
             },
+            error: {
+                'No Result': {
+                    message: 'Failed to fetch image!',
+                    example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
+                },
+            },
             args: [
                 {
                     id: 'user',
@@ -101,14 +109,14 @@ export default class extends Command {
     async exec(message: Message, { user }: { user: User }) {
         try {
             const method = message.util?.parsed?.alias as keyof typeof ACTIONS;
-            if (!method) {
-                throw new Error(
-                    `Unknown Action. Available actions are: ${Object.keys(ACTIONS)
-                        .map(x => `${x}`)
-                        .join(', ')}`
+            const image = (await this.client.nekoslife.sfw[method]()).url;
+            if (!this.client.util.isUrl(image)) {
+                return this.client.commandHandler.emitError(
+                    new Error('No Result'),
+                    message,
+                    this
                 );
             }
-            const image = (await this.client.nekoslife.sfw[method]()).url;
             const embed = this.client.embeds
                 .default()
                 .setTitle(
@@ -133,7 +141,6 @@ export default class extends Command {
                 );
         } catch (err) {
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
         }
     }
 }

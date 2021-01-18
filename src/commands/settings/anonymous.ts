@@ -14,9 +14,14 @@ export default class extends Command {
     }
 
     async exec(message: Message) {
-        const anon = await this.client.db.User.anonymous(message.author);
-        return message.channel.send(
-            this.client.embeds.info(`Turned ${anon ? 'on' : 'off'} incognito mode.`)
-        );
+        try {
+            const anon = await this.client.db.User.anonymous(message.author);
+            return message.channel.send(
+                this.client.embeds.info(`Turned ${anon ? 'on' : 'off'} incognito mode.`)
+            );
+        } catch (err) {
+            this.client.logger.error(err);
+            return message.channel.send(this.client.embeds.internalError(err));
+        }
     }
 }

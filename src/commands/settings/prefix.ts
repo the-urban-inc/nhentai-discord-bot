@@ -86,9 +86,12 @@ export default class extends Command {
                 return message.channel.send(this.client.embeds.info('Cleared all prefixes.'));
             } else if (!prefixes.length) {
                 return message.channel.send(
-                    this.client.embeds.info(
-                        'This server has no custom prefixes. Ask someone with `Manage Server` permission to add one.'
-                    )
+                    this.client.embeds
+                        .default()
+                        .setTitle('Custom Prefix List')
+                        .setDescription(
+                            'This server has no custom prefixes. Ask someone with `Manage Server` permission to add one.'
+                        )
                 );
             }
             const list = this.client.embeds.richMenu({

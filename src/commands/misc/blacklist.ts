@@ -21,13 +21,27 @@ export default class extends Command {
                 userID: member.id,
             }).exec();
             if (!user) {
-                return message.channel.send(this.client.embeds.info('Blacklist not found.'));
+                return message.channel.send(
+                    this.client.embeds
+                        .default()
+                        .setTitle('Blacklist')
+                        .setDescription('You have no blacklist entry!')
+                        .setFooter(member.tag, member.displayAvatarURL())
+                );
             } else {
-                if (!user.blacklists.length)
-                    return message.channel.send(this.client.embeds.info('Blacklist not found.'));
+                if (!user.blacklists.length) {
+                    return message.channel.send(
+                        this.client.embeds
+                            .default()
+                            .setTitle('Blacklist')
+                            .setDescription('You have no blacklist entry!')
+                            .setFooter(member.tag, member.displayAvatarURL())
+                    );
+                }
                 let embed = this.client.embeds
                     .default()
-                    .setAuthor(`${member.tag}'s Blacklist`, member.displayAvatarURL());
+                    .setTitle(`Blacklist`)
+                    .setFooter(member.tag, member.displayAvatarURL());
                 let t = new Map<string, string[]>();
                 user.blacklists.forEach(tag => {
                     const { type, name } = tag;

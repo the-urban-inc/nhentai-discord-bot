@@ -56,12 +56,21 @@ export default class extends Command {
                 userID: member.id,
             }).exec();
             if (!user) {
-                return message.channel.send(this.client.embeds.info('Favorites list not found.'));
+                return message.channel.send(
+                    this.client.embeds
+                        .default()
+                        .setTitle('Favorites List')
+                        .setDescription('You have no favorite gallery!')
+                );
             } else {
-                if (!user.favorites.length)
+                if (!user.favorites.length) {
                     return message.channel.send(
-                        this.client.embeds.info('Favorites list not found.')
+                        this.client.embeds
+                            .default()
+                            .setTitle('Favorites List')
+                            .setDescription('You have no favorite gallery!')
                     );
+                }
                 let msg = await message.channel.send(
                     'Fetching favorites... The longer your favorites list is, the more time you will have to wait...'
                 );
@@ -80,7 +89,7 @@ export default class extends Command {
                     this.client,
                     message,
                     await msg.edit('Done.'),
-                    `> **Galleries are sorted by date added • [** ${message.author.tag} **]**`,
+                    `> **Favorites List • [** ${message.author.tag} **]**\n> **Galleries are sorted by date added**`,
                     {
                         idle: 300000,
                     }

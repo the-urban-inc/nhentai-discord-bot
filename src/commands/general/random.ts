@@ -4,6 +4,8 @@ import { User } from '@models/user';
 import { Server } from '@models/server';
 import { Blacklist } from '@models/tag';
 import { BLOCKED_MESSAGE } from '@utils/constants';
+import config from '@config';
+const PREFIX = config.settings.prefix.nsfw[0];
 
 export default class extends Command {
     constructor() {
@@ -18,6 +20,12 @@ export default class extends Command {
                     ' --more\nShows info of a random gallery, with the addition of similar galleries and comments made on the main site.',
                     ' --auto\nAdds the option of reading the gallery with auto mode, meaning nhentai will turn the pages for you after a set number of seconds (your choice).',
                 ],
+            },
+            error: {
+                'No Result': {
+                    message: 'Failed to fetch a random gallery!',
+                    example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
+                },
             },
             args: [
                 {
@@ -66,8 +74,13 @@ export default class extends Command {
         { more, auto, dontLogErr }: { more?: boolean; auto?: boolean; dontLogErr?: boolean }
     ) {
         try {
-            const result = await this.client.nhentai.random();
-            if (!result) throw new Error("Couldn't find a random gallery.");
+            const result = await this.client.nhentai
+                .random()
+                .catch(err => this.client.logger.error(err.message));
+            if (!result) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+            }
 
             const { displayGallery, rip } = this.client.embeds.displayFullGallery(
                 result.gallery,
@@ -130,9 +143,7 @@ export default class extends Command {
                     );
             }
         } catch (err) {
-            if (dontLogErr) return;
-            this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.clientError(err));
+            this.client.logger.error(err.message);
         }
     }
 }

@@ -18,8 +18,8 @@ export default class extends Command {
                 examples: [
                     ' #110631\nDirectly views info of `110631`.',
                     ' 110631\nAlso works without `#`.',
-                    ` tag:"big breasts" pages:>15 -milf\nSearches for galleries with over 15 pages that contain \`big breasts\` but without tag \`milf\` and displays them as a list of thumbnails.`,
-                    ` naruto uploaded:7d\nSearches for galleries with titles contain \`naruto\` and were uploaded within 7 days and displays them as a list of thumbnails.`,
+                    ` tag:"big breasts" pages:>15 -milf\nSearches for galleries with over 15 pages that contain tag \`big breasts\` but without tag \`milf\` and displays them as a list of thumbnails.`,
+                    ` naruto uploaded:7d\nSearches for galleries with titles containing the keyword \`naruto\` and were uploaded within 7 days and displays them as a list of thumbnails.`,
                 ],
                 additionalInfo:
                     '• You can search for multiple terms at the same time, and this will return only galleries that contain both terms. For example, `anal tanlines` finds all galleries that contain both `anal` and `tanlines`.\n' +
@@ -28,6 +28,29 @@ export default class extends Command {
                     '• These can be combined with tag namespaces for finer control over the query: `parodies:railgun -tag:"big breasts"`.\n' +
                     '• You can search for galleries with a specific number of pages with `pages:20`, or with a page range: `pages:>20 pages:<=30`.\n' +
                     '• You can search for galleries uploaded within some timeframe with `uploaded:20d`. Valid units are `h`, `d`, `w`, `m`, `y`. You can use ranges as well: `uploaded:>20d uploaded:<30d`.',
+            },
+            error: {
+                'Invalid Query': {
+                    message: 'Please provide a search query!',
+                    example:
+                        ' ane naru mono\nto search for galleries with titles contain `ane naru mono`.',
+                },
+                'No Result': {
+                    message: 'No result found!',
+                    example: 'Try again with a different query.',
+                },
+                'Invalid Page Index': {
+                    message: 'Please provide a page index within range!',
+                    example:
+                        ' naruto uploaded:7d --page=3\nto search for galleries with titles containing the keyword `naruto` and were uploaded within 7 days and display them as a list of thumbnails starting from the 2nd page.',
+                },
+                'Invalid Sort Method': {
+                    message: `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
+                        s => `\`${s}\``
+                    ).join(', ')}.`,
+                    example:
+                        ' tag:"big breasts" pages:>15 -milf --sort=popular\nto search for galleries with over 15 pages that contain tag `big breasts` but without tag `milf` and display them as a list of thumbnails, sorted by popularity.',
+                },
             },
             args: [
                 {
@@ -88,27 +111,66 @@ export default class extends Command {
         }: { text: string; page: string; sort: string; dontLogErr?: boolean }
     ) {
         try {
-            if (!text) throw new TypeError('Search text is not specified.');
+            if (!text) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Query'),
+                    message,
+                    this
+                );
+            }
+
+            let pageNum = parseInt(page, 10);
+            if (!pageNum || isNaN(pageNum) || pageNum < 1) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Page Index'),
+                    message,
+                    this
+                );
+            }
+
             if (/^\d+$/.test(text.replace('#', ''))) {
                 const command = this.client.commandHandler.findCommand('g');
                 await command.before(message);
                 return command.exec(message, { code: text.replace('#', ''), page: '1' });
             }
-            if (!Object.values(Sort).includes(sort as Sort))
-                throw new TypeError(
-                    `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
-                        s => `\`${s}\``
-                    ).join(', ')}.`
+
+            if (!Object.values(Sort).includes(sort as Sort)) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Sort Method'),
+                    message,
+                    this
                 );
-            let pageNum = parseInt(page, 10);
+            }
+
             const data =
                 sort === 'recent'
-                    ? await this.client.nhentai.search(text, pageNum)
-                    : await this.client.nhentai.search(text, pageNum, sort as Sort);
+                    ? await this.client.nhentai
+                          .search(text, pageNum)
+                          .catch(err => this.client.logger.error(err.message))
+                    : await this.client.nhentai
+                          .search(text, pageNum, sort as Sort)
+                          .catch(err => this.client.logger.error(err.message));
+            if (!data) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+            }
             const { result, num_pages, num_results } = data;
-            if (!result.length) throw new Error('No results found.');
-            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > num_pages)
-                throw new RangeError('Page number is not an integer or is out of range.');
+            if (!result.length) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+            }
+
+            if (pageNum > num_pages) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Page Index'),
+                    message,
+                    this
+                );
+            }
 
             const { displayList: displaySearch, rip } = this.client.embeds.displayGalleryList(
                 result,
@@ -148,9 +210,7 @@ export default class extends Command {
                     );
             }
         } catch (err) {
-            if (dontLogErr) return;
-            this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.clientError(err));
+            this.client.logger.error(err.message);
         }
     }
 }

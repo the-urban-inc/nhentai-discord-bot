@@ -1,7 +1,8 @@
 import { Command } from '@structures';
 import { Message } from 'discord.js';
 import axios from 'axios';
-
+import config from '@config';
+const PREFIX = config.settings.prefix.nsfw[0];
 const ICON =
     'https://cdn1.iconfinder.com/data/icons/somacro___dpi_social_media_icons_by_vervex-dfjq/500/reddit.png';
 
@@ -14,6 +15,12 @@ export default class extends Command {
                 content: 'Shows random post on r/nhentai.',
                 examples: ['\nSauce?'],
             },
+            error: {
+                'No Result': {
+                    message: 'Failed to fetch Reddit post!',
+                    example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
+                },
+            },
         });
     }
 
@@ -22,7 +29,9 @@ export default class extends Command {
             const data = await axios
                 .get('https://reddit.com/r/nhentai/random.json')
                 .then(res => res.data[0]['data']['children'][0]['data']);
-            if (!data) throw new Error('No results found.');
+            if (!data) {
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+            }
             let embed = this.client.embeds
                 .default()
                 .setAuthor(`${data['title']}`, ICON, `https://reddit.com${data['permalink']}`)

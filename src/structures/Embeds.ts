@@ -1,6 +1,7 @@
-import { MessageEmbed } from 'discord.js';
+import { Message, MessageEmbed } from 'discord.js';
 import { RichDisplay, RichDisplayOptions, RichMenu } from '@utils/pagination';
 import type { Client } from './Client';
+import type { Command, ErrorType } from './Command';
 import he from 'he';
 import moment from 'moment';
 import { Gallery, Comment, Language } from '@api/nhentai';
@@ -31,6 +32,35 @@ export class Embeds {
 
     info(text: string) {
         return new MessageEmbed().setColor('#f0f0f0').setDescription(text);
+    }
+
+    commandError(err: Error, message: Message, command: Command) {
+        let { id, areMultipleCommands, nsfw, subAliases, error } = command;
+        const alias = message.util?.parsed?.alias;
+        const prefix =
+            nsfw || !('nsfw' in command)
+                ? this.client.config.settings.prefix.nsfw[0]
+                : this.client.config.settings.prefix.sfw[0];
+        if (areMultipleCommands) {
+            id = Object.keys(subAliases).find(
+                key => key === alias || subAliases[key].aliases?.includes(alias)
+            );
+            error = subAliases[id].error ?? error;
+        }
+        const errorMessage = error[err.message as ErrorType];
+        if (!errorMessage) return;
+        const [example = '', description = ''] = errorMessage.example
+            .replace('\n', '\x01')
+            .split('\x01');
+        return new MessageEmbed()
+            .setColor('#ff0000')
+            .setTitle(`\`❌\`\u2009\u2009${errorMessage.message}`)
+            .setDescription(
+                err.message === 'No Result'
+                    ? example
+                    : `Example: \`${prefix}${id}${example}\` ${description}\nType \`${prefix}help ${id}\` for more info.`
+            )
+            .setFooter(message.author.tag, message.author.displayAvatarURL());
     }
 
     clientError(text: string) {

@@ -6,8 +6,18 @@ type SubAlias = {
         aliases?: string[];
         description: string;
         examples: string[];
+        error?: ErrorResponse;
         additionalInfo?: string;
     };
+};
+
+export type ErrorType = 'Invalid Query' | 'Invalid Page Index' | 'Invalid Sort Method' | 'No Result';
+
+type ErrorResponse = {
+    [key in ErrorType]?: {
+        message: string;
+        example: string;
+    }
 };
 
 export interface CommandOptions extends CO {
@@ -19,7 +29,8 @@ export interface CommandOptions extends CO {
         usage?: string;
         examples?: string[];
         additionalInfo?: string;
-    }
+    };
+    error?: ErrorResponse;
 }
 
 export class Command extends C {
@@ -28,14 +39,17 @@ export class Command extends C {
     areMultipleCommands: boolean;
     isConditionalorRegexCommand: boolean;
     subAliases: SubAlias;
+    error: ErrorResponse;
+    silent?: boolean;
     constructor(id: string, options?: CommandOptions) {
         options.channel = 'guild';
         options.typing = true;
         super(id, options);
-        const { isConditionalorRegexCommand = false, subAliases = {} } = options;
+        const { isConditionalorRegexCommand = false, subAliases = {}, error = {} } = options;
         this.isConditionalorRegexCommand = Boolean(isConditionalorRegexCommand);
         this.subAliases = subAliases;
         this.areMultipleCommands = Object.keys(this.subAliases).length !== 0;
+        this.error = error;
         if ('nsfw' in options) {
             this.nsfw = Boolean(options.nsfw);
             this.prefix = async message => {

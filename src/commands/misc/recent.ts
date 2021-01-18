@@ -21,15 +21,22 @@ export default class extends Command {
             const server = await Server.findOne({
                 serverID: message.guild.id,
             }).exec();
-            if (!server)
+            if (!server) {
                 return message.channel.send(
-                    this.client.embeds.info('There are no recent calls in this server.')
+                    this.client.embeds
+                        .default()
+                        .setTitle(message.guild.name)
+                        .setDescription('There are no recent calls in this server!')
                 );
-            else {
-                if (!server.recent.length)
+            } else {
+                if (!server.recent.length) {
                     return message.channel.send(
-                        this.client.embeds.info('There are no recent calls in this server.')
+                        this.client.embeds
+                            .default()
+                            .setTitle(message.guild.name)
+                            .setDescription('There are no recent calls in this server!')
                     );
+                }
                 let recent = server.recent.reverse().slice(0, 5);
                 let _ = await Promise.all(
                     recent.map(async x => {
@@ -38,7 +45,12 @@ export default class extends Command {
                         }\`** \`${x.name}\` (${moment(x.date).fromNow()})`;
                     })
                 );
-                return message.channel.send(this.client.embeds.info(_.join('\n')));
+                return message.channel.send(
+                    this.client.embeds
+                        .default()
+                        .setTitle(message.guild.name)
+                        .setDescription(_.join('\n'))
+                );
             }
         } catch (err) {
             this.client.logger.error(err);

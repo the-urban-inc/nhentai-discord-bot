@@ -5,15 +5,39 @@ import { Server } from '@models/server';
 import { Blacklist } from '@models/tag';
 import { Sort } from '@api/nhentai';
 import { BLOCKED_MESSAGE } from '@utils/constants';
+const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
 
 const TAGS = {
     tag: {
         description: 'Searches nhentai for specified tag.',
         examples: [
-            ' stockings\nSearches for galleries that contains the tag `stockings` and displays the 1st result page as a list of thumbnails (sorted by upload date).',
-            ' big breasts --page=3\nSearches for galleries that contains the tag `big breasts` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
-            ' small breasts --sort=popular\nSearches for galleries that contains the tag `small breasts`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
+            ' stockings\nSearches for galleries that contain the tag `stockings` and displays the 1st result page as a list of thumbnails (sorted by upload date).',
+            ' big breasts --page=3\nSearches for galleries that contain the tag `big breasts` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
+            ' small breasts --sort=popular\nSearches for galleries that contain the tag `small breasts`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
         ],
+        error: {
+            'Invalid Query': {
+                message: 'Please provide a tag name!',
+                example:
+                    ' stockings\nto search for galleries that contain the tag `stockings` and display the 1st result page as a list of thumbnails (sorted by upload date).',
+            },
+            'No Result': {
+                message: 'No result found!',
+                example: 'Try again with a different query.',
+            },
+            'Invalid Page Index': {
+                message: 'Please provide a page index within range!',
+                example:
+                    ' big breasts --page=3\nto search for galleries that contain the tag `big breasts` and display the 3rd result page as a list of thumbnails (sorted by upload date).',
+            },
+            'Invalid Sort Method': {
+                message: `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
+                    s => `\`${s}\``
+                ).join(', ')}.`,
+                example:
+                    ' small breasts --sort=popular\nto search for galleries that contain the tag `small breasts`, sort them by popularity and display the 1st result page as a list of thumbnails.',
+            },
+        },
     },
     artist: {
         description: 'Searches nhentai for specified artist.',
@@ -22,14 +46,60 @@ const TAGS = {
             ' napata --page=3\nSearches for galleries from the artist `napata` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
             ' alp --sort=popular\nSearches for galleries from the artist `alp`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
         ],
+        error: {
+            'Invalid Query': {
+                message: 'Please provide an artist name!',
+                example:
+                    ' hiten\nto search for galleries from the artist `hiten` and display the 1st result page as a list of thumbnails (sorted by upload date).',
+            },
+            'No Result': {
+                message: 'No result found!',
+                example: 'Try again with a different query.',
+            },
+            'Invalid Page Index': {
+                message: 'Please provide a page index within range!',
+                example:
+                    ' napata --page=3\nto search for galleries from the artist `napata` and display the 3rd result page as a list of thumbnails (sorted by upload date).',
+            },
+            'Invalid Sort Method': {
+                message: `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
+                    s => `\`${s}\``
+                ).join(', ')}.`,
+                example:
+                    ' alp --sort=popular\nto search for galleries from the artist `alp`, sort them by popularity and display the 1st result page as a list of thumbnails.',
+            },
+        },
     },
     category: {
         description: 'Searches nhentai for specified category.',
         examples: [
             ' non-h\nSearches for galleries from the category `non-h` and displays the 1st result page as a list of thumbnails (sorted by upload date).',
-            ' doujin --page=3\nSearches for galleries from the category `doujinshi` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
+            ' doujinshi --page=3\nSearches for galleries from the category `doujinshi` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
             ' manga --sort=popular\nSearches for galleries from the category `manga`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
         ],
+        error: {
+            'Invalid Query': {
+                message: 'Please provide a category name!',
+                example:
+                    ' non-h\nto search for galleries from the category `non-h` and display the 1st result page as a list of thumbnails (sorted by upload date).',
+            },
+            'No Result': {
+                message: 'No result found!',
+                example: 'Try again with a different query.',
+            },
+            'Invalid Page Index': {
+                message: 'Please provide a page index within range!',
+                example:
+                    ' doujinshi --page=3\nto search for galleries from the category `doujinshi` and display the 3rd result page as a list of thumbnails (sorted by upload date).',
+            },
+            'Invalid Sort Method': {
+                message: `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
+                    s => `\`${s}\``
+                ).join(', ')}.`,
+                example:
+                    ' manga --sort=popular\nto search for galleries from the category `manga`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
+            },
+        },
     },
     character: {
         description: 'Searches nhentai for specified character.',
@@ -38,6 +108,29 @@ const TAGS = {
             ' reimu hakurei --page=3\nSearches for galleries that feature the character `reimu hakurei` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
             ' patchouli knowledge --sort=popular\nSearches for galleries that feature the character `patchouli knowledge`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
         ],
+        error: {
+            'Invalid Query': {
+                message: 'Please provide a character name!',
+                example:
+                    ' asuka langley soryu\nto search for galleries that feature the character `asuka langley soryu` and display the 1st result page as a list of thumbnails (sorted by upload date).',
+            },
+            'No Result': {
+                message: 'No result found!',
+                example: 'Try again with a different query.',
+            },
+            'Invalid Page Index': {
+                message: 'Please provide a page index within range!',
+                example:
+                    ' reimu hakurei --page=3\nto search for galleries that feature the character `reimu hakurei` and display the 3rd result page as a list of thumbnails (sorted by upload date).',
+            },
+            'Invalid Sort Method': {
+                message: `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
+                    s => `\`${s}\``
+                ).join(', ')}.`,
+                example:
+                    ' patchouli knowledge --sort=popular\nto search for galleries that feature the character `patchouli knowledge`, sort them by popularity and display the 1st result page as a list of thumbnails.',
+            },
+        },
     },
     group: {
         description: 'Searches nhentai for specified group.',
@@ -46,6 +139,29 @@ const TAGS = {
             ' digital lover --page=3\nSearches for galleries from the group `digital lover` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
             ' studio wallaby --sort=popular\nSearches for galleries from the group `studio wallaby`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
         ],
+        error: {
+            'Invalid Query': {
+                message: 'Please provide a group name!',
+                example:
+                    ' crimson comics\nto search for galleries from the group `crimson comics` and display the 1st result page as a list of thumbnails (sorted by upload date).',
+            },
+            'No Result': {
+                message: 'No result found!',
+                example: 'Try again with a different query.',
+            },
+            'Invalid Page Index': {
+                message: 'Please provide a page index within range!',
+                example:
+                    ' digital lover --page=3\nto search for galleries from the group `digital lover` and display the 3rd result page as a list of thumbnails (sorted by upload date).',
+            },
+            'Invalid Sort Method': {
+                message: `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
+                    s => `\`${s}\``
+                ).join(', ')}.`,
+                example:
+                    ' studio wallaby --sort=popular\nto search for galleries from the group `studio wallaby`, sort them by popularity and display the 1st result page as a list of thumbnails.',
+            },
+        },
     },
     language: {
         description: 'Searches nhentai for specified language.',
@@ -54,6 +170,29 @@ const TAGS = {
             ' english --page=3\nSearches for galleries in `english` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
             ' chinese --sort=popular\nSearches for galleries in `chinese`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
         ],
+        error: {
+            'Invalid Query': {
+                message: 'Please provide a language name!',
+                example:
+                    ' japanese\nto search for galleries in `japanese` and display the 1st result page as a list of thumbnails (sorted by upload date).',
+            },
+            'No Result': {
+                message: 'No result found!',
+                example: 'Try again with a different query.',
+            },
+            'Invalid Page Index': {
+                message: 'Please provide a page index within range!',
+                example:
+                    ' english --page=3\nto search for galleries in `english` and display the 3rd result page as a list of thumbnails (sorted by upload date).',
+            },
+            'Invalid Sort Method': {
+                message: `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
+                    s => `\`${s}\``
+                ).join(', ')}.`,
+                example:
+                    ' chinese --sort=popular\nto search for galleries in `chinese`, sort them by popularity and display the 1st result page as a list of thumbnails.',
+            },
+        },
     },
     parody: {
         description: 'Searches nhentai for specified parody.',
@@ -62,9 +201,31 @@ const TAGS = {
             ' touhou project --page=3\nSearches for galleries that are parodies of `touhou project` and displays the 3rd result page as a list of thumbnails (sorted by upload date).',
             ' kantai collection --sort=popular\nSearches for galleries that are parodies of `kantai collection`, sorts them by popularity and displays the 1st result page as a list of thumbnails.',
         ],
+        error: {
+            'Invalid Query': {
+                message: 'Please provide a parody name!',
+                example:
+                    ' original\nto search for `original` galleries and display the 1st result page as a list of thumbnails (sorted by upload date).',
+            },
+            'No Result': {
+                message: 'No result found!',
+                example: 'Try again with a different query.',
+            },
+            'Invalid Page Index': {
+                message: 'Please provide a page index within range!',
+                example:
+                    ' touhou project --page=3\nto search for galleries that are parodies of `touhou project` and display the 3rd result page as a list of thumbnails (sorted by upload date).',
+            },
+            'Invalid Sort Method': {
+                message: `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
+                    s => `\`${s}\``
+                ).join(', ')}.`,
+                example:
+                    ' kantai collection --sort=popular\nto search for galleries that are parodies of `kantai collection`, sort them by popularity and display the 1st result page as a list of thumbnails.',
+            },
+        },
     },
 };
-const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
 
 export default class extends Command {
     constructor() {
@@ -137,28 +298,65 @@ export default class extends Command {
         }: { text: string; page: string; sort: string; dontLogErr?: boolean }
     ) {
         try {
-            const tag = message.util.parsed.alias as keyof typeof TAGS;
+            const tag = message.util?.parsed?.alias as keyof typeof TAGS;
 
-            if (!text)
-                throw new TypeError(`${this.client.util.capitalize(tag)} name was not specified.`);
-
-            if (!Object.values(Sort).includes(sort as Sort))
-                throw new TypeError(
-                    `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
-                        s => `\`${s}\``
-                    ).join(', ')}.`
+            if (!text) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Query'),
+                    message,
+                    this
                 );
+            }
 
             let pageNum = parseInt(page, 10);
+            if (!pageNum || isNaN(pageNum) || pageNum < 1) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Page Index'),
+                    message,
+                    this
+                );
+            }
+
+            if (!Object.values(Sort).includes(sort as Sort)) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Sort Method'),
+                    message,
+                    this
+                );
+            }
+
             const data =
                 sort === 'recent'
-                    ? await this.client.nhentai[tag](text.toLowerCase(), pageNum)
-                    : await this.client.nhentai[tag](text.toLowerCase(), pageNum, sort as Sort);
+                    ? await this.client.nhentai[tag](
+                          text.toLowerCase(),
+                          pageNum
+                      ).catch((err: Error) => this.client.logger.error(err.message))
+                    : await this.client.nhentai[tag](
+                          text.toLowerCase(),
+                          pageNum,
+                          sort as Sort
+                      ).catch((err: Error) => this.client.logger.error(err.message));
+            if (!data) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+            }
             const { result, tag_id, num_pages, num_results } = data;
-            if (!result.length) throw new Error('No results, sorry.');
+            if (!result.length) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+            }
 
-            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > num_pages)
-                throw new RangeError('Page number is not an integer or is out of range.');
+            if (pageNum > num_pages) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Page Index'),
+                    message,
+                    this
+                );
+            }
 
             const id = tag_id.toString(),
                 name = text.toLowerCase();
@@ -212,9 +410,7 @@ export default class extends Command {
                     );
             }
         } catch (err) {
-            if (dontLogErr) return;
-            this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.clientError(err));
+            this.client.logger.error(err.message);
         }
     }
 }
