@@ -30,31 +30,27 @@ export default class extends Command {
 
     condition(message: Message) {
         try {
-            if (
-                !message.content ||
-                message.content === '' ||
-                message.content === '.' ||
-                message.content.startsWith('?') ||
-                message.content.startsWith('#')
-            )
-                return false;
+            if (!message.content) return false;
             const url = new URL(
                 `${message.content.startsWith('nhentai.net') ? 'https://' : ''}${message.content}`,
                 'https://nhentai.net'
             );
-            return [
-                '/',
-                '/g/',
-                '/random/',
-                '/search/',
-                '/tag/',
-                '/artist/',
-                '/character/',
-                '/group/',
-                '/parody/',
-                '/language/',
-                '/info/',
-            ].some(path => (path === '/' ? url.pathname === path : url.pathname.startsWith(path)));
+            return (
+                [
+                    '/g/',
+                    '/random/',
+                    '/search/',
+                    '/tag/',
+                    '/artist/',
+                    '/character/',
+                    '/group/',
+                    '/parody/',
+                    '/language/',
+                    '/info',
+                ].some(path => url.pathname.startsWith(path)) ||
+                message.content.startsWith('https://nhentai.net') ||
+                message.content.startsWith('nhentai.net')
+            );
         } catch (err) {
             return false;
         }
