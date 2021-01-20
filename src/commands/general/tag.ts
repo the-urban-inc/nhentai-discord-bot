@@ -5,6 +5,8 @@ import { Server } from '@models/server';
 import { Blacklist } from '@models/tag';
 import { Sort } from '@api/nhentai';
 import { BLOCKED_MESSAGE } from '@utils/constants';
+import config from '@config';
+const PREFIX = config.settings.prefix.nsfw[0];
 const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
 
 const TAGS = {
@@ -236,6 +238,12 @@ export default class extends Command {
             description: {
                 usage: `<query> [--page=pagenum] [--sort=(${SORT_METHODS.join('/')})]`,
             },
+            error: {
+                'Parsing Failed': {
+                    message: 'An error occurred while parsing command.',
+                    example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`
+                }
+            },
             args: [
                 {
                     id: 'text',
@@ -299,6 +307,14 @@ export default class extends Command {
     ) {
         try {
             const tag = message.util?.parsed?.alias as keyof typeof TAGS;
+            if (!tag) {
+                if (dontLogErr) return;
+                return this.client.commandHandler.emitError(
+                    new Error('Parsing Failed'),
+                    message,
+                    this
+                );
+            }
 
             if (!text) {
                 if (dontLogErr) return;

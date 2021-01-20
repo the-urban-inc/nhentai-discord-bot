@@ -11,7 +11,7 @@ type SubAlias = {
     };
 };
 
-export type ErrorType = 'Invalid Query' | 'Invalid Page Index' | 'Invalid Sort Method' | 'No Result';
+export type ErrorType = 'Invalid Query' | 'Invalid Page Index' | 'Invalid Sort Method' | 'No Result' | 'Parsing Failed';
 
 type ErrorResponse = {
     [key in ErrorType]?: {

@@ -2,6 +2,8 @@ import { Command } from '@structures';
 import { Message } from 'discord.js';
 import he from 'he';
 import { search } from 'booru';
+import config from '@config';
+const PREFIX = config.settings.prefix.nsfw[0];
 
 const SITES = {
     e621: {
@@ -146,6 +148,10 @@ export default class extends Command {
                     message: 'No result found!',
                     example: 'Try again with a different tag.',
                 },
+                'Parsing Failed': {
+                    message: 'An error occurred while parsing command.',
+                    example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
+                },
             },
             args: [
                 {
@@ -160,6 +166,13 @@ export default class extends Command {
     exec(message: Message, { tag }: { tag: string }) {
         type _ = keyof typeof SITES;
         const site = message.util?.parsed?.alias as _ | typeof SITES[_]['aliases'][number];
+        if (!site) {
+            return this.client.commandHandler.emitError(
+                new Error('Parsing Failed'),
+                message,
+                this
+            );
+        }
         search(site, tag.replace(/ /g, '_'), { limit: 25, random: true }) // 25 is more than enough for a page
             .then(async res => {
                 let dataPosts = res.posts;

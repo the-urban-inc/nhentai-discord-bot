@@ -179,6 +179,10 @@ export default class extends Command {
                     message: 'Failed to fetch image!',
                     example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
                 },
+                'Parsing Failed': {
+                    message: 'An error occurred while parsing command.',
+                    example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
+                },
             },
         });
     }
@@ -186,6 +190,13 @@ export default class extends Command {
     async exec(message: Message) {
         try {
             const method = message.util?.parsed?.alias;
+            if (!method) {
+                return this.client.commandHandler.emitError(
+                    new Error('Parsing Failed'),
+                    message,
+                    this
+                );
+            }
             let image = null;
             if (Object.keys(NL_IMAGES).includes(method)) {
                 image = (

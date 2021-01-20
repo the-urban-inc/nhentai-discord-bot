@@ -95,6 +95,10 @@ export default class extends Command {
                     message: 'Failed to fetch image!',
                     example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
                 },
+                'Parsing Failed': {
+                    message: 'An error occurred while parsing command.',
+                    example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
+                },
             },
             args: [
                 {
@@ -109,13 +113,16 @@ export default class extends Command {
     async exec(message: Message, { user }: { user: User }) {
         try {
             const method = message.util?.parsed?.alias as keyof typeof ACTIONS;
-            const image = (await this.client.nekoslife.sfw[method]()).url;
-            if (!this.client.util.isUrl(image)) {
+            if (!method) {
                 return this.client.commandHandler.emitError(
-                    new Error('No Result'),
+                    new Error('Parsing Failed'),
                     message,
                     this
                 );
+            }
+            const image = (await this.client.nekoslife.sfw[method]()).url;
+            if (!this.client.util.isUrl(image)) {
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
             const embed = this.client.embeds
                 .default()

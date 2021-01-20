@@ -35,28 +35,26 @@ export class Embeds {
     }
 
     commandError(err: Error, message: Message, command: Command) {
-        let { id, areMultipleCommands, nsfw, subAliases, error } = command;
+        let { id, areMultipleCommands, nsfw, subAliases, error: e } = command;
         const alias = message.util?.parsed?.alias;
         const prefix =
             nsfw || !('nsfw' in command)
                 ? this.client.config.settings.prefix.nsfw[0]
                 : this.client.config.settings.prefix.sfw[0];
+        let error = e[err.message as ErrorType];
         if (areMultipleCommands) {
             id = Object.keys(subAliases).find(
                 key => key === alias || subAliases[key].aliases?.includes(alias)
             );
-            error = subAliases[id].error ?? error;
+            error = subAliases[id].error[err.message as ErrorType] ?? error;
         }
-        const errorMessage = error[err.message as ErrorType];
-        if (!errorMessage) return;
-        const [example = '', description = ''] = errorMessage.example
-            .replace('\n', '\x01')
-            .split('\x01');
+        if (!error) return;
+        const [example = '', description = ''] = error.example.replace('\n', '\x01').split('\x01');
         return new MessageEmbed()
             .setColor('#ff0000')
-            .setTitle(`\`❌\`\u2009\u2009${errorMessage.message}`)
+            .setTitle(`\`❌\`\u2009\u2009${error.message}`)
             .setDescription(
-                err.message === 'No Result'
+                err.message === 'No Result' || err.message === 'Parsing Failed'
                     ? example
                     : `Example: \`${prefix}${id}${example}\` ${description}\nType \`${prefix}help ${id}\` for more info.`
             )
