@@ -110,11 +110,13 @@ export default class extends Command {
                 .default()
                 .setTitle('Command List')
                 .setDescription(
-                    `Use \`${prefix}help [command]\` for more help. E.g: \`${prefix}help g\`.\nCommands with the \`🔞\` icon are NSFW commands and can only be used in NSFW channels with NSFW prefix(es) (${prefixList.nsfw.join(
-                        ', '
-                    )}).\nCommands in the Images category that isn't NSFW can only be used SFW prefix(es) (${prefixList.sfw.join(
-                        ', '
-                    )}).\nOther commands can be used with both types of prefix.`
+                    `Use \`${prefix}help [command]\` for more help. E.g: \`${prefix}help g\`.\nCommands with the \`🔞\` icon are NSFW commands and can only be used in NSFW channels with NSFW prefix(es) [${prefixList.nsfw
+                        .map(p => `\`${p}\``)
+                        .join(
+                            ', '
+                        )}].\nCommands in the Images category that isn't NSFW can only be used SFW prefix(es) [${prefixList.sfw
+                        .map(p => `\`${p}\``)
+                        .join(', ')}].\nOther commands can be used with both types of prefix.`
                 )
                 .addField('Command Guide', [
                     '• <> : Required',

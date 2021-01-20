@@ -30,6 +30,13 @@ export default class extends Command {
                     ` sfw clear\nClears out the SFW prefix list (does not clear the default prefix(es) (${PREFIXES}))`,
                     ' nsfw list\nShows the NSFW prefix list.',
                 ],
+                additionalInfo: `Prefix length must be between 1 and ${MAX_LEN}.`,
+            },
+            error: {
+                'Invalid Query': {
+                    message: 'Please provide valid arguments!',
+                    example: ' nsfw add lmao\nto add `lmao` as a NSFW prefix',
+                },
             },
             args: [
                 {
@@ -56,24 +63,15 @@ export default class extends Command {
             prefix,
         }: { nsfw: 'nsfw' | 'sfw'; action: keyof typeof ACTIONS; prefix: string }
     ) {
-        if (!nsfw)
-            return message.channel.send(
-                this.client.embeds.clientError(
-                    `Unknown type. Available types are: \`nsfw\`, \`sfw\``
-                )
-            );
-        if (!action)
-            return message.channel.send(
-                this.client.embeds.clientError(
-                    `Unknown action. Available actions are: ${Object.keys(ACTIONS)
-                        .map(x => `\`${x}\``)
-                        .join(', ')}`
-                )
-            );
-        if ((!prefix || prefix.length > MAX_LEN) && action !== 'list' && action !== 'clear')
-            return message.channel.send(
-                this.client.embeds.clientError(`Prefix length must be between 1 and ${MAX_LEN}!`)
-            );
+        if (!nsfw) {
+            return this.client.commandHandler.emitError(new Error('Invalid Query'), message, this);
+        }
+        if (!action) {
+            return this.client.commandHandler.emitError(new Error('Invalid Query'), message, this);
+        }
+        if ((!prefix || prefix.length > MAX_LEN) && action !== 'list' && action !== 'clear') {
+            return this.client.commandHandler.emitError(new Error('Invalid Query'), message, this);
+        }
         try {
             const prefixes = await this.client.db.Server.prefix(message, nsfw, action, prefix);
             if (action === 'add' || action === 'remove') {
@@ -120,7 +118,6 @@ export default class extends Command {
             );
         } catch (err) {
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
         }
     }
 }
