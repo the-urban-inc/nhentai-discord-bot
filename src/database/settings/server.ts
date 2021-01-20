@@ -20,12 +20,12 @@ export async function prefix(
     const updateType = type === 'nsfw' ? 'settings.prefixes.nsfw' : 'settings.prefixes.sfw';
     const server = await Server.findOneAndUpdate(
         { serverID: message.guild.id },
-        action === 'add' || 'list'
+        action === 'add' || action === 'list'
             ? { $push: { [updateType]: { $each: action === 'add' ? [prefixDoc] : [] } } }
             : action === 'remove'
             ? { $pull: { [updateType]: { id: prefix } } }
             : { $set: { [updateType]: [] } },
-        { upsert: true }
+        { new: true, upsert: true }
     ).exec();
     return server.settings.prefixes[type];
 }

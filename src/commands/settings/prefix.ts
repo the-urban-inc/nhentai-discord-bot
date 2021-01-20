@@ -76,7 +76,7 @@ export default class extends Command {
             );
         try {
             const prefixes = await this.client.db.Server.prefix(message, nsfw, action, prefix);
-            if (action == 'add' || action == 'remove') {
+            if (action === 'add' || action === 'remove') {
                 await this.client.commandHandler.updatePrefix(message);
                 return message.channel.send(
                     this.client.embeds.info(`${ACTIONS[action]} prefix \`${prefix}\`.`)
@@ -103,15 +103,16 @@ export default class extends Command {
                     ),
                 list: 5,
             });
-            prefixes.forEach(async pfx => {
+            for (const pfx of prefixes) {
+                const user = await this.client.users.fetch(pfx.author);
                 list.addChoice(
                     0,
                     pfx.id,
-                    `**Added by** : ${
-                        (await this.client.users.fetch(pfx.author)).tag
-                    }\u2000•\u2000**Date added** : ${new Date(pfx.date).toUTCString()}`
+                    `**Added by** : ${user.tag}\u2000•\u2000**Date added** : ${new Date(
+                        pfx.date
+                    ).toUTCString()}`
                 );
-            });
+            }
             return list.run(
                 this.client,
                 message,
