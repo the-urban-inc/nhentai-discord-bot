@@ -50,7 +50,7 @@ export default class extends Command {
                 ].some(path => url.pathname.startsWith(path)) ||
                 message.content.startsWith('https://nhentai.net') ||
                 message.content.startsWith('nhentai.net')
-            );
+            ) && url.host === 'nhentai.net';
         } catch (err) {
             return false;
         }
