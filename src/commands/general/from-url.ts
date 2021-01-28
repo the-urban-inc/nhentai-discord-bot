@@ -8,6 +8,7 @@ export default class extends Command {
         super('from-url', {
             nsfw: true,
             isConditionalorRegexCommand: true,
+            typing: false,
         });
     }
 
@@ -36,21 +37,23 @@ export default class extends Command {
                 'https://nhentai.net'
             );
             return (
-                [
+                ([
                     '/g/',
-                    '/random/',
-                    '/search/',
                     '/tag/',
                     '/artist/',
                     '/character/',
                     '/group/',
                     '/parody/',
                     '/language/',
-                    '/info',
                 ].some(path => url.pathname.startsWith(path)) ||
-                message.content.startsWith('https://nhentai.net') ||
-                message.content.startsWith('nhentai.net')
-            ) && url.host === 'nhentai.net';
+                    ['/random/', '/random', '/search/', '/info/', '/info'].some(
+                        path => url.pathname === path
+                    ) ||
+                    ((message.content.startsWith('https://nhentai.net') ||
+                        message.content.startsWith('nhentai.net')) &&
+                        url.pathname === '/')) &&
+                url.host === 'nhentai.net'
+            );
         } catch (err) {
             return false;
         }
@@ -82,30 +85,14 @@ export default class extends Command {
         const cmd = path[0],
             page = pageNum.toString(),
             dontLogErr = true;
-        if (cmd === '') {
-            const command = this.client.commandHandler.findCommand('home');
-            await command.before(message);
-            await command.exec(message, { page, dontLogErr });
-        } else if (cmd === 'g') {
-            const command = this.client.commandHandler.findCommand('g');
-            await command.before(message);
-            await command.exec(message, { code: path[1], page, dontLogErr });
-        } else if (cmd === 'random') {
-            const command = this.client.commandHandler.findCommand('random');
-            await command.before(message);
-            await command.exec(message, { dontLogErr });
-        } else if (cmd === 'search') {
-            const command = this.client.commandHandler.findCommand('search');
-            await command.before(message);
-            await command.exec(message, { text: q, page, sort, dontLogErr });
-        } else if (cmd === 'info') {
-            const command = this.client.commandHandler.findCommand('info');
-            await command.exec(message, {});
-        } else {
-            message.util.parsed.alias = cmd;
-            const command = this.client.commandHandler.findCommand(cmd);
-            await command.before(message);
-            await command.exec(message, { text: path[1], page, sort, dontLogErr });
-        }
+        message.util.parsed.alias = cmd;
+        const command = this.client.commandHandler.findCommand(cmd);
+        await command.before(message);
+        await command.exec(message, {
+            text: cmd === 'search' ? q : path[1],
+            page,
+            sort,
+            dontLogErr,
+        });
     }
 }

@@ -37,7 +37,7 @@ export default class extends Command {
             },
             args: [
                 {
-                    id: 'code',
+                    id: 'text',
                     type: 'string',
                     match: 'text',
                 },
@@ -94,15 +94,15 @@ export default class extends Command {
     async exec(
         message: Message,
         {
-            code,
+            text,
             more,
             auto,
             page,
             dontLogErr,
-        }: { code: string; more?: boolean; auto?: boolean; page?: string; dontLogErr?: boolean }
+        }: { text: string; more?: boolean; auto?: boolean; page?: string; dontLogErr?: boolean }
     ) {
         try {
-            if (!code) {
+            if (!text) {
                 if (dontLogErr) return;
                 return this.client.commandHandler.emitError(
                     new Error('Invalid Query'),
@@ -111,7 +111,7 @@ export default class extends Command {
                 );
             }
 
-            const codeNum = parseInt(code, 10);
+            const codeNum = parseInt(text, 10);
             if (!codeNum || isNaN(codeNum)) {
                 if (dontLogErr) return;
                 return this.client.commandHandler.emitError(
