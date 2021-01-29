@@ -29,15 +29,26 @@ export default class extends Command {
         }
     }
 
+    p
+
     condition(message: Message) {
         try {
             if (!message.content) return false;
-            const url = new URL(
-                `${message.content.startsWith('nhentai.net') ? 'https://' : ''}${message.content}`,
-                'https://nhentai.net'
-            );
+
+            // cover case where the protocol is not specified
+            // for /g/_number_ URLs, this should leave it intact
+            let inferredPath = `${message.content.startsWith('nhentai.net') ? 'https://' : ''}${message.content}`;
+            const url = new URL(inferredPath, 'https://nhentai.net');
+
+            // catching rogue hostnames
+            if (url.host !== 'nhentai.net') return false;
+            // catching message with simply / as path
+            // those are relative URLs and will throw if passed to the URL constructor
+            if (url.pathname === '/')
+                try { new URL(inferredPath) } catch (e) { return false; }
+
             return (
-                ([
+                [
                     '/g/',
                     '/tag/',
                     '/artist/',
@@ -45,16 +56,18 @@ export default class extends Command {
                     '/group/',
                     '/parody/',
                     '/language/',
-                ].some(path => url.pathname.startsWith(path)) ||
-                    ['/random/', '/random', '/search/', '/info/', '/info'].some(
-                        path => url.pathname === path
-                    ) ||
-                    ((message.content.startsWith('https://nhentai.net') ||
-                        message.content.startsWith('nhentai.net')) &&
-                        url.pathname === '/')) &&
-                url.host === 'nhentai.net'
+                ].some(path => url.pathname.startsWith(path))
+                    ||
+                [
+                    '/random/',
+                    '/random',
+                    '/search/',
+                    '/info/',
+                    '/info'
+                ].some(path => url.pathname === path)
             );
         } catch (err) {
+            console.log('erred');
             return false;
         }
     }
