@@ -10,6 +10,7 @@ export default class extends Command {
         super('favorites', {
             aliases: ['favorites', 'favourites'],
             nsfw: true,
+            cooldown: 30000,
             description: {
                 content:
                     "Shows your (or your buddy's) favorites list.\nTo add a gallery to your favorites list, react with ❤️.",

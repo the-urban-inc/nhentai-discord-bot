@@ -12,6 +12,7 @@ export default class extends Command {
         super('home', {
             aliases: ['home', 'homepage'],
             nsfw: true,
+            cooldown: 20000,
             description: {
                 content:
                     "Shows nhentai homepage. Includes 'Popular Now' section for the first page.",

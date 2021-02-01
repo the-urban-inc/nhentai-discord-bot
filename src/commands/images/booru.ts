@@ -140,6 +140,7 @@ export default class extends Command {
             aliases: Object.keys(SITES).concat(...Object.values(SITES).map(x => x.aliases)),
             subAliases: SITES,
             nsfw: true,
+            cooldown: 10000,
             description: {
                 usage: '[tag]',
             },

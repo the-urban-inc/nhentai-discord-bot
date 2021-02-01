@@ -8,6 +8,7 @@ export default class extends Command {
         super('recent', {
             aliases: ['recent'],
             nsfw: true,
+            cooldown: 10000,
             description: {
                 content:
                     'Shows recent nhentai-related command calls in this server.\nIf someone has anonymous mode on, his/her command calls will not be recorded.',

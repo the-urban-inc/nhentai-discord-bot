@@ -47,6 +47,7 @@ export default class extends Command {
             id,
             aliases,
             description: { content, examples, additionalInfo },
+            cooldown
         } = command;
         if (command.areMultipleCommands) {
             id = Object.keys(command.subAliases).find(
@@ -95,7 +96,9 @@ export default class extends Command {
                 true
             );
 
-        if (aliases && aliases.length > 1) embed.addField('Aliases', aliases.slice(1).join(', '));
+        if (aliases && aliases.length > 1) embed.addField('Aliases', aliases.slice(1).join(', '), true);
+
+        if (cooldown) embed.addField('Cooldown', `${cooldown / 1000} seconds`, true);
 
         if (additionalInfo) embed.addField('More', additionalInfo);
 

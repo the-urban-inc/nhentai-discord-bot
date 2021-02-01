@@ -11,6 +11,7 @@ export default class extends Command {
         super('g', {
             aliases: ['g', 'gallery', 'read'],
             nsfw: true,
+            cooldown: 20000,
             description: {
                 content: 'Searches for a code on nhentai.',
                 usage: '<code> [--more] [--auto] [--page=pagenum]',

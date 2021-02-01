@@ -6,6 +6,7 @@ export default class extends Command {
     constructor() {
         super('leaderboard', {
             aliases: ['leaderboard', 'top'],
+            cooldown: 10000,
             description: {
                 content: "Shows server's leaderboard.",
                 examples: ['\nHow come you ranked higher than me???'],

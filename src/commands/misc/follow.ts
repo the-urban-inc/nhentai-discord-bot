@@ -7,6 +7,7 @@ export default class extends Command {
         super('follow', {
             aliases: ['follow', 'followlist'],
             nsfw: true,
+            cooldown: 10000,
             description: {
                 content: 'Shows your own follow list.',
                 examples: ['\nShows your own follow list.'],
