@@ -95,6 +95,7 @@ export default class extends Command {
             aliases: [...new Set(Object.keys(NL_IMAGES).concat(Object.keys(NB_IMAGES)))],
             subAliases: IMAGES,
             nsfw: false,
+            cooldown: 10000,
             error: {
                 'No Result': {
                     message: 'Failed to fetch image!',

@@ -7,6 +7,7 @@ export default class extends Command {
         super('blacklist', {
             aliases: ['blacklist'],
             nsfw: true,
+            cooldown: 10000,
             description: {
                 content: 'Shows your own blacklist.',
                 examples: ['\nEverybody has stuffs they dislike.'],

@@ -51,7 +51,6 @@ export class Client extends AkairoClient {
             },
             classToHandle: Command,
             allowMention: true,
-            defaultCooldown: 30000,
             blockBots: true,
             automateCategories: true,
             commandUtil: true,

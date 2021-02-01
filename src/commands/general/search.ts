@@ -12,6 +12,7 @@ export default class extends Command {
         super('search', {
             aliases: ['search'],
             nsfw: true,
+            cooldown: 20000,
             description: {
                 content: `Searches nhentai for given query.`,
                 usage: `<text> [--page=pagenum] [--sort=(${SORT_METHODS.join('/')})]`,

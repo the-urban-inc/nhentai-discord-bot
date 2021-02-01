@@ -9,6 +9,7 @@ export default class extends Command {
             nsfw: true,
             isConditionalorRegexCommand: true,
             typing: false,
+            cooldown: 20000,
         });
     }
 

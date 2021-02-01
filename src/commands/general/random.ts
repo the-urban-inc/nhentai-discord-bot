@@ -12,6 +12,7 @@ export default class extends Command {
         super('random', {
             aliases: ['random'],
             nsfw: true,
+            cooldown: 20000,
             description: {
                 content: 'Shows a random gallery.',
                 usage: '[--more] [--auto]',

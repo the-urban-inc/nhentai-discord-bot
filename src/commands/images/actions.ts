@@ -87,6 +87,7 @@ export default class extends Command {
             aliases: Object.keys(ACTIONS),
             subAliases: ACTIONS,
             nsfw: false,
+            cooldown: 10000,
             description: {
                 usage: '[user]',
             },

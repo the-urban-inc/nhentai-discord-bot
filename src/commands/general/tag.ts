@@ -235,6 +235,7 @@ export default class extends Command {
             aliases: Object.keys(TAGS),
             subAliases: TAGS,
             nsfw: true,
+            cooldown: 20000,
             description: {
                 usage: `<query> [--page=pagenum] [--sort=(${SORT_METHODS.join('/')})]`,
             },

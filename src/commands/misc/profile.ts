@@ -10,6 +10,7 @@ export default class extends Command {
     constructor() {
         super('profile', {
             aliases: ['profile'],
+            cooldown: 10000,
             description: {
                 content:
                     "Shows your (or your buddy's) profile.\nAdd --more to view favorite list, blacklist and recent calls (will not show up if the user has anonymous mode turned on).",
