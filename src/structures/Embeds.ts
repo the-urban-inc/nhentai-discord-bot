@@ -46,7 +46,7 @@ export class Embeds {
             id = Object.keys(subAliases).find(
                 key => key === alias || subAliases[key].aliases?.includes(alias)
             );
-            error = subAliases[id].error[err.message as ErrorType] ?? error;
+            error = subAliases[id].error?.[err.message as ErrorType] ?? error;
         }
         if (!error) return;
         const [example = '', description = ''] = error.example.replace('\n', '\x01').split('\x01');
