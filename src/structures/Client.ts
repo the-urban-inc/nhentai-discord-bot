@@ -3,6 +3,7 @@ import { TextChannel, DMChannel } from 'discord.js';
 import { Command, CommandHandler, Embeds, Inhibitor, Listener, Logger, Util } from './index';
 import config from '@config';
 import { Client as NhentaiAPI } from '@api/nhentai';
+import { Client as FakkuAPI } from '@api/fakku';
 import * as DB from '@database/index';
 import NekosLifeAPI from 'nekos.life';
 import { fork, ChildProcess } from 'child_process';
@@ -18,6 +19,7 @@ export class Client extends AkairoClient {
     public listenerHandler: ListenerHandler;
     public inhibitorHandler: InhibitorHandler;
     public nhentai: NhentaiAPI;
+    public fakku: FakkuAPI;
     public nekoslife: NekosLifeAPI;
     public notifier: ChildProcess;
     constructor(...options: ConstructorParameters<typeof AkairoClient>) {
@@ -67,6 +69,7 @@ export class Client extends AkairoClient {
             classToHandle: Listener,
         });
         this.nhentai = new NhentaiAPI();
+        this.fakku = new FakkuAPI();
         this.nekoslife = new NekosLifeAPI();
     }
 

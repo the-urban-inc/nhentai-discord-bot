@@ -47,6 +47,7 @@ Copy or Rename `.env.example` to `.env` and fill out the values:
 ```
 DISCORD_TOKEN = 'Insert your bot's token here'
 MONGODB_URI = 'URL of MongoDB server'
+SAUCENAO_TOKEN = 'Insert your SauceNAO token here'
 ```
 
 Edit the `config.json` file if you prefer different prefixes or inserting your own donate link

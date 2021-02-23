@@ -1,4 +1,4 @@
-import { Command, Listener, ErrorType } from '@structures';
+import { Command, Listener } from '@structures';
 import { Message } from 'discord.js';
 
 export default class extends Listener {
