@@ -20,6 +20,7 @@ nhentai is an open source nhentai Discord bot powered by [TypeScript](https://ww
 - Almost every basic features of the **[nhentai](https://nhentai.net/)** website.
 - EXP system based on the number of doujins searched
 - Follow a tag and receive a DM whenever a doujin with that tag is released
+- Reverse image search using SauceNAO (experimental)
 - Random reddit post from [r/nhentai](https://www.reddit.com/r/nhentai/).
 - SFW and NSFW images from [nekobot](https://nekobot.xyz/), [nekos.life](https://nekos.life/) and multiple booru sites such as Danbooru, Gelbooru, and much more.
 
