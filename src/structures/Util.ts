@@ -115,10 +115,10 @@ export class Util extends ClientUtil {
      * Shorten a `string[]` to conform to 1024-character limit
      * @param {string[]}} tags
      */
-    gshorten(tags: Array<string>) {
+    gshorten(tags: Array<string>, split = ' ') {
         let res = '';
-        for (const tag of tags) res += res.length + tag.length + 1 <= 1020 ? tag + ' ' : '';
-        return res + (tags.join(' ').length > 1024 ? '...' : '');
+        for (const tag of tags) res += res.length + tag.length + split.length <= 1020 ? tag + split : '';
+        return res + (tags.join(split).length > 1024 ? ' ...' : '');
     }
 
     hasCommon<T>(a: T[], b: T[]) {

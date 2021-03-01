@@ -89,10 +89,12 @@ export class Embeds {
         );
         if (danger || !rip) info.setThumbnail(this.client.nhentai.getCoverThumbnail(gallery));
         const t = new Map();
+        tags.sort((a, b) => b.count - a.count);
         tags.forEach(tag => {
             const { id, type, name, count } = tag;
             const a = t.get(type) || [];
-            let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
+            let s = `**\`${name}\`**\u2009\`⟮${count >= 1000 ? `${Math.floor(count / 1000)}K` : count}⟯\``;
+            // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
             if (blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
             a.push(s);
             t.set(type, a);
@@ -107,7 +109,7 @@ export class Embeds {
             ['category', 'Categories'],
         ].forEach(
             ([key, fieldName]) =>
-                t.has(key) && info.addField(fieldName, this.client.util.gshorten(t.get(key)))
+                t.has(key) && info.addField(fieldName, this.client.util.gshorten(t.get(key), '\u2009\u2009'))
         );
         // info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
         //     .addField('Pages', `**\`[${doujin.num_pages}]\`**`);
