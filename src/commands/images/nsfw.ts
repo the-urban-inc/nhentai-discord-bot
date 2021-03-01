@@ -147,7 +147,7 @@ const NL_IMAGES = {
     kitsune: ['kitsune'],
     kuni: ['kuni'],
     nsfw_neko: ['neko', 'eroNeko', 'nekoGif'],
-    pussy: ['pussy', 'pussyWankGif', 'pussyArt', 'pussyGif'],
+    pussy: ['pussy', 'pussyWankGif', 'pussyArt'],
     solo: ['girlSolo', 'girlSoloGif'],
     trap: ['trap'],
     yuri: ['yuri', 'eroYuri', 'lesbian'],
