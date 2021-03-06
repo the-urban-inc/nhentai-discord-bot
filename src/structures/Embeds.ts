@@ -93,7 +93,7 @@ export class Embeds {
         tags.forEach(tag => {
             const { id, type, name, count } = tag;
             const a = t.get(type) || [];
-            let s = `**\`${name}\`**\u2009\`⟮${count >= 1000 ? `${Math.floor(count / 1000)}K` : count}⟯\``;
+            let s = `**\`${name}\`**\u2009\`(${count >= 1000 ? `${Math.floor(count / 1000)}K` : count})\``;
             // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
             if (blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
             a.push(s);
