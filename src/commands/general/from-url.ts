@@ -30,11 +30,17 @@ export default class extends Command {
         }
     }
 
-    p
+    p;
 
     condition(message: Message) {
         try {
-            if (!message.content) return false;
+            if (
+                !message.content ||
+                message.content.startsWith('random') ||
+                message.content.startsWith('info')
+            ) {
+                return false;
+            }
 
             // cover case where the protocol is not specified
             // for /g/_number_ URLs, this should leave it intact
@@ -45,8 +51,13 @@ export default class extends Command {
             if (url.host !== 'nhentai.net') return false;
             // catching message with simply / as path
             // those are relative URLs and will throw if passed to the URL constructor
-            if (url.pathname === '/')
-                try { new URL(inferredPath) } catch (e) { return false; }
+            if (url.pathname === '/') {
+                try {
+                    new URL(inferredPath);
+                } catch (e) {
+                    return false;
+                }
+            }
 
             return (
                 [
@@ -57,13 +68,12 @@ export default class extends Command {
                     '/group/',
                     '/parody/',
                     '/language/',
-                ].some(path => url.pathname.startsWith(path))
-                    ||
+                ].some(path => url.pathname.startsWith(path)) ||
                 [
-                    '/random/',
-                    '/random',
-                    '/search/',
-                    '/info/',
+                    '/random/', 
+                    '/random', 
+                    '/search/', 
+                    '/info/', 
                     '/info'
                 ].some(path => url.pathname === path)
             );
