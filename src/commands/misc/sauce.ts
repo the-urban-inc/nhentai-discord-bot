@@ -1,5 +1,5 @@
 import { Command } from '@structures';
-import { Message } from 'discord.js';
+import { Message, TextChannel } from 'discord.js';
 import sagiri from 'sagiri';
 const sauceNAO = sagiri(process.env.SAUCENAO_TOKEN);
 
@@ -13,6 +13,7 @@ export default class extends Command {
                 content: 'Searches for image sauce by SauceNAO.',
                 examples: [
                     ' https://i.imgur.com/5yFTeRV.png\nSearches for sauce of the provided image link.',
+                    '\nYou can also attach image, or reply to a message that contains attachment. Note that it will only search for the first image attachment.',
                 ],
                 additionalInfo:
                     "Recommend using a full picture for best result. Screenshot search rarely gives you the correct link.\n\nCreator's Note: This is an experimental command. Thus, anything can change, including the deletion of this command.",
@@ -38,12 +39,45 @@ export default class extends Command {
         });
     }
 
+    async getReference(message: Message) {
+        const { channelID, messageID } = message.reference;
+        return ((await this.client.channels.fetch(channelID)) as TextChannel).messages.fetch(
+            messageID
+        );
+    }
+
+    checkforImage(message: Message) {
+        return message.attachments
+            .array()
+            .filter(a =>
+                ['png', 'gif', 'jpg', 'jpeg', 'webp'].includes(a.url.split('.').reverse()[0])
+            );
+    }
+
     async exec(message: Message, { query }: { query: string }) {
         try {
-            if (!query || !this.client.util.isUrl(query)) {
-                return this.client.commandHandler.emitError(new Error('Invalid Query'), message, this);
+            const referencedMessage = message.reference
+                ? await this.getReference(message)
+                : message;
+            if (!query && !message.attachments.size && !referencedMessage.attachments.size) {
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Query'),
+                    message,
+                    this
+                );
             }
-            const results = await sauceNAO(query, { results: 8, db: 999 });
+            const url =
+                query ??
+                this.checkforImage(message)[0]?.url ??
+                this.checkforImage(referencedMessage)[0]?.url;
+            if (!this.client.util.isUrl(url)) {
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Query'),
+                    message,
+                    this
+                );
+            }
+            const results = await sauceNAO(url, { results: 8, db: 999 });
             if (!results || !results.length) {
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
@@ -62,7 +96,9 @@ export default class extends Command {
                     .default()
                     .setTitle(
                         index === 21
-                            ? `${data.source}${(data as any).part ? ` - ${(data as any).part}` : ''}`
+                            ? `${data.source}${
+                                  (data as any).part ? ` - ${(data as any).part}` : ''
+                              }`
                             : data.title ?? (data as any).created_at ?? `Image from ${site}`
                     )
                     .setURL(url)
@@ -78,9 +114,9 @@ export default class extends Command {
                     info.addField(
                         'Pawoo ID',
                         (data as any).pawoo_user_acct
-                            ? `[${data.pawoo_id}](https://pawoo.net/@${(data as any).pawoo_user_acct}/${
-                                data.pawoo_id
-                            })`
+                            ? `[${data.pawoo_id}](https://pawoo.net/@${
+                                  (data as any).pawoo_user_acct
+                              }/${data.pawoo_id})`
                             : data.pawoo_id
                     );
                 }
