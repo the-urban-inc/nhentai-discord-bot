@@ -120,6 +120,12 @@ export default class extends Command {
                             : data.pawoo_id
                     );
                 }
+                if (data.nijie_id) {
+                    info.addField(
+                        'Nijie ID',
+                        `[${data.nijie_id}](https://nijie.info/view.php?id=${data.nijie_id})`
+                    );
+                }
                 if (data.da_id) {
                     info.addField(
                         'dA ID',
@@ -129,21 +135,43 @@ export default class extends Command {
                 let author =
                     authorName ??
                     (data as any).creator ??
-                    `@${(data as any).pawoo_user_username}` ??
-                    (data.member_name ? `${data.member_name} (${data.member_id})` : 'Unknown');
+                    (data.member_name ? `${data.member_name} (${data.member_id})` : 'Unknown') ??
+                    'Unknown';
                 if (authorUrl) author = `[${author}](${authorUrl})`;
-                if ((data as any).pawoo_user_acct)
+                if ((data as any).pawoo_user_acct) {
                     author = `[${author}](https://pawoo.net/@${(data as any).pawoo_user_acct})`;
-                if (index !== 21) {
-                    info.addField(
-                        site === 'Pixiv' ? 'Member' : site === 'Pawoo' ? 'Author' : 'Creator',
-                        author
-                    );
                 }
-                if (data.source && index !== 21) info.addField('Source', data.source);
-                if ((data as any).material) info.addField('Material', (data as any).material);
-                if ((data as any).characters) info.addField('Characters', (data as any).characters);
-                if ((data as any).est_time) info.addField('Est Time', (data as any).est_time);
+                if (![21, 22, 25].includes(index)) {
+                    let field = 'Creator';
+                    switch (index) {
+                        case 5:
+                            field = 'Member';
+                            break;
+                        case 11:
+                            field = 'Member';
+                            author = data.member_name
+                                ? `[${data.member_name}](https://nijie.info/members.php?id=${data.member_id})`
+                                : 'Unknown';
+                            break;
+                        case 35:
+                            field = 'Author';
+                            author = `@${(data as any).pawoo_user_username}` ?? author;
+                            break;
+                    }
+                    info.addField(field, author.length ? author : 'Unknown');
+                }
+                if (data.source && data.source.length) {
+                    info.addField('Source', data.source ?? 'Unknown');
+                }
+                if ((data as any).material && (data as any).material.length) {
+                    info.addField('Material', (data as any).material ?? 'Unknown');
+                }
+                if ((data as any).characters && (data as any).characters.length) {
+                    info.addField('Characters', (data as any).characters ?? 'Unknown');
+                }
+                if ((data as any).est_time && (data as any).est_time.length) {
+                    info.addField('Est Time', (data as any).est_time ?? 'Unknown');
+                }
                 display.addPage(info);
             }
             await display.run(
