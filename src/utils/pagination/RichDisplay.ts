@@ -20,6 +20,7 @@ interface Page {
 export interface RichDisplayOptions {
     template?: EmbedOrCallback;
     remove?: boolean;
+    removeOnly?: boolean;
     removeRequest?: boolean;
     jump?: boolean;
     firstLast?: boolean;
@@ -29,7 +30,7 @@ export interface RichDisplayOptions {
     follow?: boolean;
     blacklist?: boolean;
     download?: boolean;
-    image?: boolean;
+    image?: string;
     list?: number;
 }
 
@@ -76,9 +77,13 @@ export class RichDisplay {
         if (!(options.blacklist ?? false)) this._emojis.delete(ReactionMethods.Blacklist);
         if (!(options.download ?? false)) this._emojis.delete(ReactionMethods.Download);
         if (!(options.remove ?? true)) this._emojis.delete(ReactionMethods.Remove);
-        if (options.image ?? false) {
+        if (options.removeOnly ?? false) {
             this._emojis.clear();
             this._emojis.set(ReactionMethods.Remove, '🗑');
+        }
+        if (!!options.image ?? false) {
+            this._emojis.clear();
+            this._emojis.set(ReactionMethods.Info, 'ℹ').set(ReactionMethods.Remove, '🗑');
         }
     }
 
@@ -89,9 +94,10 @@ export class RichDisplay {
         editMessage: string = '',
         options: ReactionHandlerOptions = {}
     ): Promise<ReactionHandler> {
-        if (!(this.options.info ?? this.infoPage)) this._emojis.delete(ReactionMethods.Info);
+        if (!(this.options.info ?? this.infoPage) && !this.options.image) this._emojis.delete(ReactionMethods.Info);
         if (!this._footered) this.footer();
         if (this.options.removeRequest !== false) this.options.removeRequest = true;
+        if (!!this.options.image) options.imageURL = this.options.image;
         let msg: Message;
         if (message.editable) {
             await message.edit(
@@ -109,7 +115,6 @@ export class RichDisplay {
                     : this.infoPage ?? this.pages[0].embed
             );
         }
-
         return new ReactionHandler(client, requestMessage, msg, options, this, this._emojis);
     }
 

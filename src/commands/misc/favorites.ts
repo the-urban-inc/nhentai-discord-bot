@@ -98,7 +98,7 @@ export default class extends Command {
 
                 if (!this.danger && this.warning) {
                     return this.client.embeds
-                        .richDisplay({ image: true, removeRequest: false })
+                        .richDisplay({ removeOnly: true, removeRequest: false })
                         .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
                         .useCustomFooters()
                         .run(

@@ -130,7 +130,7 @@ export default class extends Command {
                     '• ⏪ ⏩ : Jumps to first/last page',
                     '• ◀ ▶ : Jumps to previous/next page',
                     '• ↗️ : Jumps to specified page',
-                    '• ℹ️ : Jumps to info page/View info of a doujin in doujin list view',
+                    '• ℹ️ : Jumps to info page/Views info of a doujin in doujin list view/Searches for image source using SauceNAO',
                     `• 🇦 ⏹ : Turns on/off auto browsing mode (add --auto to use this feature in ${prefix}g and ${prefix}random command)`,
                     '• ❤️ : Adds/Removes a doujin to/from favorites',
                     '• 🔖 : Follows/Unfollows a tag/artist/parody/etc.',

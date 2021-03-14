@@ -10,6 +10,7 @@ import { RichMenu } from './RichMenu';
 import { Client } from '@structures';
 
 export interface ReactionHandlerOptions extends ReactionCollectorOptions {
+    users?: string[];
     stop?: boolean;
     prompt?: string;
     promptAuto?: string;
@@ -18,6 +19,7 @@ export interface ReactionHandlerOptions extends ReactionCollectorOptions {
     noAuto?: string;
     startPage?: number;
     danger?: boolean;
+    imageURL?: string;
     max?: number;
     maxEmojis?: number;
     maxUsers?: number;
@@ -55,7 +57,10 @@ export class ReactionHandler {
     readonly message: Message;
     private readonly display: RichDisplay | RichMenu;
     private readonly methodMap: Map<string, ReactionMethods>;
+    private readonly users: string[];
     private readonly danger: boolean;
+    private imageURL: string | null;
+    private previousSession: ReactionHandler | null;
     private readonly prompt: string;
     private readonly promptAuto: string;
     private readonly stopAuto: string;
@@ -67,7 +72,7 @@ export class ReactionHandler {
     private readonly messageTimeout: number;
     private readonly collectorTimeout: number;
     readonly collector: ReactionCollector;
-    #ended = false;
+    ended = false;
     #awaiting = false;
     #info = false;
     #autoMode: NodeJS.Timeout;
@@ -93,6 +98,9 @@ export class ReactionHandler {
         this.requestMessage = requestMessage;
         this.display = display;
         this.methodMap = new Map(emojis.map((value, key) => [value, key]));
+        this.users = options.users ?? [this.requestMessage.author.id];
+        this.danger = options.danger ?? false;
+        this.imageURL = options.imageURL ?? null;
         this.prompt = options.prompt ?? 'Which page would you like to jump to?';
         this.promptAuto =
             options.promptAuto ??
@@ -105,7 +113,6 @@ export class ReactionHandler {
         this.messageTimeout = options.messageTimeout ?? 5000;
         this.collectorTimeout = options.collectorTimeout ?? 900000;
         this.dispose = options.dispose ?? true;
-        this.danger = options.danger ?? false;
         this.selection = emojis.has(ReactionMethods.One)
             ? new Promise(resolve => {
                   this.#resolve = resolve;
@@ -144,7 +151,7 @@ export class ReactionHandler {
                 this.message.client.emit('error', error);
             }
         }
-        this.#ended = true;
+        this.ended = true;
         if (this.#resolve) this.#resolve(null);
         return true;
     }
@@ -152,7 +159,7 @@ export class ReactionHandler {
     private choose(value: number): Promise<boolean> {
         if ((this.display as RichMenu).choices.length - 1 < value) return Promise.resolve(false);
         this.#resolve!(value);
-        this.#ended = true;
+        this.ended = true;
         return Promise.resolve(true);
     }
 
@@ -171,7 +178,7 @@ export class ReactionHandler {
 
     private async setup(emojis: Array<string>): Promise<boolean> {
         if (this.message.deleted) return this.stop();
-        if (this.#ended) return true;
+        if (this.ended) return true;
         try {
             this.message.react(emojis.shift() as string);
         } catch {
@@ -186,31 +193,40 @@ export class ReactionHandler {
         (this: ReactionHandler, user: User) => Promise<boolean>
     > = new Map()
         .set(ReactionMethods.First, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id))
+                return Promise.resolve(false);
             this.#currentPage = 0;
             return this.update();
         })
         .set(ReactionMethods.Back, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id))
+                return Promise.resolve(false);
             if (this.#currentPage <= 0) return Promise.resolve(false);
             this.#currentPage--;
             return this.update();
         })
-        .set(ReactionMethods.Forward, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
-            if (this.#currentPage >= this.display.pages.length - 1) return Promise.resolve(false);
-            this.#currentPage++;
-            return this.update();
-        })
+        .set(
+            ReactionMethods.Forward,
+            function (this: ReactionHandler, user: User): Promise<boolean> {
+                if (this.users.length && !this.users.includes(user.id))
+                    return Promise.resolve(false);
+                if (this.#currentPage >= this.display.pages.length - 1)
+                    return Promise.resolve(false);
+                this.#currentPage++;
+                return this.update();
+            }
+        )
         .set(ReactionMethods.Last, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id))
+                return Promise.resolve(false);
             this.#currentPage = this.display.pages.length - 1;
             return this.update();
         })
         .set(
             ReactionMethods.Jump,
             async function (this: ReactionHandler, user: User): Promise<boolean> {
-                if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+                if (this.users.length && !this.users.includes(user.id))
+                    return Promise.resolve(false);
                 if (this.#awaiting) return Promise.resolve(false);
                 this.#awaiting = true;
                 const message = await this.message.channel.send(
@@ -236,24 +252,44 @@ export class ReactionHandler {
                 return Promise.resolve(false);
             }
         )
-        .set(ReactionMethods.Info, async function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
-            if (this.message.deleted) return true;
-            if (this.#info) return this.update();
-            if (!this.display.infoPage) {
-                const gallery = this.display.pages[this.#currentPage].gallery;
-                if (!gallery) return false;
-                this.display.infoPage = this.client.embeds.displayGalleryInfo(gallery, this.danger).info;
+        .set(
+            ReactionMethods.Info,
+            async function (this: ReactionHandler, user: User): Promise<boolean> {
+                if (this.message.deleted) return true;
+                if (this.imageURL) {
+                    if (!this.previousSession) this.previousSession = this;
+                    else if (!this.previousSession.ended) return false;
+                    const command = this.client.commandHandler.findCommand('sauce');
+                    this.previousSession = await command.exec(this.requestMessage, {
+                        query: this.imageURL,
+                        tag: user.tag,
+                        users: [],
+                        removeRequest: false,
+                    });
+                    return false;
+                }
+                if (this.users.length && !this.users.includes(user.id))
+                    return false;
+                if (this.#info) return this.update();
+                if (!this.display.infoPage) {
+                    const gallery = this.display.pages[this.#currentPage].gallery;
+                    if (!gallery) return false;
+                    this.display.infoPage = this.client.embeds.displayGalleryInfo(
+                        gallery,
+                        this.danger
+                    ).info;
+                }
+                await this.message.edit(this.message.content, { embed: this.display.infoPage });
+                this.#info = true;
+                this.display.infoPage = null;
+                return false;
             }
-            await this.message.edit(this.message.content, { embed: this.display.infoPage });
-            this.#info = true;
-            this.display.infoPage = null;
-            return false;
-        })
+        )
         .set(
             ReactionMethods.Auto,
             async function (this: ReactionHandler, user: User): Promise<boolean> {
-                if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+                if (this.users.length && !this.users.includes(user.id))
+                    return Promise.resolve(false);
                 if (this.#awaiting) return Promise.resolve(false);
                 this.#awaiting = true;
                 const message = await this.message.channel.send(
@@ -284,7 +320,8 @@ export class ReactionHandler {
             }
         )
         .set(ReactionMethods.Pause, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id))
+                return Promise.resolve(false);
             if (this.#autoMode) {
                 clearInterval(this.#autoMode);
                 this.message.channel
@@ -301,7 +338,8 @@ export class ReactionHandler {
             ReactionMethods.Love,
             async function (this: ReactionHandler, user: User): Promise<boolean> {
                 try {
-                    let id = this.display.pages[this.#currentPage]?.gallery?.id || this.display.info.id;
+                    let id =
+                        this.display.pages[this.#currentPage]?.gallery?.id || this.display.info.id;
                     if (!id) return Promise.resolve(false);
                     const adding = await this.client.db.User.favorite(user, id.toString());
                     this.message.channel
@@ -376,7 +414,8 @@ export class ReactionHandler {
             ReactionMethods.Download,
             async function (this: ReactionHandler, user: User): Promise<boolean> {
                 try {
-                    const id = this.display.pages[this.#currentPage]?.gallery?.id || this.display.info.id;
+                    const id =
+                        this.display.pages[this.#currentPage]?.gallery?.id || this.display.info.id;
                     if (!id) return Promise.resolve(false);
                     this.message.channel
                         .send(
@@ -398,7 +437,8 @@ export class ReactionHandler {
         .set(
             ReactionMethods.Remove,
             async function (this: ReactionHandler, user: User): Promise<boolean> {
-                if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+                if (this.users.length && !this.users.includes(user.id))
+                    return Promise.resolve(false);
                 await this.stop();
                 if (this.#autoMode) clearInterval(this.#autoMode);
                 if (!this.message.deleted) await this.message.delete();
@@ -408,23 +448,28 @@ export class ReactionHandler {
             }
         )
         .set(ReactionMethods.One, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id))
+                return Promise.resolve(false);
             return this.choose(this.#currentPage * 5);
         })
         .set(ReactionMethods.Two, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id))
+                return Promise.resolve(false);
             return this.choose(1 + this.#currentPage * 5);
         })
         .set(ReactionMethods.Three, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id))
+                return Promise.resolve(false);
             return this.choose(2 + this.#currentPage * 5);
         })
         .set(ReactionMethods.Four, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id))
+                return Promise.resolve(false);
             return this.choose(3 + this.#currentPage * 5);
         })
         .set(ReactionMethods.Five, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.requestMessage.author.id !== user.id) return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id))
+                return Promise.resolve(false);
             return this.choose(4 + this.#currentPage * 5);
         });
 }

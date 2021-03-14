@@ -43,7 +43,7 @@ export default class extends Command {
             if (data['url'].match('.jpg') || data['url'].match('.png')) embed.setImage(data['url']);
             else embed.setImage(data['url'] + '.jpg');
             return this.client.embeds
-                .richDisplay({ image: true })
+                .richDisplay({ removeOnly: true })
                 .addPage(embed)
                 .useCustomFooters()
                 .run(

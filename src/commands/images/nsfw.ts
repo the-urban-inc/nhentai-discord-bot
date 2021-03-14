@@ -243,19 +243,15 @@ export default class extends Command {
                 .default()
                 .setDescription(`[Click here if image failed to load](${image})`)
                 .setImage(image);
-            return this.client.embeds
-                .richDisplay({ image: true })
-                .addPage(embed)
-                .useCustomFooters()
-                .run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...'),
-                    '',
-                    {
-                        time: 180000,
-                    }
-                );
+            return this.client.embeds.richDisplay({ image }).addPage(embed).useCustomFooters().run(
+                this.client,
+                message,
+                message, // await message.channel.send('Searching ...'),
+                '',
+                {
+                    time: 180000,
+                }
+            );
         } catch (err) {
             this.client.logger.error(err);
         }

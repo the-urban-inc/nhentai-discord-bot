@@ -148,7 +148,7 @@ export class Embeds {
             return { displayGallery, rip };
         } else {
             return {
-                displayGallery: this.richDisplay({ image: true })
+                displayGallery: this.richDisplay({ removeOnly: true })
                     .addPage(this.displayGalleryInfo(gallery, danger, blacklists).info)
                     .useCustomFooters(),
                 rip,

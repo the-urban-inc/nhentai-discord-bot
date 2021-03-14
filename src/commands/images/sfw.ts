@@ -158,29 +158,21 @@ export default class extends Command {
                 }
             }
             if (!image) {
-                return this.client.commandHandler.emitError(
-                    new Error('No Result'),
-                    message,
-                    this
-                );
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
             const embed = this.client.embeds
                 .default()
                 .setDescription(`[Click here if image failed to load](${image})`)
                 .setImage(image);
-            return this.client.embeds
-                .richDisplay({ image: true })
-                .addPage(embed)
-                .useCustomFooters()
-                .run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...'),
-                    '',
-                    {
-                        time: 180000,
-                    }
-                );
+            return this.client.embeds.richDisplay({ image }).addPage(embed).useCustomFooters().run(
+                this.client,
+                message,
+                message, // await message.channel.send('Searching ...'),
+                '',
+                {
+                    time: 180000,
+                }
+            );
         } catch (err) {
             this.client.logger.error(err);
         }

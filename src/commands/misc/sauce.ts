@@ -13,10 +13,10 @@ export default class extends Command {
                 content: 'Searches for image sauce by SauceNAO.',
                 examples: [
                     ' https://i.imgur.com/5yFTeRV.png\nSearches for sauce of the provided image link.',
-                    '\nYou can also attach image, or reply to a message that contains attachment. Note that it will only search for the first image attachment.',
+                    '\nYou can also attach image, or reply to a message that contains attachment(s). Note that it will only search for the first image attachment.',
                 ],
                 additionalInfo:
-                    "Recommend using a full picture for best result. Screenshot search rarely gives you the correct link.\n\nCreator's Note: This is an experimental command. Thus, anything can change, including the deletion of this command.",
+                    "Recommend using a full picture for best result. Cropped search rarely gives you the correct link.",
             },
             error: {
                 'No Result': {
@@ -54,7 +54,15 @@ export default class extends Command {
             );
     }
 
-    async exec(message: Message, { query }: { query: string }) {
+    async exec(
+        message: Message,
+        {
+            query,
+            tag,
+            users,
+            removeRequest,
+        }: { query: string; tag: string; users: string[]; removeRequest: boolean }
+    ) {
         try {
             const referencedMessage = message.reference
                 ? await this.getReference(message)
@@ -81,7 +89,7 @@ export default class extends Command {
             if (!results || !results.length) {
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
-            const display = this.client.embeds.richDisplay({ love: false });
+            const display = this.client.embeds.richDisplay({ love: false, removeRequest });
             for (const {
                 url,
                 site,
@@ -174,19 +182,20 @@ export default class extends Command {
                 }
                 display.addPage(info);
             }
-            await display.run(
+            return await display.run(
                 this.client,
                 message,
                 message,
-                `> **SauceNAO Search Result • [** ${message.author.tag} **]**`,
+                `> **SauceNAO Search Result • [** ${tag ?? message.author.tag} **]**`,
                 {
+                    users,
                     idle: 300000,
                 }
             );
         } catch (err) {
             this.client.logger.error(err);
             if (err.constructor.name === 'SagiriClientError') {
-                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+                this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
         }
     }
