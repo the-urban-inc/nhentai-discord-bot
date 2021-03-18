@@ -148,6 +148,9 @@ export class ReactionHandler {
             try {
                 await this.message.reactions.removeAll();
             } catch (error) {
+                // 10008 Unknown Message
+                // 50013 Missing Permissions
+                if (error.code === 10008 || error.code === 50013) return true;
                 this.message.client.emit('error', error);
             }
         }
@@ -193,14 +196,12 @@ export class ReactionHandler {
         (this: ReactionHandler, user: User) => Promise<boolean>
     > = new Map()
         .set(ReactionMethods.First, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id))
-                return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             this.#currentPage = 0;
             return this.update();
         })
         .set(ReactionMethods.Back, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id))
-                return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             if (this.#currentPage <= 0) return Promise.resolve(false);
             this.#currentPage--;
             return this.update();
@@ -217,8 +218,7 @@ export class ReactionHandler {
             }
         )
         .set(ReactionMethods.Last, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id))
-                return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             this.#currentPage = this.display.pages.length - 1;
             return this.update();
         })
@@ -268,8 +268,7 @@ export class ReactionHandler {
                     });
                     return false;
                 }
-                if (this.users.length && !this.users.includes(user.id))
-                    return false;
+                if (this.users.length && !this.users.includes(user.id)) return false;
                 if (this.#info) return this.update();
                 if (!this.display.infoPage) {
                     const gallery = this.display.pages[this.#currentPage].gallery;
@@ -320,8 +319,7 @@ export class ReactionHandler {
             }
         )
         .set(ReactionMethods.Pause, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id))
-                return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             if (this.#autoMode) {
                 clearInterval(this.#autoMode);
                 this.message.channel
@@ -448,28 +446,23 @@ export class ReactionHandler {
             }
         )
         .set(ReactionMethods.One, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id))
-                return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             return this.choose(this.#currentPage * 5);
         })
         .set(ReactionMethods.Two, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id))
-                return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             return this.choose(1 + this.#currentPage * 5);
         })
         .set(ReactionMethods.Three, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id))
-                return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             return this.choose(2 + this.#currentPage * 5);
         })
         .set(ReactionMethods.Four, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id))
-                return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             return this.choose(3 + this.#currentPage * 5);
         })
         .set(ReactionMethods.Five, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id))
-                return Promise.resolve(false);
+            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             return this.choose(4 + this.#currentPage * 5);
         });
 }
