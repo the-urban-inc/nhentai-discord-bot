@@ -89,10 +89,9 @@ export default class extends Command {
             `${message.content.startsWith('nhentai.net') ? 'https://' : ''}${message.content}`,
             'https://nhentai.net'
         );
-        const path = url.pathname.split('/');
+        const path = url.pathname.split('/').filter(p => p.length > 0);
         let pageNum = 1;
         if (url.searchParams.has('page')) pageNum = parseInt(url.searchParams.get('page'), 10);
-        if (url.pathname.startsWith('/')) path.shift();
         if (!isNaN(parseInt(path[path.length - 1], 10)) && path.length > 2) {
             pageNum = parseInt(path.splice(path.length - 1)[0], 10);
         }
