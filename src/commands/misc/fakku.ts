@@ -45,12 +45,15 @@ export default class extends Command {
             if (!query) {
                 return this.client.commandHandler.emitError(new Error('Invalid Query'), message, this);
             }
+            const consoleLog = console.log;
+            console.log = function () {};
             const results: { link: string }[] = await googleIt({
                 query,
                 limit: 25,
                 'only-urls': true,
                 includeSites: 'https://fakku.net/hentai',
             }).catch((err: Error) => this.client.logger.error(err));
+            console.log = consoleLog;
             const filtered = results
                 .map(r => new URL(r.link))
                 .filter(l => l.pathname.split('/').length === 3)
