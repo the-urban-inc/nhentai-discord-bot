@@ -53,6 +53,7 @@ export class Command extends C {
         if ('nsfw' in options) {
             this.nsfw = Boolean(options.nsfw);
             this.prefix = async message => {
+                if (!message.guild) return this.client.config.settings.prefix[this.nsfw ? 'nsfw' : 'sfw'];
                 if (
                     !this.client.commandHandler.splitPrefix ||
                     !this.client.commandHandler.splitPrefix.has(message.guild.id)
