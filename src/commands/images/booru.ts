@@ -2,6 +2,8 @@ import { Command } from '@structures';
 import { Message } from 'discord.js';
 import he from 'he';
 import { search } from 'booru';
+import { Server } from '@models/server';
+import { BANNED_TAGS_TEXT, BLOCKED_MESSAGE } from '@utils/constants';
 import config from '@config';
 const PREFIX = config.settings.prefix.nsfw[0];
 
@@ -164,15 +166,30 @@ export default class extends Command {
         });
     }
 
+    danger = false;
+    warning = false;
+
+    async before(message: Message) {
+        try {
+            let server = await Server.findOne({ serverID: message.guild.id }).exec();
+            if (!server) {
+                server = await new Server({
+                    settings: { danger: false },
+                }).save();
+            }
+            this.danger = server.settings.danger;
+            this.warning = false;
+        } catch (err) {
+            this.client.logger.error(err);
+            return message.channel.send(this.client.embeds.internalError(err));
+        }
+    }
+
     exec(message: Message, { tag }: { tag: string }) {
         type _ = keyof typeof SITES;
         const site = message.util?.parsed?.alias as _ | typeof SITES[_]['aliases'][number];
         if (!site) {
-            return this.client.commandHandler.emitError(
-                new Error('Parsing Failed'),
-                message,
-                this
-            );
+            return this.client.commandHandler.emitError(new Error('Parsing Failed'), message, this);
         }
         search(site, tag.replace(/ /g, '_'), { limit: 25, random: true }) // 25 is more than enough for a page
             .then(async res => {
@@ -195,26 +212,24 @@ export default class extends Command {
                 const display = this.client.embeds.richDisplay({ love: false }).useCustomFooters();
                 dataPosts.forEach((data, idx) => {
                     const image = data.fileUrl,
-                        tags = data.tags,
                         original = data.postView;
-                    display.addPage(
-                        this.client.embeds
-                            .default()
-                            .setDescription(
-                                `**Tags** : ${this.client.util.shorten(
-                                    tags
-                                        .map(
-                                            (x: string) => `\`${he.decode(x).replace(/_/g, ' ')}\``
-                                        )
-                                        .join('\u2000'),
-                                    '\u2000'
-                                )}\n\n[Original post](${original})\u2000•\u2000[Click here if image failed to load](${image})`
-                            )
-                            .setImage(image)
-                            .setFooter(`Post ${idx + 1} of ${dataPosts.length}`)
-                    );
+                    let tags = data.tags;
+                    tags = tags.map(x => he.decode(x).replace(/_/g, ' '));
+                    const prip = this.client.util.hasCommon(tags, BANNED_TAGS_TEXT);
+                    if (prip) this.warning = true;
+                    const embed = this.client.embeds
+                        .default()
+                        .setDescription(
+                            `**Tags** : ${this.client.util.shorten(
+                                tags.map((x: string) => `\`${x}\``).join('\u2000'),
+                                '\u2000'
+                            )}\n\n[Original post](${original})\u2000•\u2000[Click here if image failed to load](${image})`
+                        )
+                        .setFooter(`Post ${idx + 1} of ${dataPosts.length}`);
+                    if (!prip) embed.setImage(image);
+                    display.addPage(embed);
                 });
-                return display.run(
+                await display.run(
                     this.client,
                     message,
                     message, // await message.channel.send('Searching ...'),
@@ -223,6 +238,17 @@ export default class extends Command {
                         time: 180000,
                     }
                 );
+                if (!this.danger && this.warning) {
+                    return this.client.embeds
+                        .richDisplay({ removeOnly: true, removeRequest: false })
+                        .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
+                        .useCustomFooters()
+                        .run(
+                            this.client,
+                            message,
+                            message // await message.channel.send('Loading ...')
+                        );
+                }
             })
             .catch(err => {
                 this.client.logger.error(err.message);

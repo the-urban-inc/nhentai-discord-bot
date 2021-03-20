@@ -16,7 +16,9 @@ export class Util extends ClientUtil {
     }
 
     chunkify<T>(a: T[], chunk: number) {
-        return Array.from(Array(Math.ceil(a.length / chunk)), (_, i) => a.slice(i * chunk,i * chunk + chunk));
+        return Array.from(Array(Math.ceil(a.length / chunk)), (_, i) =>
+            a.slice(i * chunk, i * chunk + chunk)
+        );
     }
 
     formatMilliseconds(ms: number) {
@@ -117,12 +119,14 @@ export class Util extends ClientUtil {
      */
     gshorten(tags: Array<string>, split = ' ') {
         let res = '';
-        for (const tag of tags) res += res.length + tag.length + split.length <= 1020 ? tag + split : '';
+        for (const tag of tags) {
+            res += res.length + tag.length + split.length <= 1020 ? tag + split : '';
+        }
         return res + (tags.join(split).length > 1024 ? ' ...' : '');
     }
 
-    hasCommon<T>(a: T[], b: T[]) {
-        return [...new Set(a)].some(x => new Set(b).has(x));
+    hasCommon<T>(texts: T[], keywords: T[]) {
+        return [...new Set(texts)].some(x => new Set(keywords).has(x));
     }
 
     isUrl(s: string) {
