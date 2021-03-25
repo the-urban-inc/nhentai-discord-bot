@@ -124,7 +124,8 @@ export class Embeds {
         gallery: Gallery,
         danger = false,
         auto = false,
-        blacklists: Blacklist[] = []
+        blacklists: Blacklist[] = [],
+        caller?: string
     ) {
         const rip = this.client.util.hasCommon(
             gallery.tags.map(x => x.id.toString()),
@@ -140,6 +141,7 @@ export class Embeds {
                         `ID : ${id}${auto ? '• React with 🇦 to start an auto session' : ''}`
                     )
                 );
+            if (caller) displayGallery.setCaller(caller);
             this.client.nhentai
                 .getPages(gallery)
                 .forEach((page: string) =>
@@ -164,17 +166,19 @@ export class Embeds {
             page?: number;
             num_pages?: number;
             num_results?: number;
+            caller?: string;
             additional_options?: RichDisplayOptions;
         }
     ) {
         let rip = false;
-        const { page = 0, num_pages = 0, num_results = 0, additional_options = {} } = options || {};
+        const { page = 0, num_pages = 0, num_results = 0, caller = '', additional_options = {} } = options || {};
         const displayList = this.richDisplay({
             info: true,
             download: true,
             removeRequest: false,
             ...additional_options,
         }).useCustomFooters();
+        if (caller.length) displayList.setCaller(caller);
         for (const [idx, gallery] of galleries.entries()) {
             const { id, title, tags } = gallery;
             let language: Language = null;

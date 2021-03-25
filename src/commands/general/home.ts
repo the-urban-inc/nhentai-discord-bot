@@ -3,9 +3,11 @@ import { Message } from 'discord.js';
 import { User } from '@models/user';
 import { Server } from '@models/server';
 import { Blacklist } from '@models/tag';
+import { ReactionHandler } from '@utils/pagination/ReactionHandler';
 import { BLOCKED_MESSAGE } from '@utils/constants';
 import config from '@config';
 const PREFIX = config.settings.prefix.nsfw[0];
+type ARGS = { page: string; dontLogErr?: boolean };
 
 export default class extends Command {
     constructor() {
@@ -44,6 +46,10 @@ export default class extends Command {
         });
     }
 
+    args: ARGS = null;
+    message: Message = null;
+    internalCall = false;
+    currentHandler: ReactionHandler = null;
     danger = false;
     warning = false;
     blacklists: Blacklist[] = [];
@@ -71,16 +77,26 @@ export default class extends Command {
         }
     }
 
-    async exec(message: Message, { page, dontLogErr }: { page: string; dontLogErr?: boolean }) {
+    movePage = async (currentHandler: ReactionHandler, diff: number) => {
+        if (!this.args || !this.message) return false;
+        this.args.page = (+this.args.page + diff).toString();
+        this.args.dontLogErr = true;
+        this.internalCall = true;
+        this.currentHandler = currentHandler;
+        return await this.exec(this.message, this.args);
+    };
+
+    async exec(message: Message, { page, dontLogErr }: ARGS) {
         try {
             let pageNum = parseInt(page, 10);
             if (!pageNum || isNaN(pageNum) || pageNum < 1) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(
+                if (dontLogErr) return false;
+                this.client.commandHandler.emitError(
                     new Error('Invalid Page Index'),
                     message,
                     this
                 );
+                return false;
             }
 
             const data = await this.client.nhentai
@@ -88,18 +104,20 @@ export default class extends Command {
                 .catch(err => this.client.logger.error(err.message));
 
             if (!data) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+                if (dontLogErr) return false;
+                this.client.commandHandler.emitError(new Error('No Result'), message, this);
+                return false;
             }
 
             const { result, num_pages } = data;
             if (pageNum > num_pages) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(
+                if (dontLogErr) return false;
+                this.client.commandHandler.emitError(
                     new Error('Invalid Page Index'),
                     message,
                     this
                 );
+                return false;
             }
 
             if (pageNum === 1) {
@@ -134,10 +152,36 @@ export default class extends Command {
                 {
                     page: pageNum,
                     num_pages,
+                    caller: 'home'
                 }
             );
             if (rip) this.warning = true;
-            displayNew.run(
+            if (this.internalCall && this.currentHandler) {
+                this.currentHandler.display.pages = displayNew.pages;
+                if (this.currentHandler.warning && !this.warning) {
+                    await this.currentHandler.warning.stop();
+                    if (!this.currentHandler.warning.message.deleted)
+                        await this.currentHandler.warning.message.delete();
+                    this.currentHandler.warning = null;
+                } else if (!this.currentHandler.warning && this.warning) {
+                    this.currentHandler.warning = await this.client.embeds
+                        .richDisplay({ removeOnly: true, removeRequest: false })
+                        .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
+                        .useCustomFooters()
+                        .run(
+                            this.client,
+                            message,
+                            message, // await message.channel.send('Loading ...'),
+                            '',
+                            {
+                                time: 300000,
+                            }
+                        );
+                }
+                this.internalCall = false;
+                return true;
+            }
+            const handler = await displayNew.run(
                 this.client,
                 message,
                 message, // await message.channel.send('Searching ...'),
@@ -149,7 +193,7 @@ export default class extends Command {
             );
 
             if (!this.danger && this.warning) {
-                return this.client.embeds
+                const warning = await this.client.embeds
                     .richDisplay({ removeOnly: true, removeRequest: false })
                     .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
                     .useCustomFooters()
@@ -162,9 +206,14 @@ export default class extends Command {
                             time: 300000,
                         }
                     );
+                handler.warning = warning;
             }
+            this.message = message;
+            this.args = { page, dontLogErr };
+            return true;
         } catch (err) {
             this.client.logger.error(err.message);
+            return false;
         }
     }
 }

@@ -1,6 +1,7 @@
 import { CommandHandler as CH, CommandUtil } from 'discord-akairo';
 import { Message, Collection } from 'discord.js';
 import type { Client } from './Client';
+import type { Command } from './Command';
 
 interface Prefix {
     nsfw: string[];
@@ -10,6 +11,7 @@ interface Prefix {
 export class CommandHandler extends CH {
     client: Client;
     splitPrefix: Collection<string, Prefix>;
+    findCommand: (name: string) => Command;
     async updatePrefix(message: Message) {
         if (!this.splitPrefix) this.splitPrefix = new Collection();
         let { nsfw, sfw } = this.client.config.settings.prefix;

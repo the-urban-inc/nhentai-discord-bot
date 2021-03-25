@@ -174,7 +174,8 @@ export default class extends Command {
                 result.gallery,
                 this.danger,
                 auto,
-                this.blacklists
+                this.blacklists,
+                'g'
             );
             if (rip) this.warning = true;
             if (this.danger || !rip) {

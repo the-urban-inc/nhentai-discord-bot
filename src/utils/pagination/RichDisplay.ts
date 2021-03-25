@@ -39,6 +39,7 @@ export class RichDisplay {
     options: RichDisplayOptions;
     infoPage: Embed | null = null;
     info: Blacklist | null = null;
+    caller: string | null = null;
     _emojis: Cache<ReactionMethods, string> = new Cache();
     protected _template: Embed;
     protected _footered = false;
@@ -140,6 +141,11 @@ export class RichDisplay {
 
     setInfo(info: Blacklist): this {
         this.info = info;
+        return this;
+    }
+
+    setCaller(caller: string): this {
+        this.caller = caller;
         return this;
     }
 

@@ -55,11 +55,12 @@ export class ReactionHandler {
     readonly client: Client;
     readonly requestMessage: Message;
     readonly message: Message;
-    private readonly display: RichDisplay | RichMenu;
+    display: RichDisplay | RichMenu;
+    warning: ReactionHandler | null;
     private readonly methodMap: Map<string, ReactionMethods>;
     private readonly users: string[];
     private readonly danger: boolean;
-    private imageURL: string | null;
+    private imageURL: string;
     private previousSession: ReactionHandler | null;
     private readonly prompt: string;
     private readonly promptAuto: string;
@@ -100,7 +101,7 @@ export class ReactionHandler {
         this.methodMap = new Map(emojis.map((value, key) => [value, key]));
         this.users = options.users ?? [this.requestMessage.author.id];
         this.danger = options.danger ?? false;
-        this.imageURL = options.imageURL ?? null;
+        this.imageURL = options.imageURL ?? '';
         this.prompt = options.prompt ?? 'Which page would you like to jump to?';
         this.promptAuto =
             options.promptAuto ??
@@ -195,30 +196,93 @@ export class ReactionHandler {
         ReactionMethods,
         (this: ReactionHandler, user: User) => Promise<boolean>
     > = new Map()
-        .set(ReactionMethods.First, function (this: ReactionHandler, user: User): Promise<boolean> {
+        .set(ReactionMethods.First, async function (this: ReactionHandler, user: User): Promise<boolean> {
             if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
+            if (this.#currentPage === 0) {
+                if (this.display.caller === 'g') return Promise.resolve(false);
+                const cmd = this.client.commandHandler.findCommand(this.display.caller);
+                if (cmd) {
+                    const ok = await cmd.movePage?.(this, -1);
+                    if (ok) {
+                        this.#currentPage = 0;
+                        return this.update();
+                    }
+                    return Promise.resolve(!!ok);
+                }
+                return Promise.resolve(false);
+            }
             this.#currentPage = 0;
             return this.update();
         })
-        .set(ReactionMethods.Back, function (this: ReactionHandler, user: User): Promise<boolean> {
+        .set(ReactionMethods.Back, async function (this: ReactionHandler, user: User): Promise<boolean> {
             if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
-            if (this.#currentPage <= 0) return Promise.resolve(false);
+            if (this.#currentPage <= 0) {
+                if (this.display.caller === 'g') return Promise.resolve(false);
+                const cmd = this.client.commandHandler.findCommand(this.display.caller);
+                if (cmd) {
+                    const ok = await cmd.movePage?.(this, -1);
+                    if (ok) {
+                        this.#currentPage = 0;
+                        return this.update();
+                    }
+                    return Promise.resolve(!!ok);
+                }
+                return Promise.resolve(false);
+            }
             this.#currentPage--;
             return this.update();
         })
         .set(
             ReactionMethods.Forward,
-            function (this: ReactionHandler, user: User): Promise<boolean> {
+            async function (this: ReactionHandler, user: User): Promise<boolean> {
                 if (this.users.length && !this.users.includes(user.id))
                     return Promise.resolve(false);
-                if (this.#currentPage >= this.display.pages.length - 1)
+                if (this.#currentPage >= this.display.pages.length - 1) {
+                    if (this.display.caller === 'g') {
+                        if (!this.display.infoPage) {
+                            const gallery = this.display.pages[this.#currentPage].gallery;
+                            if (!gallery) return false;
+                            this.display.infoPage = this.client.embeds.displayGalleryInfo(
+                                gallery,
+                                this.danger
+                            ).info;
+                        }
+                        await this.message.edit(this.message.content, { embed: this.display.infoPage });
+                        this.#info = true;
+                        this.display.infoPage = null;
+                        this.#currentPage = 0;
+                        return false;
+                    }
+                    const cmd = this.client.commandHandler.findCommand(this.display.caller);
+                    if (cmd) {
+                        const ok = await cmd.movePage?.(this, 1);
+                        if (ok) {
+                            this.#currentPage = 0;
+                            return this.update();
+                        }
+                        return Promise.resolve(!!ok);
+                    }
                     return Promise.resolve(false);
+                }
                 this.#currentPage++;
                 return this.update();
             }
         )
-        .set(ReactionMethods.Last, function (this: ReactionHandler, user: User): Promise<boolean> {
+        .set(ReactionMethods.Last, async function (this: ReactionHandler, user: User): Promise<boolean> {
             if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
+            if (this.#currentPage === this.display.pages.length - 1) {
+                if (this.display.caller === 'g') return Promise.resolve(false);
+                const cmd = this.client.commandHandler.findCommand(this.display.caller);
+                if (cmd) {
+                    const ok = await cmd.movePage?.(this, 1);
+                    if (ok) {
+                        this.#currentPage = 0;
+                        return this.update();
+                    }
+                    return Promise.resolve(!!ok);
+                }
+                return Promise.resolve(false);
+            }
             this.#currentPage = this.display.pages.length - 1;
             return this.update();
         })
@@ -256,7 +320,7 @@ export class ReactionHandler {
             ReactionMethods.Info,
             async function (this: ReactionHandler, user: User): Promise<boolean> {
                 if (this.message.deleted) return true;
-                if (this.imageURL) {
+                if (this.imageURL && this.imageURL.length) {
                     if (!this.previousSession) this.previousSession = this;
                     else if (!this.previousSession.ended) return false;
                     const command = this.client.commandHandler.findCommand('sauce');

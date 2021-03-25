@@ -1,5 +1,6 @@
 import { Command as C, CommandOptions as CO } from 'discord-akairo';
 import type { Client } from './Client';
+import type { ReactionHandler } from '@utils/pagination/ReactionHandler';
 
 type SubAlias = {
     [key: string]: {
@@ -41,6 +42,7 @@ export class Command extends C {
     subAliases: SubAlias;
     error: ErrorResponse;
     silent?: boolean;
+    movePage?: (currentHandler: ReactionHandler, diff: number) => Promise<boolean>;
     constructor(id: string, options?: CommandOptions) {
         options.channel = 'guild';
         options.typing = true;

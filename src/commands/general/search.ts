@@ -4,8 +4,10 @@ import { User } from '@models/user';
 import { Server } from '@models/server';
 import { Blacklist } from '@models/tag';
 import { Sort } from '@api/nhentai';
+import { ReactionHandler } from '@utils/pagination/ReactionHandler';
 import { BLOCKED_MESSAGE } from '@utils/constants';
 const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
+type ARGS = { text: string; page: string; sort: string; dontLogErr?: boolean };
 
 export default class extends Command {
     constructor() {
@@ -75,6 +77,10 @@ export default class extends Command {
         });
     }
 
+    args: ARGS = null;
+    message: Message = null;
+    internalCall = false;
+    currentHandler: ReactionHandler = null;
     danger = false;
     warning = false;
     blacklists: Blacklist[] = [];
@@ -102,33 +108,32 @@ export default class extends Command {
         }
     }
 
-    async exec(
-        message: Message,
-        {
-            text,
-            page,
-            sort,
-            dontLogErr,
-        }: { text: string; page: string; sort: string; dontLogErr?: boolean }
-    ) {
+    movePage = async (currentHandler: ReactionHandler, diff: number) => {
+        if (!this.args || !this.message) return false;
+        this.args.page = (+this.args.page + diff).toString();
+        this.args.dontLogErr = true;
+        this.internalCall = true;
+        this.currentHandler = currentHandler;
+        return await this.exec(this.message, this.args);
+    };
+
+    async exec(message: Message, { text, page, sort, dontLogErr }: ARGS) {
         try {
             if (!text) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(
-                    new Error('Invalid Query'),
-                    message,
-                    this
-                );
+                if (dontLogErr) return false;
+                this.client.commandHandler.emitError(new Error('Invalid Query'), message, this);
+                return false;
             }
 
             let pageNum = parseInt(page, 10);
             if (!pageNum || isNaN(pageNum) || pageNum < 1) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(
+                if (dontLogErr) return false;
+                this.client.commandHandler.emitError(
                     new Error('Invalid Page Index'),
                     message,
                     this
                 );
+                return false;
             }
 
             if (/^\d+$/.test(text.replace('#', ''))) {
@@ -138,12 +143,13 @@ export default class extends Command {
             }
 
             if (!Object.values(Sort).includes(sort as Sort)) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(
+                if (dontLogErr) return false;
+                this.client.commandHandler.emitError(
                     new Error('Invalid Sort Method'),
                     message,
                     this
                 );
+                return false;
             }
 
             const data =
@@ -155,22 +161,25 @@ export default class extends Command {
                           .search(text, pageNum, sort as Sort)
                           .catch(err => this.client.logger.error(err.message));
             if (!data) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+                if (dontLogErr) return false;
+                this.client.commandHandler.emitError(new Error('No Result'), message, this);
+                return false;
             }
             const { result, num_pages, num_results } = data;
             if (!result.length) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+                if (dontLogErr) return false;
+                this.client.commandHandler.emitError(new Error('No Result'), message, this);
+                return false;
             }
 
             if (pageNum > num_pages) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(
+                if (dontLogErr) return false;
+                this.client.commandHandler.emitError(
                     new Error('Invalid Page Index'),
                     message,
                     this
                 );
+                return false;
             }
 
             const { displayList: displaySearch, rip } = this.client.embeds.displayGalleryList(
@@ -181,10 +190,36 @@ export default class extends Command {
                     page: pageNum,
                     num_pages,
                     num_results,
+                    caller: 'search',
                 }
             );
             if (rip) this.warning = true;
-            await displaySearch.run(
+            if (this.internalCall && this.currentHandler) {
+                this.currentHandler.display.pages = displaySearch.pages;
+                if (this.currentHandler.warning && !this.warning) {
+                    await this.currentHandler.warning.stop();
+                    if (!this.currentHandler.warning.message.deleted)
+                        await this.currentHandler.warning.message.delete();
+                    this.currentHandler.warning = null;
+                } else if (!this.currentHandler.warning && this.warning) {
+                    this.currentHandler.warning = await this.client.embeds
+                        .richDisplay({ removeOnly: true, removeRequest: false })
+                        .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
+                        .useCustomFooters()
+                        .run(
+                            this.client,
+                            message,
+                            message, // await message.channel.send('Loading ...'),
+                            '',
+                            {
+                                time: 300000,
+                            }
+                        );
+                }
+                this.internalCall = false;
+                return true;
+            }
+            const handler = await displaySearch.run(
                 this.client,
                 message,
                 message, // await message.channel.send('Searching ...'),
@@ -196,7 +231,7 @@ export default class extends Command {
             );
 
             if (!this.danger && this.warning) {
-                return this.client.embeds
+                const warning = await this.client.embeds
                     .richDisplay({ removeOnly: true, removeRequest: false })
                     .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
                     .useCustomFooters()
@@ -209,9 +244,14 @@ export default class extends Command {
                             time: 300000,
                         }
                     );
+                handler.warning = warning;
             }
+            this.message = message;
+            this.args = { text, page, sort, dontLogErr };
+            return true;
         } catch (err) {
             this.client.logger.error(err.message);
+            return false;
         }
     }
 }
