@@ -159,16 +159,18 @@ export class Client {
     }
 
     public async tag(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/tag/${query}`).then(async res => {
-            const $ = load(<string>res.data, {
-                decodeEntities: false,
-                xmlMode: false,
-            });
-            return {
-                id: await this.tagID($),
-                num_results: await this.numResults($),
-            };
-        });
+        const { id, num_results } = await this.fetch(`/tag/${query.replace(/ /g, '-')}`).then(
+            async res => {
+                const $ = load(<string>res.data, {
+                    decodeEntities: false,
+                    xmlMode: false,
+                });
+                return {
+                    id: await this.tagID($),
+                    num_results: await this.numResults($),
+                };
+            }
+        );
         if (!id || isNaN(id)) throw new Error('Invalid ID');
         return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
     }
