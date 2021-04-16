@@ -37,7 +37,7 @@ export class Client extends AkairoClient {
         this.db = DB;
         this.embeds = new Embeds(this);
         this.util = new Util(this);
-        this.logger = new Logger();
+        this.logger = new Logger(this);
         this.commandHandler = new CommandHandler(this, {
             directory: `${__dirname}/../commands/`,
             prefix: async message => {
