@@ -17,52 +17,65 @@ enum Color {
     GREY = 'grey',
 }
 
-
 /**
  * A logger that writes to console, and (optionally) writes to a Discord channel.
  */
 export class Logger {
-    constructor(client? : Client) {
+    constructor(client?: Client) {
         this.channels = (process.env.LOGGING_CHANNELS ?? '').split(',').filter(Boolean);
         this.client = client;
     }
 
-    client : Client;
-    channels : string[] = [];
-
-
+    client: Client;
+    channels: string[] = [];
 
     log(args: any, discord?: boolean) {
         const text = this.prepareText(args);
-        this.write(text, {
-            color: Color.GREY,
-            tag: 'Log',
-        }, discord);
+        this.write(
+            text,
+            {
+                color: Color.GREY,
+                tag: 'Log',
+            },
+            discord
+        );
     }
 
     info(args: any, discord?: boolean) {
         const text = this.prepareText(args);
-        this.write(text, {
-            color: Color.GREEN,
-            tag: 'Info',
-        }, discord);
+        this.write(
+            text,
+            {
+                color: Color.GREEN,
+                tag: 'Info',
+            },
+            discord
+        );
     }
 
     warn(args: any, discord?: boolean) {
         const text = this.prepareText(args);
-        this.write(text, {
-            color: Color.YELLOW,
-            tag: 'Warn',
-        }, discord);
+        this.write(
+            text,
+            {
+                color: Color.YELLOW,
+                tag: 'Warn',
+            },
+            discord
+        );
     }
 
     error(args: any, discord?: boolean) {
         const text = this.prepareText(args);
-        this.write(text, {
-            color: Color.RED,
-            tag: 'Error',
-            error: true,
-        }, discord);
+        this.write(
+            text,
+            {
+                color: Color.RED,
+                tag: 'Error',
+                error: true,
+            },
+            discord
+        );
     }
 
     stackTrace(...args: any) {
@@ -80,7 +93,11 @@ export class Logger {
      * @param options Logging options.
      * @param discord Whether to write this entry to configured Discord channels also. Use carefully, might run into ratelimits.
      */
-    write(content: string, options: { color: Color; tag: string; error?: boolean }, discord = false) {
+    write(
+        content: string,
+        options: { color: Color; tag: string; error?: boolean },
+        discord = false
+    ) {
         const { color = Color.GREY, tag = 'Log', error = false } = options;
         const timestamp = chalk.cyan(`[${moment().format('YYYY-MM-DD HH:mm:ss')}]:`);
         const levelTag = chalk.bold(`[${tag}]:`);
@@ -92,7 +109,13 @@ export class Logger {
             for (let channel_id of this.channels) {
                 let channel = this?.client.channels.cache.get(channel_id);
                 if (channel instanceof TextChannel)
-                    channel.send(new MessageEmbed().setDescription('```\n' + content + '\n```').setColor(color).setFooter(tag).setTimestamp())
+                    channel.send(
+                        new MessageEmbed()
+                            .setDescription('```\n' + content + '\n```')
+                            .setColor(color)
+                            .setFooter(tag)
+                            .setTimestamp()
+                    );
             }
     }
 
