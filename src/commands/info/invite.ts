@@ -18,7 +18,7 @@ export default class extends Command {
             .split('/')
             .filter(a => a)
             .reverse();
-        const embed = this.client.embeds.info(
+        const embed = this.client.embeds.default().setDescription(
             `[Here](${await this.client.generateInvite({
                 permissions: PERMISSIONS,
             })}) is my invite link! You can also [self-host](https://github.com/${owner}/${repo}) me if you prefer.`
