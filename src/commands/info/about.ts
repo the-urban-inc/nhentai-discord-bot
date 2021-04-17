@@ -1,6 +1,7 @@
 import { Command } from '@structures';
 import { Message, version as DiscordVersion } from 'discord.js';
 import { version as AkairoVersion } from 'discord-akairo';
+import { User } from '@models/user';
 import { PERMISSIONS } from '@utils/constants';
 const { npm_package_version, npm_package_repository_url } = process.env;
 
@@ -29,7 +30,7 @@ export default class extends Command {
             .addField('❯ Discord', [
                 `• **Guilds** : ${this.client.guilds.cache.size}`,
                 `• **Channels** : ${this.client.channels.cache.size}`,
-                `• **Users** : ${this.client.users.cache.size}`,
+                `• **Users** : ${await User.estimatedDocumentCount({}).exec()}`,
                 `• **Invite Link** : [Click here](${await this.client.generateInvite({
                     permissions: PERMISSIONS,
                 })})`,
