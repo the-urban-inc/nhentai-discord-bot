@@ -6,11 +6,14 @@ export default class extends Listener {
         super('new-guild', {
             category: 'client',
             emitter: 'client',
-            event: 'guildCreate'
-        })
+            event: 'guildCreate',
+        });
     }
 
-    exec(guild : Guild) {
-        this.client.logger.info(`Joined guild ID ${guild.id} - "${guild.name}"`, true);
+    exec(guild: Guild) {
+        this.client.logger.info(
+            `Joined guild "${guild.name}" (ID: ${guild.id}) (Total: ${this.client.guilds.cache.size} guilds)`,
+            true
+        );
     }
 }
