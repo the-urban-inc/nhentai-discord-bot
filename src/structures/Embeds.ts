@@ -82,7 +82,7 @@ export class Embeds {
         const info = this.default()
             .setAuthor(title, ICON, `https://nhentai.net/g/${id}`)
             .setFooter(`ID : ${id}`)
-            .setTimestamp();
+            .setTimestamp(upload_date * 1000);
         const rip = this.client.util.hasCommon(
             tags.map(x => x.id.toString()),
             BANNED_TAGS
@@ -180,7 +180,7 @@ export class Embeds {
         }).useCustomFooters();
         if (caller.length) displayList.setCaller(caller);
         for (const [idx, gallery] of galleries.entries()) {
-            const { id, title, tags } = gallery;
+            const { id, title, tags, upload_date } = gallery;
             let language: Language = null;
             if (tags.some(tag => tag.id === 6346)) language = Language.Japanese;
             else if (tags.some(tag => tag.id === 12227)) language = Language.English;
@@ -199,7 +199,7 @@ export class Embeds {
                         (page ? `\u2000•\u2000Page ${page} of ${num_pages || 1}` : '') +
                         (num_results ? `\u2000•\u2000${num_results} galleries` : '')
                 )
-                .setTimestamp();
+                .setTimestamp(upload_date * 1000);
             const bTags = blacklists.filter(b => tags.some(tag => tag.id.toString() === b.id)),
                 len = bTags.length;
             if (len) {
