@@ -40,7 +40,7 @@ async function init() {
             const { user, channel, tag, type, name } = m;
             let subscriberRecord = await WatchModel.findOne({ id: tag }).exec();
 
-            let reset = async () => await (await watcher.setWatch(tagIdsToWatch)).start();
+            let reset = async () => await watcher.setWatch(tagIdsToWatch);
 
             // add if not present, remove otherwise
             if (!subscriberRecord)
