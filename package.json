@@ -22,6 +22,7 @@
         "discord-akairo": "^8.1.0",
         "discord.js": "^12.5.1",
         "dotenv": "^8.0.0",
+        "express": "^4.17.1",
         "google-it": "^1.6.1",
         "he": "^1.2.0",
         "moment": "^2.24.0",
@@ -30,10 +31,11 @@
         "qs": "^6.9.1",
         "queue-ts": "^0.1.0",
         "sagiri": "^3.1.1",
-        "set-interval": "https://github.com/cipherallies/SetIntervalJS/archive/8b5e7e07892217bd0eadbcdd3edafc9921ebc2d3.tar.gz",
+        "set-interval": "https://github.com/cipherallies/SetIntervalJS/archive/ff8c514ce4997c3467b9a459e04fcaf4290ea041.tar.gz",
         "tsconfig-paths": "^3.9.0"
     },
     "devDependencies": {
+        "@types/express": "^4.17.11",
         "@types/he": "^1.1.1",
         "@types/mongoose": "5.10.1",
         "@types/node": "^14.0.13",
