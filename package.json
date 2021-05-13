@@ -16,7 +16,7 @@
         "axios": "^0.21.1",
         "booru": "^2.0.5",
         "chalk": "^4.1.0",
-        "cheerio": "^1.0.0-rc.5",
+        "cheerio": "1.0.0-rc.5",
         "common-tags": "^1.8.0",
         "cookie-parser": "^1.4.4",
         "discord-akairo": "^8.1.0",
