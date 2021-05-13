@@ -93,7 +93,9 @@ export class Embeds {
         tags.forEach(tag => {
             const { id, type, name, count } = tag;
             const a = t.get(type) || [];
-            let s = `**\`${name}\`**\u2009\`(${count >= 1000 ? `${Math.floor(count / 1000)}K` : count})\``;
+            let s = `**\`${name}\`**\u2009\`(${
+                count >= 1000 ? `${Math.floor(count / 1000)}K` : count
+            })\``;
             // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
             if (blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
             a.push(s);
@@ -109,7 +111,8 @@ export class Embeds {
             ['category', 'Categories'],
         ].forEach(
             ([key, fieldName]) =>
-                t.has(key) && info.addField(fieldName, this.client.util.gshorten(t.get(key), '\u2009\u2009'))
+                t.has(key) &&
+                info.addField(fieldName, this.client.util.gshorten(t.get(key), '\u2009\u2009'))
         );
         // info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
         //     .addField('Pages', `**\`[${doujin.num_pages}]\`**`);
@@ -171,7 +174,13 @@ export class Embeds {
         }
     ) {
         let rip = false;
-        const { page = 0, num_pages = 0, num_results = 0, caller = '', additional_options = {} } = options || {};
+        const {
+            page = 0,
+            num_pages = 0,
+            num_results = 0,
+            caller = '',
+            additional_options = {},
+        } = options || {};
         const displayList = this.richDisplay({
             info: true,
             download: true,
@@ -248,15 +257,25 @@ export class Embeds {
         for (const [
             idx,
             {
-                poster: { username, avatar_url },
+                id,
+                gallery_id,
+                poster: { id: uid, username, avatar_url },
                 body,
                 post_date,
             },
         ] of comments.entries()) {
             displayComments.addPage(
                 this.default()
-                    .setAuthor(`${he.decode(username)}`, `https://i5.nhentai.net/${avatar_url}`)
-                    .setDescription(body)
+                    .setAuthor(
+                        `${he.decode(username)}`,
+                        `https://i5.nhentai.net/${avatar_url}`,
+                        `https://nhentai.net/users/${uid}/${username}`
+                    )
+                    .setDescription(
+                        `[${this.client.util.shorten(
+                            body
+                        )}](http://nhentai.net/g/${gallery_id}/#comment-${id})`
+                    )
                     .setFooter(
                         `Comment ${idx + 1} of ${comments.length}\u2000•\u2000Posted ${moment(
                             post_date * 1000
