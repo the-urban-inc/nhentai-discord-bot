@@ -139,7 +139,7 @@ export default class extends Command {
             if (/^\d+$/.test(text.replace('#', ''))) {
                 const command = this.client.commandHandler.findCommand('g');
                 await command.before(message);
-                return command.exec(message, { code: text.replace('#', ''), page: '1' });
+                return command.exec(message, { text: text.replace('#', ''), page: '1' });
             }
 
             if (!Object.values(Sort).includes(sort as Sort)) {
