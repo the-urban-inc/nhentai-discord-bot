@@ -56,9 +56,9 @@
         "build": "rimraf build/ && ttsc",
         "lint": "eslint src/**/* --ext .ts",
         "start": "node --trace-warnings --trace-deprecation build/src/index.js",
-        "start:server": "node --trace-warnings --trace-deprecation build/src/web/index.js",
+        "start:web": "node --trace-warnings --trace-deprecation build/src/web/index.js",
         "dev": "ts-node --compiler ttypescript src/index.ts",
-        "dev:server": "ts-node --compiler ttypescript src/web/index.ts",
+        "dev:web": "ts-node --compiler ttypescript src/web/index.ts",
         "wipe": "ts-node --compiler ttypescript scripts/wipe.ts"
     },
     "engines": {

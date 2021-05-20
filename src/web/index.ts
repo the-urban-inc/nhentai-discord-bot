@@ -7,7 +7,7 @@ import { Client as NhentaiAPI } from '@api/nhentai';
 const log = new Logger();
 const api = new NhentaiAPI();
 const app = express();
-const port = process.env.PORT ?? 80;
+const port = process.env.PORT ?? 3000;
 
 app.get('/download/:code/', async (req, res) => {
     const code = req.params.code;
@@ -39,6 +39,7 @@ app.get('/download/:code/', async (req, res) => {
             Keywords: t.get('tag').join(', '),
             CreationDate: new Date(upload_date * 1000),
         },
+        autoFirstPage: false
     });
     const stream = doc.pipe(res);
     const pages = api.getPages(gallery);
@@ -55,5 +56,5 @@ app.get('/download/:code/', async (req, res) => {
 });
 
 app.listen(port, () => {
-    log.info(`Listening at port ${port}.`);
+    log.info(`[WEB] Listening at port ${port}.`);
 });
