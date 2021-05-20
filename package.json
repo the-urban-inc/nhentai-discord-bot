@@ -28,6 +28,7 @@
         "moment": "^2.24.0",
         "mongoose": "5.10.15",
         "nekos.life": "^2.0.5",
+        "pdfkit": "^0.12.1",
         "qs": "^6.9.1",
         "queue-ts": "^0.1.0",
         "sagiri": "^3.1.1",
@@ -40,6 +41,7 @@
         "@types/mongoose": "5.10.1",
         "@types/node": "^14.0.13",
         "@types/node-fetch": "^2.5.7",
+        "@types/pdfkit": "^0.11.0",
         "@types/qs": "^6.9.4",
         "@types/ws": "^7.2.6",
         "@zerollup/ts-transform-paths": "^1.7.18",
@@ -54,7 +56,9 @@
         "build": "rimraf build/ && ttsc",
         "lint": "eslint src/**/* --ext .ts",
         "start": "node --trace-warnings --trace-deprecation build/src/index.js",
+        "start:server": "node --trace-warnings --trace-deprecation build/src/web/index.js",
         "dev": "ts-node --compiler ttypescript src/index.ts",
+        "dev:server": "ts-node --compiler ttypescript src/web/index.ts",
         "wipe": "ts-node --compiler ttypescript scripts/wipe.ts"
     },
     "engines": {

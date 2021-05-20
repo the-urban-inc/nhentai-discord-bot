@@ -483,8 +483,8 @@ export class ReactionHandler {
                         .send(
                             this.client.embeds
                                 .info(
-                                    `Click [here](https://nhdl.herokuapp.com/download/nhentai/${id}/?e=zip) to download ${id}`
-                                ) // Thanks masami45 (@masami45) for the download server
+                                    `Click [here](https://nhentai-discord-bot.herokuapp.com/download/${id}) to download ${id}`
+                                )
                                 .setFooter(user.tag, user.displayAvatarURL())
                         )
                         .then(message => message.delete({ timeout: 60000 }));
