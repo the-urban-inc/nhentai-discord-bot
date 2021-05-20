@@ -128,6 +128,7 @@ export class Logger {
     prepareText(args: any) {
         const cleanedArgs = [];
         if (typeof args === 'string') args = [args];
+        else args = [JSON.stringify(args)];
         for (const arg of args) {
             cleanedArgs.push(this.clean(arg));
         }
