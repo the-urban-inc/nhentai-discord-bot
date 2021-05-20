@@ -483,7 +483,7 @@ export class ReactionHandler {
                         .send(
                             this.client.embeds
                                 .info(
-                                    `Click [here](https://nhentai-discord-bot.herokuapp.com/download/${id}) to download ${id}`
+                                    `Click [here](https://nhentai-discord-bot-web.herokuapp.com/download/${id}) to download ${id}`
                                 )
                                 .setFooter(user.tag, user.displayAvatarURL())
                         )
