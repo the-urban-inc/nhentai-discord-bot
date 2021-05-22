@@ -176,7 +176,7 @@ export class Client {
     }
 
     public async artist(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/artist/${query}`).then(async res => {
+        const { id, num_results } = await this.fetch(`/artist/${query.replace(/ /g, '-')}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
@@ -191,7 +191,7 @@ export class Client {
     }
 
     public async character(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/character/${query}`).then(async res => {
+        const { id, num_results } = await this.fetch(`/character/${query.replace(/ /g, '-')}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
@@ -206,7 +206,7 @@ export class Client {
     }
 
     public async group(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/group/${query}`).then(async res => {
+        const { id, num_results } = await this.fetch(`/group/${query.replace(/ /g, '-')}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
@@ -221,7 +221,7 @@ export class Client {
     }
 
     public async parody(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/parody/${query}`).then(async res => {
+        const { id, num_results } = await this.fetch(`/parody/${query.replace(/ /g, '-')}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
@@ -236,7 +236,7 @@ export class Client {
     }
 
     public async language(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/language/${query}`).then(async res => {
+        const { id, num_results } = await this.fetch(`/language/${query.replace(/ /g, '-')}`).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
