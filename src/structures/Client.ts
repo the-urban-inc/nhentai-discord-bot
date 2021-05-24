@@ -113,6 +113,7 @@ export class Client extends AkairoClient {
         });
         this.listenerHandler.loadAll();
         await this.db.init();
+        await this.fakku.setup();
         await super.login(DISCORD_TOKEN);
         const owner = (await super.fetchApplication()).owner!.id;
         this.ownerID = this.commandHandler.ignoreCooldown = owner;

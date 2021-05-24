@@ -6,6 +6,7 @@ export interface BaseTag {
 export interface Doujin {
     title: string;
     book?: BaseTag;
+    price?: string;
     artist: BaseTag[];
     parody: BaseTag;
     magazine?: BaseTag;
@@ -30,10 +31,18 @@ export interface Game {
     tags: BaseTag[];
 }
 
+export interface Magazine {
+    publisher: string;
+    coverIllust: string;
+    artists: string;
+    doujins: DoujinThumb[];
+}
+
 export interface DoujinThumb {
     title: BaseTag;
-    author: BaseTag;
+    artist: BaseTag;
     thumbnail: string;
     description: string;
+    price: string;
     tags: BaseTag[]; 
 }

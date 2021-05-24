@@ -43,7 +43,11 @@ export default class extends Command {
     async exec(message: Message, { query }: { query: string }) {
         try {
             if (!query) {
-                return this.client.commandHandler.emitError(new Error('Invalid Query'), message, this);
+                return this.client.commandHandler.emitError(
+                    new Error('Invalid Query'),
+                    message,
+                    this
+                );
             }
             const consoleLog = console.log;
             console.log = function () {};
@@ -85,12 +89,12 @@ export default class extends Command {
                             ? this.client.util.shorten(doujin[t], '\n', 1000)
                             : Array.isArray(doujin[t])
                             ? this.client.util.gshorten(
-                                doujin[t].map((d: { name: string; href: string }) =>
-                                    t === 'tags'
-                                        ? `\`${d.name}\``
-                                        : `[${d.name}](https://fakku.net${d.href})`
-                                )
-                            )
+                                  doujin[t].map((d: { name: string; href: string }) =>
+                                      t === 'tags'
+                                          ? `\`${d.name}\``
+                                          : `[${d.name}](https://fakku.net${d.href})`
+                                  )
+                              )
                             : `[${doujin[t].name}](https://fakku.net${doujin[t].href})`,
                         t !== 'description' && t !== 'tags'
                     );

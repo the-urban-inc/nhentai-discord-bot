@@ -30,8 +30,6 @@ export default class extends Command {
         }
     }
 
-    p;
-
     condition(message: Message) {
         try {
             if (
