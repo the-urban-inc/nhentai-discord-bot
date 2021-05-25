@@ -1,2 +1,2 @@
-web: npm run start:web
-worker: npm start
+web: npm install -g yarn && yarn start:web
+worker: npm install -g yarn && yarn start
