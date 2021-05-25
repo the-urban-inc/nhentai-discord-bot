@@ -11,9 +11,10 @@ export default class extends Listener {
     }
 
     exec(guild: Guild) {
+        this.client.logger.discord = true;
         this.client.logger.info(
-            `Joined guild "${guild.name}" (ID: ${guild.id}) (Total: ${this.client.guilds.cache.size} guilds)`,
-            true
+            `Joined guild "${guild.name}" (ID: ${guild.id}) (Total: ${this.client.guilds.cache.size} guilds)`
         );
+        this.client.logger.discord = false;
     }
 }
