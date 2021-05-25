@@ -4,8 +4,8 @@ import { Command, CommandHandler, Embeds, Inhibitor, Listener, Logger, Util } fr
 import config from '@config';
 import { Client as NhentaiAPI } from '@api/nhentai';
 import { Client as FakkuAPI } from '@api/fakku';
+import { Client as ImageAPI } from '@api/images';
 import * as DB from '@database/index';
-import NekosLifeAPI from 'nekos.life';
 import { fork, ChildProcess } from 'child_process';
 const { DISCORD_TOKEN } = process.env;
 
@@ -20,7 +20,7 @@ export class Client extends AkairoClient {
     public inhibitorHandler: InhibitorHandler;
     public nhentai: NhentaiAPI;
     public fakku: FakkuAPI;
-    public nekoslife: NekosLifeAPI;
+    public images: ImageAPI;
     public notifier: ChildProcess;
     constructor(...options: ConstructorParameters<typeof AkairoClient>) {
         super(
@@ -70,7 +70,7 @@ export class Client extends AkairoClient {
         });
         this.nhentai = new NhentaiAPI();
         this.fakku = new FakkuAPI();
-        this.nekoslife = new NekosLifeAPI();
+        this.images = new ImageAPI();
     }
 
     async start(): Promise<void> {
@@ -113,7 +113,7 @@ export class Client extends AkairoClient {
         });
         this.listenerHandler.loadAll();
         await this.db.init();
-        await this.fakku.setup();
+        await this.fakku.setup(); // Comment this line out if you don't want to scrape Fakku magazine page everytime the bot starts up
         await super.login(DISCORD_TOKEN);
         const owner = (await super.fetchApplication()).owner!.id;
         this.ownerID = this.commandHandler.ignoreCooldown = owner;

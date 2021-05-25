@@ -2,7 +2,7 @@ import { Command as C, CommandOptions as CO } from 'discord-akairo';
 import type { Client } from './Client';
 import type { ReactionHandler } from '@utils/pagination/ReactionHandler';
 
-type SubAlias = {
+export type SubAlias = {
     [key: string]: {
         aliases?: string[];
         description: string;

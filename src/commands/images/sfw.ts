@@ -1,7 +1,7 @@
 import { Command } from '@structures';
 import { Message } from 'discord.js';
-import axios from 'axios';
 import config from '@config';
+import { SFW_METHODS } from '@api/images';
 const PREFIX = config.settings.prefix.nsfw[0];
 
 const IMAGES = {
@@ -38,6 +38,10 @@ const IMAGES = {
         additionalInfo:
             'Holo: A female demi-human wolf and the protagonist of the light novel, manga and anime series Spice & Wolf.',
     },
+    jahy: {
+        description: 'Shows a random SFW jahy picture.\nImages from HMtai API.',
+        examples: ['\nSo hot Jahy :3'],
+    },
     kanna: {
         description: 'Shows a random SFW kanna picture.\nImages from nekobot.xyz.',
         examples: ['\nProtecc'],
@@ -51,7 +55,8 @@ const IMAGES = {
             'Kemonomimi: A person with animal characteristics, such as cat ears, cat tails, whiskers, paws.',
     },
     neko: {
-        description: 'Shows a random SFW neko picture.\nImages from nekos.life and nekobot.xyz.',
+        description:
+            'Shows a random SFW neko picture.\nImages from nekos.life or nekobot.xyz or HMtai.',
         examples: ['\nCatgirls.'],
     },
     smug: {
@@ -65,34 +70,15 @@ const IMAGES = {
         ],
     },
     wallpaper: {
-        description: 'Shows a random SFW wallpaper picture.\nImages from nekos.life.',
+        description: 'Shows a random SFW wallpaper picture.\nImages from HMtai API.',
         examples: ['\nAnime wallpapers.'],
     },
-};
-
-const NL_IMAGES = {
-    avatar: ['avatar'],
-    baka: ['baka'],
-    foxgirl: ['foxGirl'],
-    gecg: ['gecg'],
-    holo: ['holo'],
-    kemonomimi: ['kemonomimi'],
-    neko: ['neko', 'nekoGif'],
-    smug: ['smug'],
-    waifu: ['waifu'],
-    // wallpaper: ['wallpaper'],
-};
-
-const NB_IMAGES = {
-    gah: ['gah'],
-    kanna: ['kanna'],
-    neko: ['neko'],
 };
 
 export default class extends Command {
     constructor() {
         super('sfw-image', {
-            aliases: [...new Set(Object.keys(NL_IMAGES).concat(Object.keys(NB_IMAGES)))],
+            aliases: Object.keys(SFW_METHODS),
             subAliases: IMAGES,
             nsfw: false,
             cooldown: 10000,
@@ -111,53 +97,25 @@ export default class extends Command {
 
     async exec(message: Message) {
         try {
-            const method = message.util?.parsed?.alias;
-            if (!method) {
-                return this.client.commandHandler.emitError(
-                    new Error('Parsing Failed'),
-                    message,
-                    this
-                );
-            }
-            let image = null;
-            if (Object.keys(NL_IMAGES).includes(method)) {
-                image = (
-                    await this.client.nekoslife.sfw[this.client.util.random(NL_IMAGES[method])]()
-                ).url;
-                if (Object.keys(NB_IMAGES).includes(method)) {
-                    const nbimage = await axios
-                        .get(
-                            `https://nekobot.xyz/api/image?type=${this.client.util.random(
-                                NB_IMAGES[method]
-                            )}`
-                        )
-                        .then(res => res.data.message);
-                    if (nbimage === 'Unknown Image Type') {
-                        return this.client.commandHandler.emitError(
-                            new Error('No Result'),
-                            message,
-                            this
-                        );
-                    }
-                    image = this.client.util.random([image, nbimage]);
-                }
-            } else {
-                image = await axios
-                    .get(
-                        `https://nekobot.xyz/api/image?type=${this.client.util.random(
-                            NB_IMAGES[method]
-                        )}`
-                    )
-                    .then(res => res.data.message);
-                if (image === 'Unknown Image Type') {
+            let method = message.util?.parsed?.alias;
+            if (!(method in SFW_METHODS)) {
+                const idx = Object.keys(IMAGES).findIndex(key => {
+                    return IMAGES[key].aliases?.includes(method);
+                });
+                if (idx === -1) {
                     return this.client.commandHandler.emitError(
-                        new Error('No Result'),
+                        new Error('Parsing Failed'),
                         message,
                         this
                     );
                 }
+                method = Object.keys(IMAGES)[idx];
             }
-            if (!image) {
+            const image = await this.client.images.fetch(method as keyof typeof SFW_METHODS);
+            if (image === 'Unknown Image Type') {
+                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
+            }
+            if (!image || !this.client.util.isUrl(image)) {
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
             const embed = this.client.embeds

@@ -113,15 +113,21 @@ export default class extends Command {
 
     async exec(message: Message, { user }: { user: User }) {
         try {
-            const method = message.util?.parsed?.alias as keyof typeof ACTIONS;
-            if (!method) {
-                return this.client.commandHandler.emitError(
-                    new Error('Parsing Failed'),
-                    message,
-                    this
-                );
+            let method = message.util?.parsed?.alias;
+            if (!(method in ACTIONS)) {
+                const idx = Object.keys(ACTIONS).findIndex(key => {
+                    return ACTIONS[key].aliases?.includes(method);
+                });
+                if (idx === -1) {
+                    return this.client.commandHandler.emitError(
+                        new Error('Parsing Failed'),
+                        message,
+                        this
+                    );
+                }
+                method = Object.keys(ACTIONS)[idx];
             }
-            const image = (await this.client.nekoslife.sfw[method]()).url;
+            const image = await this.client.images.fetch(method as keyof typeof ACTIONS);
             if (!this.client.util.isUrl(image)) {
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }

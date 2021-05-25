@@ -36,7 +36,8 @@ export class Embeds {
 
     commandError(err: Error, message: Message, command: Command) {
         let { id, areMultipleCommands, nsfw, subAliases, error: e } = command;
-        const alias = message.util?.parsed?.alias;
+        let alias = message.util?.parsed?.alias;
+        if (alias.startsWith('nsfw_')) alias = alias.slice(5);
         const prefix =
             nsfw || !('nsfw' in command)
                 ? this.client.config.settings.prefix.nsfw[0]
@@ -46,7 +47,7 @@ export class Embeds {
             id = Object.keys(subAliases).find(
                 key => key === alias || subAliases[key].aliases?.includes(alias)
             );
-            error = subAliases[id].error?.[err.message as ErrorType] ?? error;
+            error = subAliases[id]?.error?.[err.message as ErrorType] ?? error;
         }
         if (!error) return;
         const [example = '', description = ''] = error.example.replace('\n', '\x01').split('\x01');

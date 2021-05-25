@@ -12,6 +12,28 @@ export class CommandHandler extends CH {
     client: Client;
     splitPrefix: Collection<string, Prefix>;
     findCommand: (name: string) => Command;
+    register(command: Command, filepath: string) {
+        command.aliases = [
+            ...new Set(
+                command.aliases.concat(
+                    ...Object.values(command.subAliases).map(x => x.aliases ?? [])
+                )
+            ),
+        ];
+        super.register(command, filepath);
+    }
+
+    deregister(command: Command) {
+        command.aliases = [
+            ...new Set(
+                command.aliases.concat(
+                    ...Object.values(command.subAliases).map(x => x.aliases ?? [])
+                )
+            ),
+        ];
+        super.deregister(command);
+    }
+
     async updatePrefix(message: Message) {
         if (!this.splitPrefix) this.splitPrefix = new Collection();
         let { nsfw, sfw } = this.client.config.settings.prefix;
@@ -26,6 +48,7 @@ export class CommandHandler extends CH {
         }
         this.splitPrefix.set(message.channel.id, { nsfw, sfw });
     }
+
     private async parse(message: Message) {
         let parsed = await this.parseCommand(message);
         if (!parsed.command) {
@@ -39,6 +62,7 @@ export class CommandHandler extends CH {
         }
         return parsed;
     }
+
     private async test(message: Message) {
         const parsed = await this.parse(message);
         const { prefix, command, afterPrefix, alias, content } = parsed;
@@ -62,6 +86,7 @@ export class CommandHandler extends CH {
         }
         return await this.handleRegexAndConditionalCommands(message);
     }
+
     async handle(message: Message) {
         try {
             if (this.fetchMembers && message.guild && !message.member && !message.webhookID) {
