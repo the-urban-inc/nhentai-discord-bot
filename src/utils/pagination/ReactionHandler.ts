@@ -200,7 +200,7 @@ export class ReactionHandler {
             if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             if (this.#currentPage === 0) {
                 if (this.display.caller === 'g') return Promise.resolve(false);
-                const cmd = this.client.commandHandler.findCommand(this.display.caller);
+                const cmd = this.client.commandHandler.findCommand(this.display.caller ?? '');
                 if (cmd) {
                     const ok = await cmd.movePage?.(this, -1);
                     if (ok) {
@@ -218,7 +218,7 @@ export class ReactionHandler {
             if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             if (this.#currentPage <= 0) {
                 if (this.display.caller === 'g') return Promise.resolve(false);
-                const cmd = this.client.commandHandler.findCommand(this.display.caller);
+                const cmd = this.client.commandHandler.findCommand(this.display.caller ?? '');
                 if (cmd) {
                     const ok = await cmd.movePage?.(this, -1);
                     if (ok) {
@@ -253,7 +253,7 @@ export class ReactionHandler {
                         this.#currentPage = 0;
                         return false;
                     }
-                    const cmd = this.client.commandHandler.findCommand(this.display.caller);
+                    const cmd = this.client.commandHandler.findCommand(this.display.caller ?? '');
                     if (cmd) {
                         const ok = await cmd.movePage?.(this, 1);
                         if (ok) {
@@ -272,7 +272,7 @@ export class ReactionHandler {
             if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
             if (this.#currentPage === this.display.pages.length - 1) {
                 if (this.display.caller === 'g') return Promise.resolve(false);
-                const cmd = this.client.commandHandler.findCommand(this.display.caller);
+                const cmd = this.client.commandHandler.findCommand(this.display.caller ?? '');
                 if (cmd) {
                     const ok = await cmd.movePage?.(this, 1);
                     if (ok) {
