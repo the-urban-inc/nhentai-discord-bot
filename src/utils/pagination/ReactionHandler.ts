@@ -78,9 +78,8 @@ export class ReactionHandler {
     #info = false;
     #autoMode: NodeJS.Timeout;
     #currentPage: number;
-    #resolve:
-        | ((value?: number | PromiseLike<number | null> | null | undefined) => void)
-        | null = null;
+    #resolve: ((value?: number | PromiseLike<number | null> | null | undefined) => void) | null =
+        null;
 
     constructor(
         client: Client,
@@ -119,6 +118,10 @@ export class ReactionHandler {
                   this.#resolve = resolve;
               })
             : Promise.resolve(null);
+        this.#info =
+            !isNaN(options.startPage) && options.startPage > 0
+                ? false
+                : !!this.display.infoPage ?? false;
         this.#currentPage = options.startPage ?? 0;
         this.run([...emojis.values()]);
         this.collector = this.message.createReactionCollector(() => true, {
@@ -192,341 +195,391 @@ export class ReactionHandler {
         return false;
     }
 
-    private methods: Map<
-        ReactionMethods,
-        (this: ReactionHandler, user: User) => Promise<boolean>
-    > = new Map()
-        .set(ReactionMethods.First, async function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
-            if (this.#currentPage === 0) {
-                if (this.display.caller === 'g') return Promise.resolve(false);
-                const cmd = this.client.commandHandler.findCommand(this.display.caller ?? '');
-                if (cmd) {
-                    const ok = await cmd.movePage?.(this, -1);
-                    if (ok) {
-                        this.#currentPage = 0;
-                        return this.update();
-                    }
-                    return Promise.resolve(!!ok);
-                }
-                return Promise.resolve(false);
-            }
-            this.#currentPage = 0;
-            return this.update();
-        })
-        .set(ReactionMethods.Back, async function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
-            if (this.#currentPage <= 0) {
-                if (this.display.caller === 'g') return Promise.resolve(false);
-                const cmd = this.client.commandHandler.findCommand(this.display.caller ?? '');
-                if (cmd) {
-                    const ok = await cmd.movePage?.(this, -1);
-                    if (ok) {
-                        this.#currentPage = 0;
-                        return this.update();
-                    }
-                    return Promise.resolve(!!ok);
-                }
-                return Promise.resolve(false);
-            }
-            this.#currentPage--;
-            return this.update();
-        })
-        .set(
-            ReactionMethods.Forward,
-            async function (this: ReactionHandler, user: User): Promise<boolean> {
-                if (this.users.length && !this.users.includes(user.id))
-                    return Promise.resolve(false);
-                if (this.#currentPage >= this.display.pages.length - 1) {
-                    if (this.display.caller === 'g') {
-                        if (!this.display.infoPage) {
-                            const gallery = this.display.pages[this.#currentPage].gallery;
-                            if (!gallery) return false;
-                            this.display.infoPage = this.client.embeds.displayGalleryInfo(
-                                gallery,
-                                this.danger
-                            ).info;
+    private methods: Map<ReactionMethods, (this: ReactionHandler, user: User) => Promise<boolean>> =
+        new Map()
+            .set(
+                ReactionMethods.First,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    if (this.#currentPage === 0) {
+                        if (this.display.caller === 'g') return Promise.resolve(false);
+                        const cmd = this.client.commandHandler.findCommand(
+                            this.display.caller ?? ''
+                        );
+                        if (cmd) {
+                            const ok = await cmd.movePage?.(this, -1);
+                            if (ok) {
+                                this.#currentPage = 0;
+                                return this.update();
+                            }
+                            return Promise.resolve(!!ok);
                         }
-                        await this.message.edit(this.message.content, { embed: this.display.infoPage });
-                        this.#info = true;
-                        this.display.infoPage = null;
-                        this.#currentPage = 0;
-                        return false;
+                        return Promise.resolve(false);
                     }
-                    const cmd = this.client.commandHandler.findCommand(this.display.caller ?? '');
-                    if (cmd) {
-                        const ok = await cmd.movePage?.(this, 1);
-                        if (ok) {
-                            this.#currentPage = 0;
-                            return this.update();
-                        }
-                        return Promise.resolve(!!ok);
-                    }
-                    return Promise.resolve(false);
-                }
-                this.#currentPage++;
-                return this.update();
-            }
-        )
-        .set(ReactionMethods.Last, async function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
-            if (this.#currentPage === this.display.pages.length - 1) {
-                if (this.display.caller === 'g') return Promise.resolve(false);
-                const cmd = this.client.commandHandler.findCommand(this.display.caller ?? '');
-                if (cmd) {
-                    const ok = await cmd.movePage?.(this, 1);
-                    if (ok) {
-                        this.#currentPage = 0;
-                        return this.update();
-                    }
-                    return Promise.resolve(!!ok);
-                }
-                return Promise.resolve(false);
-            }
-            this.#currentPage = this.display.pages.length - 1;
-            return this.update();
-        })
-        .set(
-            ReactionMethods.Jump,
-            async function (this: ReactionHandler, user: User): Promise<boolean> {
-                if (this.users.length && !this.users.includes(user.id))
-                    return Promise.resolve(false);
-                if (this.#awaiting) return Promise.resolve(false);
-                this.#awaiting = true;
-                const message = await this.message.channel.send(
-                    this.client.embeds.info(this.prompt)
-                );
-                const collected = await this.message.channel.awaitMessages(
-                    mess => mess.author === user,
-                    {
-                        max: 1,
-                        idle: this.jumpTimeout,
-                    }
-                );
-                this.#awaiting = false;
-                await message.delete();
-                const response = collected.first();
-                if (!response) return Promise.resolve(false);
-                const newPage = parseInt(response.content);
-                await response.delete();
-                if (newPage && newPage > 0 && newPage <= this.display.pages.length) {
-                    this.#currentPage = newPage - 1;
+                    this.#currentPage = 0;
                     return this.update();
                 }
-                return Promise.resolve(false);
-            }
-        )
-        .set(
-            ReactionMethods.Info,
-            async function (this: ReactionHandler, user: User): Promise<boolean> {
-                if (this.message.deleted) return true;
-                if (this.imageURL && this.imageURL.length) {
-                    if (!this.previousSession) this.previousSession = this;
-                    else if (!this.previousSession.ended) return false;
-                    const command = this.client.commandHandler.findCommand('sauce');
-                    this.previousSession = await command.exec(this.requestMessage, {
-                        query: this.imageURL,
-                        tag: user.tag,
-                        users: [],
-                        removeRequest: false,
-                    });
-                    return false;
+            )
+            .set(
+                ReactionMethods.Back,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    if (this.#currentPage <= 0) {
+                        if (this.display.caller === 'g') return Promise.resolve(false);
+                        const cmd = this.client.commandHandler.findCommand(
+                            this.display.caller ?? ''
+                        );
+                        if (cmd) {
+                            const ok = await cmd.movePage?.(this, -1);
+                            if (ok) {
+                                this.#currentPage = 0;
+                                return this.update();
+                            }
+                            return Promise.resolve(!!ok);
+                        }
+                        return Promise.resolve(false);
+                    }
+                    this.#currentPage--;
+                    return this.update();
                 }
-                if (this.users.length && !this.users.includes(user.id)) return false;
-                if (this.#info) return this.update();
-                if (!this.display.infoPage) {
-                    const gallery = this.display.pages[this.#currentPage].gallery;
-                    if (!gallery) return false;
-                    this.display.infoPage = this.client.embeds.displayGalleryInfo(
-                        gallery,
-                        this.danger
-                    ).info;
-                }
-                await this.message.edit(this.message.content, { embed: this.display.infoPage });
-                this.#info = true;
-                this.display.infoPage = null;
-                return false;
-            }
-        )
-        .set(
-            ReactionMethods.Auto,
-            async function (this: ReactionHandler, user: User): Promise<boolean> {
-                if (this.users.length && !this.users.includes(user.id))
-                    return Promise.resolve(false);
-                if (this.#awaiting) return Promise.resolve(false);
-                this.#awaiting = true;
-                const message = await this.message.channel.send(
-                    this.client.embeds.info(this.promptAuto)
-                );
-                const collected = await this.message.channel.awaitMessages(
-                    mess => mess.author === user,
-                    { max: 1, idle: this.autoTimeout }
-                );
-                this.#awaiting = false;
-                await message.delete();
-                const response = collected.first();
-                if (!response) return Promise.resolve(false);
-                const seconds = parseInt(response.content);
-                await response.delete();
-                this.update();
-                this.#autoMode = setInterval(() => {
+            )
+            .set(
+                ReactionMethods.Forward,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    if (
+                        this.#info &&
+                        this.#currentPage === 0 &&
+                        (!this.display.caller || this.display.caller === 'g')
+                    )
+                        return this.update();
                     if (this.#currentPage >= this.display.pages.length - 1) {
-                        clearInterval(this.#autoMode);
-                        return this.message.channel
-                            .send(this.client.embeds.info(this.endAuto))
-                            .then(message => message.delete({ timeout: this.messageTimeout }));
+                        if (this.display.caller === 'g') {
+                            if (!this.display.infoPage) {
+                                const gallery = this.display.pages[this.#currentPage].gallery;
+                                if (!gallery) return false;
+                                this.display.infoPage = this.client.embeds.displayGalleryInfo(
+                                    gallery,
+                                    this.danger
+                                ).info;
+                            }
+                            await this.message.edit(this.message.content, {
+                                embed: this.display.infoPage,
+                            });
+                            this.#info = true;
+                            this.display.infoPage = null;
+                            this.#currentPage = 0;
+                            return false;
+                        }
+                        const cmd = this.client.commandHandler.findCommand(
+                            this.display.caller ?? ''
+                        );
+                        if (cmd) {
+                            const ok = await cmd.movePage?.(this, 1);
+                            if (ok) {
+                                this.#currentPage = 0;
+                                return this.update();
+                            }
+                            return Promise.resolve(!!ok);
+                        }
+                        return Promise.resolve(false);
                     }
                     this.#currentPage++;
+                    return this.update();
+                }
+            )
+            .set(
+                ReactionMethods.Last,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    if (this.#currentPage === this.display.pages.length - 1) {
+                        if (this.display.caller === 'g') return Promise.resolve(false);
+                        const cmd = this.client.commandHandler.findCommand(
+                            this.display.caller ?? ''
+                        );
+                        if (cmd) {
+                            const ok = await cmd.movePage?.(this, 1);
+                            if (ok) {
+                                this.#currentPage = 0;
+                                return this.update();
+                            }
+                            return Promise.resolve(!!ok);
+                        }
+                        return Promise.resolve(false);
+                    }
+                    this.#currentPage = this.display.pages.length - 1;
+                    return this.update();
+                }
+            )
+            .set(
+                ReactionMethods.Jump,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    if (this.#awaiting) return Promise.resolve(false);
+                    this.#awaiting = true;
+                    const message = await this.message.channel.send(
+                        this.client.embeds.info(this.prompt)
+                    );
+                    const collected = await this.message.channel.awaitMessages(
+                        mess => mess.author === user,
+                        {
+                            max: 1,
+                            idle: this.jumpTimeout,
+                        }
+                    );
+                    this.#awaiting = false;
+                    await message.delete();
+                    const response = collected.first();
+                    if (!response) return Promise.resolve(false);
+                    const newPage = parseInt(response.content);
+                    await response.delete();
+                    if (newPage && newPage > 0 && newPage <= this.display.pages.length) {
+                        this.#currentPage = newPage - 1;
+                        return this.update();
+                    }
+                    return Promise.resolve(false);
+                }
+            )
+            .set(
+                ReactionMethods.Info,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.message.deleted) return true;
+                    if (this.imageURL && this.imageURL.length) {
+                        if (!this.previousSession) this.previousSession = this;
+                        else if (!this.previousSession.ended) return false;
+                        const command = this.client.commandHandler.findCommand('sauce');
+                        this.previousSession = await command.exec(this.requestMessage, {
+                            query: this.imageURL,
+                            tag: user.tag,
+                            users: [],
+                            removeRequest: false,
+                        });
+                        return false;
+                    }
+                    if (this.users.length && !this.users.includes(user.id)) return false;
+                    if (this.#info) return this.update();
+                    if (this.display.pages[this.#currentPage].gallery) {
+                        const gallery = this.display.pages[this.#currentPage].gallery;
+                        this.display.infoPage = this.client.embeds.displayGalleryInfo(
+                            gallery,
+                            this.danger
+                        ).info;
+                    }
+                    await this.message.edit(this.message.content, { embed: this.display.infoPage });
+                    this.#info = true;
+                    return false;
+                }
+            )
+            .set(
+                ReactionMethods.Auto,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    if (this.#awaiting) return Promise.resolve(false);
+                    this.#awaiting = true;
+                    const message = await this.message.channel.send(
+                        this.client.embeds.info(this.promptAuto)
+                    );
+                    const collected = await this.message.channel.awaitMessages(
+                        mess => mess.author === user,
+                        { max: 1, idle: this.autoTimeout }
+                    );
+                    this.#awaiting = false;
+                    await message.delete();
+                    const response = collected.first();
+                    if (!response) return Promise.resolve(false);
+                    const seconds = parseInt(response.content);
+                    await response.delete();
                     this.update();
-                }, seconds * 1000);
-                return Promise.resolve(false);
-            }
-        )
-        .set(ReactionMethods.Pause, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
-            if (this.#autoMode) {
-                clearInterval(this.#autoMode);
-                this.message.channel
-                    .send(this.client.embeds.info(this.stopAuto))
-                    .then(message => message.delete({ timeout: this.messageTimeout }));
-            } else {
-                this.message.channel
-                    .send(this.client.embeds.info(this.noAuto))
-                    .then(message => message.delete({ timeout: this.messageTimeout }));
-            }
-            return Promise.resolve(false);
-        })
-        .set(
-            ReactionMethods.Love,
-            async function (this: ReactionHandler, user: User): Promise<boolean> {
-                try {
-                    let id =
-                        this.display.pages[this.#currentPage]?.gallery?.id || this.display.info.id;
-                    if (!id) return Promise.resolve(false);
-                    const adding = await this.client.db.User.favorite(user, id.toString());
-                    this.message.channel
-                        .send(
-                            this.client.embeds
-                                .info(
-                                    adding
-                                        ? `Added ${id} to favorites.`
-                                        : `Removed ${id} from favorites.`
-                                )
-                                .setFooter(user.tag, user.displayAvatarURL())
-                        )
-                        .then(message => message.delete({ timeout: this.messageTimeout }));
+                    this.#autoMode = setInterval(() => {
+                        if (this.#currentPage >= this.display.pages.length - 1) {
+                            clearInterval(this.#autoMode);
+                            return this.message.channel
+                                .send(this.client.embeds.info(this.endAuto))
+                                .then(message => message.delete({ timeout: this.messageTimeout }));
+                        }
+                        this.#currentPage++;
+                        this.update();
+                    }, seconds * 1000);
                     return Promise.resolve(false);
-                } catch (err) {
-                    this.client.logger.error(err);
-                    this.message.channel.send(this.client.embeds.internalError(err));
+                }
+            )
+            .set(
+                ReactionMethods.Pause,
+                function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    if (this.#autoMode) {
+                        clearInterval(this.#autoMode);
+                        this.message.channel
+                            .send(this.client.embeds.info(this.stopAuto))
+                            .then(message => message.delete({ timeout: this.messageTimeout }));
+                    } else {
+                        this.message.channel
+                            .send(this.client.embeds.info(this.noAuto))
+                            .then(message => message.delete({ timeout: this.messageTimeout }));
+                    }
+                    return Promise.resolve(false);
+                }
+            )
+            .set(
+                ReactionMethods.Love,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    try {
+                        let id =
+                            this.display.pages[this.#currentPage]?.gallery?.id ||
+                            this.display.info.id;
+                        if (!id) return Promise.resolve(false);
+                        const adding = await this.client.db.User.favorite(user, id.toString());
+                        this.message.channel
+                            .send(
+                                this.client.embeds
+                                    .info(
+                                        adding
+                                            ? `Added ${id} to favorites.`
+                                            : `Removed ${id} from favorites.`
+                                    )
+                                    .setFooter(user.tag, user.displayAvatarURL())
+                            )
+                            .then(message => message.delete({ timeout: this.messageTimeout }));
+                        return Promise.resolve(false);
+                    } catch (err) {
+                        this.client.logger.error(err);
+                        this.message.channel.send(this.client.embeds.internalError(err));
+                        return true;
+                    }
+                }
+            )
+            .set(
+                ReactionMethods.Follow,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    try {
+                        const info = this.display.info;
+                        if (!info) return Promise.resolve(false);
+                        const { id, type, name } = info;
+                        this.client.notifier.send({
+                            tag: +id,
+                            type,
+                            name,
+                            channel: this.message.channel.id,
+                            user: user.id,
+                        });
+                        return Promise.resolve(false);
+                    } catch (err) {
+                        this.client.logger.error(err);
+                        this.message.channel.send(this.client.embeds.internalError(err));
+                        return true;
+                    }
+                }
+            )
+            .set(
+                ReactionMethods.Blacklist,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    try {
+                        const info = this.display.info;
+                        if (!info) return Promise.resolve(false);
+                        const { type, name } = info;
+                        const adding = await this.client.db.User.blacklist(user, info);
+                        this.message.channel
+                            .send(
+                                this.client.embeds
+                                    .info(
+                                        adding
+                                            ? `Added ${type} \`${name}\` to blacklist.`
+                                            : `Removed ${type} \`${name}\` from blacklist.`
+                                    )
+                                    .setFooter(user.tag, user.displayAvatarURL())
+                            )
+                            .then(message => message.delete({ timeout: this.messageTimeout }));
+                        return Promise.resolve(false);
+                    } catch (err) {
+                        this.client.logger.error(err);
+                        this.message.channel.send(this.client.embeds.internalError(err));
+                        return true;
+                    }
+                }
+            )
+            .set(
+                ReactionMethods.Download,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    try {
+                        const id =
+                            this.display.pages[this.#currentPage]?.gallery?.id ||
+                            this.display.info.id;
+                        if (!id) return Promise.resolve(false);
+                        this.message.channel
+                            .send(
+                                this.client.embeds
+                                    .info(
+                                        `Click [here](https://nhentai-discord-bot-web.herokuapp.com/download/${id}) to download ${id}`
+                                    )
+                                    .setFooter(user.tag, user.displayAvatarURL())
+                            )
+                            .then(message => message.delete({ timeout: 60000 }));
+                        return Promise.resolve(false);
+                    } catch (err) {
+                        this.client.logger.error(err);
+                        this.message.channel.send(this.client.embeds.internalError(err));
+                        return true;
+                    }
+                }
+            )
+            .set(
+                ReactionMethods.Remove,
+                async function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    await this.stop();
+                    if (this.#autoMode) clearInterval(this.#autoMode);
+                    if (!this.message.deleted) await this.message.delete();
+                    if (!this.requestMessage.deleted && this.display.options.removeRequest)
+                        await this.requestMessage.delete();
                     return true;
                 }
-            }
-        )
-        .set(
-            ReactionMethods.Follow,
-            async function (this: ReactionHandler, user: User): Promise<boolean> {
-                try {
-                    const info = this.display.info;
-                    if (!info) return Promise.resolve(false);
-                    const { id, type, name } = info;
-                    this.client.notifier.send({
-                        tag: +id,
-                        type,
-                        name,
-                        channel: this.message.channel.id,
-                        user: user.id,
-                    });
-                    return Promise.resolve(false);
-                } catch (err) {
-                    this.client.logger.error(err);
-                    this.message.channel.send(this.client.embeds.internalError(err));
-                    return true;
+            )
+            .set(
+                ReactionMethods.One,
+                function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    return this.choose(this.#currentPage * 5);
                 }
-            }
-        )
-        .set(
-            ReactionMethods.Blacklist,
-            async function (this: ReactionHandler, user: User): Promise<boolean> {
-                try {
-                    const info = this.display.info;
-                    if (!info) return Promise.resolve(false);
-                    const { type, name } = info;
-                    const adding = await this.client.db.User.blacklist(user, info);
-                    this.message.channel
-                        .send(
-                            this.client.embeds
-                                .info(
-                                    adding
-                                        ? `Added ${type} \`${name}\` to blacklist.`
-                                        : `Removed ${type} \`${name}\` from blacklist.`
-                                )
-                                .setFooter(user.tag, user.displayAvatarURL())
-                        )
-                        .then(message => message.delete({ timeout: this.messageTimeout }));
-                    return Promise.resolve(false);
-                } catch (err) {
-                    this.client.logger.error(err);
-                    this.message.channel.send(this.client.embeds.internalError(err));
-                    return true;
+            )
+            .set(
+                ReactionMethods.Two,
+                function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    return this.choose(1 + this.#currentPage * 5);
                 }
-            }
-        )
-        .set(
-            ReactionMethods.Download,
-            async function (this: ReactionHandler, user: User): Promise<boolean> {
-                try {
-                    const id =
-                        this.display.pages[this.#currentPage]?.gallery?.id || this.display.info.id;
-                    if (!id) return Promise.resolve(false);
-                    this.message.channel
-                        .send(
-                            this.client.embeds
-                                .info(
-                                    `Click [here](https://nhentai-discord-bot-web.herokuapp.com/download/${id}) to download ${id}`
-                                )
-                                .setFooter(user.tag, user.displayAvatarURL())
-                        )
-                        .then(message => message.delete({ timeout: 60000 }));
-                    return Promise.resolve(false);
-                } catch (err) {
-                    this.client.logger.error(err);
-                    this.message.channel.send(this.client.embeds.internalError(err));
-                    return true;
+            )
+            .set(
+                ReactionMethods.Three,
+                function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    return this.choose(2 + this.#currentPage * 5);
                 }
-            }
-        )
-        .set(
-            ReactionMethods.Remove,
-            async function (this: ReactionHandler, user: User): Promise<boolean> {
-                if (this.users.length && !this.users.includes(user.id))
-                    return Promise.resolve(false);
-                await this.stop();
-                if (this.#autoMode) clearInterval(this.#autoMode);
-                if (!this.message.deleted) await this.message.delete();
-                if (!this.requestMessage.deleted && this.display.options.removeRequest)
-                    await this.requestMessage.delete();
-                return true;
-            }
-        )
-        .set(ReactionMethods.One, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
-            return this.choose(this.#currentPage * 5);
-        })
-        .set(ReactionMethods.Two, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
-            return this.choose(1 + this.#currentPage * 5);
-        })
-        .set(ReactionMethods.Three, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
-            return this.choose(2 + this.#currentPage * 5);
-        })
-        .set(ReactionMethods.Four, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
-            return this.choose(3 + this.#currentPage * 5);
-        })
-        .set(ReactionMethods.Five, function (this: ReactionHandler, user: User): Promise<boolean> {
-            if (this.users.length && !this.users.includes(user.id)) return Promise.resolve(false);
-            return this.choose(4 + this.#currentPage * 5);
-        });
+            )
+            .set(
+                ReactionMethods.Four,
+                function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    return this.choose(3 + this.#currentPage * 5);
+                }
+            )
+            .set(
+                ReactionMethods.Five,
+                function (this: ReactionHandler, user: User): Promise<boolean> {
+                    if (this.users.length && !this.users.includes(user.id))
+                        return Promise.resolve(false);
+                    return this.choose(4 + this.#currentPage * 5);
+                }
+            );
 }
