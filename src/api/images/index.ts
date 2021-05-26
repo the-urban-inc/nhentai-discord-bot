@@ -134,6 +134,7 @@ export const SFW_METHODS = {
         nekoslife: ['waifu'],
     },
     wallpaper: {
+        nekoslife: ['wallpaper'],
         hmtai: ['wallpaper', 'mobileWallpaper'],
     },
 };

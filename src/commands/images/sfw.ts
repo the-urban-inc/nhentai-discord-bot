@@ -72,7 +72,7 @@ const IMAGES = {
         ],
     },
     wallpaper: {
-        description: 'Shows a random SFW wallpaper picture.\nImages from HMtai API.',
+        description: 'Shows a random SFW wallpaper picture.\nImages from nekos.life or HMtai API.',
         examples: ['\nAnime wallpapers.'],
     },
 };
