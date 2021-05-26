@@ -41,6 +41,8 @@ const IMAGES = {
     jahy: {
         description: 'Shows a random SFW jahy picture.\nImages from HMtai API.',
         examples: ['\nSo hot Jahy :3'],
+        additionalInfo:
+            'Jahy: is one of the main characters in Jahy-sama wa Kujikenai! Jahy is the former aide to the Demon King and second-in-command of the Demon Realm who is now living in the human world after the Demon Realm perished. She aims to find mystic gems and restore her home world and her original body, which is in a child-like state after a magic crystal was destroyed by a magical girl, leaving her powerless.',
     },
     kanna: {
         description: 'Shows a random SFW kanna picture.\nImages from nekobot.xyz.',
