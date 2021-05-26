@@ -12,23 +12,55 @@ export class Client {
         return a[Math.floor(Math.random() * a.length)];
     }
 
+    private isURL(url: string): boolean {
+        const PROTOCOL_AND_DOMAIN_RE = /^(?:\w+:)?\/\/(\S+)$/;
+        const LOCALHOST_DOMAIN_RE = /^localhost[\:?\d]*(?:[^\:?\d]\S*)?$/;
+        const NON_LOCALHOST_DOMAIN_RE = /^[^\s\.]+\.\S{2,}$/;
+        if (typeof url !== 'string') return false;
+        const match = url.match(PROTOCOL_AND_DOMAIN_RE);
+        if (!match) return false;
+        const everythingAfterProtocol = match[1];
+        if (!everythingAfterProtocol) return false;
+        if (
+            LOCALHOST_DOMAIN_RE.test(everythingAfterProtocol) ||
+            NON_LOCALHOST_DOMAIN_RE.test(everythingAfterProtocol)
+        )
+            return true;
+        return false;
+    }
+
     public async fetch(query: Endpoint): Promise<string> {
         const urls: string[] = [];
         for await (const method of [ACTIONS, SFW_METHODS, NSFW_METHODS]) {
             if (method[query]?.nekoslife) {
                 const q = this.random(method[query].nekoslife) as keyof typeof NekosClient;
-                const url = (await this.NekosAPI[query in NSFW_METHODS ? 'nsfw' : 'sfw'][q]()).url;
-                urls.push(url);
+                try {
+                    const url = (await this.NekosAPI[query in NSFW_METHODS ? 'nsfw' : 'sfw'][q]())
+                        ?.url;
+                    if (this.isURL(url)) urls.push(url);
+                } catch (err) {
+                    /* ignore */
+                }
             }
             if (method[query]?.nekobot) {
                 const q = this.random(method[query].nekobot);
-                const url = await axios.get(this.nekobotAPI + q).then(res => res.data.message);
-                urls.push(url);
+                const url = await axios
+                    .get(this.nekobotAPI + q)
+                    .then(res => res.data.message)
+                    .catch(err => {
+                        /* ignore */
+                    });
+                if (this.isURL(url)) urls.push(url);
             }
             if (method[query]?.hmtai) {
                 const q = this.random(method[query].hmtai);
-                const url = await axios.get(this.hmtaiAPI + q).then(res => res.data.url);
-                urls.push(url);
+                const url = await axios
+                    .get(this.hmtaiAPI + q)
+                    .then(res => res.data.url)
+                    .catch(err => {
+                        /* ignore */
+                    });
+                if (this.isURL(url)) urls.push(url);
             }
         }
         return this.random(urls);
