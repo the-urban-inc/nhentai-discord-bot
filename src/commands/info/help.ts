@@ -141,6 +141,7 @@ export default class extends Command {
         );
         for (const [category, commands] of this.client.commandHandler.categories) {
             const title = TITLE_LIST[category as keyof typeof TITLE_LIST];
+            if (title === 'Owner' && message.author.id !== this.client.ownerID) continue;
             const publicCommands =
                 message.author.id === this.client.ownerID
                     ? commands.filter((c: Command) => !c.isConditionalorRegexCommand)
