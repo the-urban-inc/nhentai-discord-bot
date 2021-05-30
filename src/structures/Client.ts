@@ -56,10 +56,7 @@ export class Client extends AkairoClient {
             blockBots: true,
             automateCategories: true,
             commandUtil: true,
-        })
-            .useInhibitorHandler(this.inhibitorHandler)
-            .useListenerHandler(this.listenerHandler)
-            .loadAll();
+        }).loadAll();
         this.inhibitorHandler = new InhibitorHandler(this, {
             directory: `${__dirname}/../inhibitors/`,
             classToHandle: Inhibitor,
@@ -68,6 +65,9 @@ export class Client extends AkairoClient {
             directory: `${__dirname}/../listeners/`,
             classToHandle: Listener,
         });
+        this.commandHandler
+            .useInhibitorHandler(this.inhibitorHandler)
+            .useListenerHandler(this.listenerHandler);
         this.nhentai = new NhentaiAPI();
         this.fakku = new FakkuAPI();
         this.images = new ImageAPI();
