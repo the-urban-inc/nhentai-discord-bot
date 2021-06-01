@@ -1,5 +1,5 @@
 import { AkairoClient, ListenerHandler, InhibitorHandler } from 'discord-akairo';
-import { TextChannel, DMChannel } from 'discord.js';
+import { TextChannel, DMChannel, User } from 'discord.js';
 import { Command, CommandHandler, Embeds, Inhibitor, Listener, Logger, Util } from './index';
 import config from '@config';
 import { Client as NhentaiAPI } from '@api/nhentai';
@@ -18,6 +18,7 @@ export class Client extends AkairoClient {
     public commandHandler: CommandHandler;
     public listenerHandler: ListenerHandler;
     public inhibitorHandler: InhibitorHandler;
+    public quizOngoing: Map<User['id'], boolean>;
     public nhentai: NhentaiAPI;
     public fakku: FakkuAPI;
     public images: ImageAPI;
@@ -71,6 +72,7 @@ export class Client extends AkairoClient {
         this.nhentai = new NhentaiAPI();
         this.fakku = new FakkuAPI();
         this.images = new ImageAPI();
+        this.quizOngoing = new Map<User['id'], boolean>();
     }
 
     async start(): Promise<void> {
