@@ -47,7 +47,7 @@ export default class extends Command {
             id,
             aliases,
             description: { content, examples, additionalInfo },
-            cooldown
+            cooldown,
         } = command;
         if (command.areMultipleCommands) {
             id = Object.keys(command.subAliases).find(
@@ -96,7 +96,8 @@ export default class extends Command {
                 true
             );
 
-        if (aliases && aliases.length > 1) embed.addField('Aliases', aliases.slice(1).join(', '), true);
+        if (aliases && aliases.length > 1)
+            embed.addField('Aliases', aliases.slice(1).join(', '), true);
 
         if (cooldown) embed.addField('Cooldown', `${cooldown / 1000} seconds`, true);
 
@@ -119,19 +120,24 @@ export default class extends Command {
                             ', '
                         )}].\nCommands in the Images category that isn't NSFW can only be used SFW prefix(es) [${prefixList.sfw
                         .map(p => `\`${p}\``)
-                        .join(', ')}].\nOther commands can be used with both types of prefix.`
+                        .join(
+                            ', '
+                        )}].\nOther commands can be used with both types of prefix.\nTurn to next page for the actual command list.`
                 )
                 .addField('Command Guide', [
+                    'While searching for command help, you might come across theses symbols `<>`, `[]` or `()` in the help message. They mean:',
                     '• <> : Required',
                     '• [] : Optional',
                     '• () : Choose 1',
+                    `However, you don't need to type \`<>\` when you use the command. E.g   : \`${prefix}g <code> [--more] [--auto] [--page=pagenum]\` can be used like \`${prefix}g 177013\`, \`${prefix}g 177013 --more\`, \`${prefix}g 177013 --more --auto\`, etc.`,
                 ])
                 .addField('Emote Guide', [
+                    'Use these reactions to navigate between pages:',
                     '• ⏪ ⏩ : Jumps to first/last page',
                     '• ◀ ▶ : Jumps to previous/next page',
                     '• ↗️ : Jumps to specified page',
                     '• ℹ️ : Jumps to info page/Views info of a doujin in doujin list view/Searches for image source using SauceNAO',
-                    `• 🇦 ⏹ : Turns on/off auto browsing mode (add --auto to use this feature in ${prefix}g and ${prefix}random command)`,
+                    `• 🇦 ⏹ : Turns on/off auto browsing mode (automatically browse pages) (add --auto to use this feature in ${prefix}g and ${prefix}random command)`,
                     '• ❤️ : Adds/Removes a doujin to/from favorites',
                     '• 🔖 : Follows/Unfollows a tag/artist/parody/etc.',
                     '• 🏴 : Blacklists a tag/artist/parody/etc.',
