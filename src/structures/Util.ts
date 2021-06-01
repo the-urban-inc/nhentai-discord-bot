@@ -149,7 +149,7 @@ export class Util extends ClientUtil {
             : new Array(width - String(text).length + 1).join(char) + String(text);
     }
 
-    random(array: Array<any>) {
+    random<T>(array: T[]): T {
         return array[Math.floor(Math.random() * array.length)];
     }
 
@@ -157,6 +157,14 @@ export class Util extends ClientUtil {
         if (text.length <= maxLen) return text;
         return text.substring(0, text.lastIndexOf(split, maxLen) + 1) + '`...`';
     }
+
+    shuffle<T>(array: T[]): T[] {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }    
 
     toTitleCase(text: string) {
         return text
