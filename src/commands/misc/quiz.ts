@@ -112,7 +112,7 @@ export default class extends Command {
                 .richMenu({
                     template: this.client.embeds
                         .default()
-                        .setAuthor(this.client.user?.username, this.client.user?.displayAvatarURL())
+                        .setAuthor(message.author.tag, message.author.displayAvatarURL())
                         .setTitle(`Guess which doujin is this picture from?`)
                         .setDescription(
                             'Use number reactions to select an option. Your first choice will be your final choice. No cheating!'
