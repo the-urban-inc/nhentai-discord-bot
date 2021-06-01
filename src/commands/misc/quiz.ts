@@ -142,6 +142,7 @@ export default class extends Command {
                     });
                     return {
                         id,
+                        url: `https://nhentai.net/${id}`,
                         title,
                         artist: this.client.util.gshorten(t.get('artist'), '\u2009\u2009'),
                     };
@@ -182,7 +183,7 @@ export default class extends Command {
                             .setDescription(
                                 `The session timed out as you did not answer within 30 seconds. The correct answer was **${
                                     answer + 1
-                                } ${choices[answer].title}**.`
+                                } [${choices[answer].title}](${choices[answer].url})**.`
                             )
                     )
                     .run(
@@ -201,7 +202,7 @@ export default class extends Command {
                             .setDescription(
                                 `Congratulations! You got it right!\nThe correct answer was **[${
                                     answer + 1
-                                }] ${choices[answer].title}**.`
+                                }] [${choices[answer].title}](${choices[answer].url})**.`
                             )
                     )
                     .run(
@@ -219,7 +220,11 @@ export default class extends Command {
                         .setDescription(
                             `Unfortunately, that was the wrong answer.\nThe correct answer was **[${
                                 answer + 1
-                            }] ${choices[answer].title}**.\nYou chose **[${choice + 1}]**.`
+                            }] [${choices[answer].title}](${
+                                choices[answer].url
+                            })**.\nYou chose **[${choice + 1}] [${choices[choice].title}](${
+                                choices[choice].url
+                            })**.`
                         )
                 )
                 .run(
