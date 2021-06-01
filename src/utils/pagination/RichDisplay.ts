@@ -97,6 +97,13 @@ export class RichDisplay {
     ): Promise<ReactionHandler> {
         if (!(this.options.info ?? this.infoPage) && !this.options.image) this._emojis.delete(ReactionMethods.Info);
         if (!this._footered) this.footer();
+        if (this.pages.length <= 1) {
+            this._emojis.delete(ReactionMethods.First);
+            this._emojis.delete(ReactionMethods.Last);
+            this._emojis.delete(ReactionMethods.Forward);
+            this._emojis.delete(ReactionMethods.Back);
+            this._emojis.delete(ReactionMethods.Jump);
+        }
         if (this.options.removeRequest !== false) this.options.removeRequest = true;
         if (!!this.options.image) options.imageURL = this.options.image;
         let msg: Message;
