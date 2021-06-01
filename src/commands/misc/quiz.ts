@@ -89,7 +89,11 @@ export default class extends Command {
                 result = await this.client.nhentai
                     .random(true)
                     .catch(err => this.client.logger.error(err.message));
-                if (!result || !result.gallery?.tags) {
+                if (
+                    !result ||
+                    (!result.gallery.tags &&
+                        typeof result.gallery.tags[Symbol.iterator] === 'function')
+                ) {
                     continue;
                 }
                 const tags = result.gallery.tags;
