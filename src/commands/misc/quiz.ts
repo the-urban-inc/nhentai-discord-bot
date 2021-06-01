@@ -4,7 +4,7 @@ import he from 'he';
 import { User } from '@models/user';
 import { Server } from '@models/server';
 import { Blacklist } from '@models/tag';
-import { GalleryResult } from '@api/nhentai';
+import { Gallery, GalleryResult } from '@api/nhentai';
 import { BANNED_TAGS } from '@utils/constants';
 import config from '@config';
 const PREFIX = config.settings.prefix.nsfw[0];
@@ -36,6 +36,10 @@ export default class extends Command {
 
     danger = false;
     warning = false;
+    iteration = 0;
+    gallery: Gallery = null;
+    related: Gallery[] = null;
+    rawChoices: Gallery[] = [];
     blacklists: Blacklist[] = [];
 
     async before(message: Message) {
@@ -61,6 +65,36 @@ export default class extends Command {
         }
     }
 
+    async fetchRandomDoujin() {
+        if (this.iteration++ >= 3) return;
+        let result: void | GalleryResult = null;
+        for (let i = 0; i < 3; i++) {
+            result = await this.client.nhentai
+                .random(true)
+                .catch(err => this.client.logger.error(err.message));
+            if (
+                !result ||
+                (!result.gallery.tags &&
+                    typeof result.gallery.tags[Symbol.iterator] === 'function')
+            ) {
+                continue;
+            }
+            const tags = result.gallery.tags;
+            const rip = this.client.util.hasCommon(
+                tags.map(x => x.id.toString()),
+                BANNED_TAGS
+            );
+            if (this.danger || !rip) break;
+        }
+        if (!result) return this.fetchRandomDoujin();
+        this.gallery = result.gallery;
+        this.related = result.related;
+        this.related.splice(3, 5);
+        this.related.push(this.gallery);
+        const titles = this.rawChoices.map(({ title }) => he.decode(title.english));
+        if ([...new Set(titles)].length < titles.length) return this.fetchRandomDoujin();
+    }
+
     async exec(message: Message) {
         try {
             if (!this.client.quizOngoing.get(message.author.id)) {
@@ -84,30 +118,11 @@ export default class extends Command {
                         message // await message.channel.send('Loading ...')
                     );
             }
-            let result: void | GalleryResult = null;
-            for (let i = 0; i < 3; i++) {
-                result = await this.client.nhentai
-                    .random(true)
-                    .catch(err => this.client.logger.error(err.message));
-                if (
-                    !result ||
-                    (!result.gallery.tags &&
-                        typeof result.gallery.tags[Symbol.iterator] === 'function')
-                ) {
-                    continue;
-                }
-                const tags = result.gallery.tags;
-                const rip = this.client.util.hasCommon(
-                    tags.map(x => x.id.toString()),
-                    BANNED_TAGS
-                );
-                if (this.danger || !rip) break;
-            }
-            if (!result || !result.gallery?.tags) {
+            await this.fetchRandomDoujin();
+            if (!this.gallery || !this.gallery.tags || this.iteration > 3) {
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
-            const { gallery, related } = result;
-            const page = this.client.util.random(this.client.nhentai.getPages(gallery));
+            const page = this.client.util.random(this.client.nhentai.getPages(this.gallery));
             const menu = this.client.embeds
                 .richMenu({
                     template: this.client.embeds
@@ -121,10 +136,8 @@ export default class extends Command {
                         .setTimestamp(),
                 })
                 .useCustomFooters();
-            related.splice(3, 5);
-            related.push(gallery);
             const choices = this.client.util
-                .shuffle(related)
+                .shuffle(this.related)
                 .map(({ id, title: { english }, tags }) => {
                     const title = he.decode(english);
                     const t = new Map();
@@ -150,7 +163,7 @@ export default class extends Command {
             choices.forEach(({ id, title, artist }) => {
                 menu.addChoice(+id, title, `Artists: ${artist}`);
             });
-            const answer = choices.findIndex(({ id }) => gallery.id === id);
+            const answer = choices.findIndex(({ id }) => this.gallery.id === id);
             if (answer === -1) {
                 return this.client.commandHandler.emitError(
                     new Error('Parsing Failed'),
