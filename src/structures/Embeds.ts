@@ -27,7 +27,7 @@ export class Embeds {
     }
 
     success() {
-        return new MessageEmbed().setColor('#ff66ab');
+        return new MessageEmbed().setColor('#008000');
     }
 
     info(text: string) {
