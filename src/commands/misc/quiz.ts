@@ -16,7 +16,8 @@ export default class extends Command {
             nsfw: true,
             cooldown: 10000,
             description: {
-                content: 'Starts a quiz session: try to guess the title of the displayed random doujin page picked from 1 of 4 choices.\nNote: There can only be one quiz session at a time.',
+                content:
+                    'Starts a quiz session: try to guess the title of the displayed random doujin page picked from 1 of 4 choices.\nNote: There can only be one quiz session at a time.',
                 usage: '',
                 examples: ['\nTry to guess the title!'],
             },
@@ -65,15 +66,23 @@ export default class extends Command {
             if (!this.client.quizOngoing.get(message.author.id)) {
                 this.client.quizOngoing.set(message.author.id, true);
             } else {
-                return message.channel.send(
-                    this.client.embeds
-                        .default()
-                        .setColor('#ff0000')
-                        .setAuthor('❌\u2000Rejected')
-                        .setDescription(
-                            `You already have an ongoing quiz session. Please finish your quiz session first before starting a new one.`
-                        )
-                );
+                return this.client.embeds
+                    .richDisplay({ removeOnly: true, removeRequest: false })
+                    .addPage(
+                        this.client.embeds
+                            .default()
+                            .setColor('#ff0000')
+                            .setAuthor('❌\u2000Rejected')
+                            .setDescription(
+                                `You already have an ongoing quiz session. Please finish your quiz session first before starting a new one.`
+                            )
+                    )
+                    .useCustomFooters()
+                    .run(
+                        this.client,
+                        message,
+                        message // await message.channel.send('Loading ...')
+                    );
             }
             let result: void | GalleryResult = null;
             for (let i = 0; i < 3; i++) {
@@ -155,44 +164,65 @@ export default class extends Command {
             );
             const choice = await handler.selection;
             const embed = this.client.embeds.default().setFooter('Quiz session ended');
+            const done = this.client.embeds
+                .richDisplay({ removeOnly: true, removeRequest: false })
+                .useCustomFooters();
             if (choice === null) {
                 this.client.quizOngoing.set(message.author.id, false);
                 if (message.deleted || handler.message.deleted) return;
-                return message.channel.send(
-                    embed
-                        .setColor('#ffff00')
-                        .setAuthor('⌛\u2000Timed out')
-                        .setDescription(
-                            `The session timed out as you did not answer within 30 seconds. The correct answer was **${
-                                answer + 1
-                            } ${choices[answer].title}**.`
-                        )
-                );
+                return done
+                    .addPage(
+                        embed
+                            .setColor('#ffff00')
+                            .setAuthor('⌛\u2000Timed out')
+                            .setDescription(
+                                `The session timed out as you did not answer within 30 seconds. The correct answer was **${
+                                    answer + 1
+                                } ${choices[answer].title}**.`
+                            )
+                    )
+                    .run(
+                        this.client,
+                        message,
+                        message // await message.channel.send('Loading ...')
+                    );
             }
             if (choice === answer) {
                 this.client.quizOngoing.set(message.author.id, false);
-                return message.channel.send(
-                    embed
-                        .setColor('#008000')
-                        .setAuthor('✅\u2000Correct')
-                        .setDescription(
-                            `Congratulations! You got it right!\nThe correct answer was **[${
-                                answer + 1
-                            }] ${choices[answer].title}**.`
-                        )
-                );
+                return done
+                    .addPage(
+                        embed
+                            .setColor('#008000')
+                            .setAuthor('✅\u2000Correct')
+                            .setDescription(
+                                `Congratulations! You got it right!\nThe correct answer was **[${
+                                    answer + 1
+                                }] ${choices[answer].title}**.`
+                            )
+                    )
+                    .run(
+                        this.client,
+                        message,
+                        message // await message.channel.send('Loading ...')
+                    );
             }
             this.client.quizOngoing.set(message.author.id, false);
-            message.channel.send(
-                embed
-                    .setColor('#ff0000')
-                    .setAuthor('❌\u2000Wrong Answer')
-                    .setDescription(
-                        `Unfortunately, that was the wrong answer.\nThe correct answer was **[${
-                            answer + 1
-                        }] ${choices[answer].title}**.\nYou chose **[${choice + 1}]**.`
-                    )
-            );
+            return done
+                .addPage(
+                    embed
+                        .setColor('#ff0000')
+                        .setAuthor('❌\u2000Wrong Answer')
+                        .setDescription(
+                            `Unfortunately, that was the wrong answer.\nThe correct answer was **[${
+                                answer + 1
+                            }] ${choices[answer].title}**.\nYou chose **[${choice + 1}]**.`
+                        )
+                )
+                .run(
+                    this.client,
+                    message,
+                    message // await message.channel.send('Loading ...')
+                );
         } catch (err) {
             this.client.logger.error(err.message);
         }
