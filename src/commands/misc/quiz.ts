@@ -14,7 +14,7 @@ export default class extends Command {
         super('quiz', {
             aliases: ['quiz'],
             nsfw: true,
-            cooldown: 10000,
+            cooldown: 30000,
             description: {
                 content:
                     'Starts a quiz session: try to guess the title of the displayed random doujin page picked from 1 of 4 choices.\nNote: There can only be one quiz session at a time.',
@@ -97,30 +97,8 @@ export default class extends Command {
 
     async exec(message: Message) {
         try {
-            if (!this.client.quizOngoing.get(message.author.id)) {
-                this.client.quizOngoing.set(message.author.id, true);
-            } else {
-                return this.client.embeds
-                    .richDisplay({ removeOnly: true, removeRequest: false })
-                    .addPage(
-                        this.client.embeds
-                            .default()
-                            .setColor('#ff0000')
-                            .setAuthor('❌\u2000Rejected')
-                            .setDescription(
-                                `You already have an ongoing quiz session. Please finish your quiz session first before starting a new one.`
-                            )
-                    )
-                    .useCustomFooters()
-                    .run(
-                        this.client,
-                        message,
-                        message // await message.channel.send('Loading ...')
-                    );
-            }
             await this.fetchRandomDoujin();
             if (!this.gallery || !this.gallery.tags || this.iteration > 3) {
-                this.client.quizOngoing.set(message.author.id, false);
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
             const page = this.client.util.random(this.client.nhentai.getPages(this.gallery));
@@ -166,7 +144,6 @@ export default class extends Command {
             });
             const answer = choices.findIndex(({ id }) => this.gallery.id === id);
             if (answer === -1) {
-                this.client.quizOngoing.set(message.author.id, false);
                 return this.client.commandHandler.emitError(
                     new Error('Parsing Failed'),
                     message,
@@ -188,7 +165,6 @@ export default class extends Command {
                 .richDisplay({ removeOnly: true, removeRequest: false })
                 .useCustomFooters();
             if (choice === null) {
-                this.client.quizOngoing.set(message.author.id, false);
                 if (message.deleted || handler.message.deleted) return;
                 return done
                     .addPage(
@@ -208,7 +184,6 @@ export default class extends Command {
                     );
             }
             if (choice === answer) {
-                this.client.quizOngoing.set(message.author.id, false);
                 return done
                     .addPage(
                         embed
@@ -226,7 +201,6 @@ export default class extends Command {
                         message // await message.channel.send('Loading ...')
                     );
             }
-            this.client.quizOngoing.set(message.author.id, false);
             return done
                 .addPage(
                     embed

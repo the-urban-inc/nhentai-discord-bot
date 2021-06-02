@@ -18,7 +18,6 @@ export class Client extends AkairoClient {
     public commandHandler: CommandHandler;
     public listenerHandler: ListenerHandler;
     public inhibitorHandler: InhibitorHandler;
-    public quizOngoing: Map<User['id'], boolean>;
     public nhentai: NhentaiAPI;
     public fakku: FakkuAPI;
     public images: ImageAPI;
@@ -72,7 +71,6 @@ export class Client extends AkairoClient {
         this.nhentai = new NhentaiAPI();
         this.fakku = new FakkuAPI();
         this.images = new ImageAPI();
-        this.quizOngoing = new Map<User['id'], boolean>();
     }
 
     async start(): Promise<void> {
