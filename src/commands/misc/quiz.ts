@@ -120,6 +120,7 @@ export default class extends Command {
             }
             await this.fetchRandomDoujin();
             if (!this.gallery || !this.gallery.tags || this.iteration > 3) {
+                this.client.quizOngoing.set(message.author.id, false);
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
             const page = this.client.util.random(this.client.nhentai.getPages(this.gallery));
@@ -165,6 +166,7 @@ export default class extends Command {
             });
             const answer = choices.findIndex(({ id }) => this.gallery.id === id);
             if (answer === -1) {
+                this.client.quizOngoing.set(message.author.id, false);
                 return this.client.commandHandler.emitError(
                     new Error('Parsing Failed'),
                     message,
