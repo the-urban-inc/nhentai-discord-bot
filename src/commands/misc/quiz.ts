@@ -134,7 +134,7 @@ export default class extends Command {
                     });
                     return {
                         id,
-                        url: `https://nhentai.net/${id}`,
+                        url: `https://nhentai.net/g/${id}`,
                         title,
                         artist: this.client.util.gshorten(t.get('artist'), '\u2009\u2009'),
                     };
