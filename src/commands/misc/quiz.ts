@@ -68,7 +68,7 @@ export default class extends Command {
     async fetchRandomDoujin() {
         if (this.iteration++ >= 3) return;
         let result: void | GalleryResult = null;
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 5; i++) {
             result = await this.client.nhentai
                 .random(true)
                 .catch(err => this.client.logger.error(err.message));
