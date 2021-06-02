@@ -91,7 +91,7 @@ export default class extends Command {
         this.related = result.related;
         this.related.splice(3, 5);
         this.related.push(this.gallery);
-        const titles = this.rawChoices.map(({ title }) => he.decode(title.english));
+        const titles = this.rawChoices.map(({ title }) => he.decode(title.english).toLowerCase());
         if ([...new Set(titles)].length < titles.length) return this.fetchRandomDoujin();
     }
 
