@@ -7,7 +7,6 @@ import { Blacklist } from '@models/tag';
 import { Gallery, GalleryResult } from '@api/nhentai';
 import { BANNED_TAGS } from '@utils/constants';
 import config from '@config';
-import { configLoader } from 'tsconfig-paths/lib/config-loader';
 const PREFIX = config.settings.prefix.nsfw[0];
 
 export default class extends Command {
@@ -152,6 +151,7 @@ export default class extends Command {
                     this
                 );
             }
+            const embed = this.client.embeds.default().setFooter('Quiz session ended');
             const handler = await menu.run(
                 this.client,
                 message,
@@ -159,52 +159,53 @@ export default class extends Command {
                 `> **Guess the doujin • [** ${message.author.tag} **]**`,
                 {
                     collectorTimeout: 30000,
+                    onTimeout: () => {
+                        return this.client.embeds
+                            .richDisplay({ removeOnly: true, removeRequest: false })
+                            .useCustomFooters()
+                            .addPage(
+                                embed
+                                    .setColor('#ffbf00')
+                                    .setAuthor('⌛\u2000Timed out')
+                                    .setDescription(
+                                        `The session timed out as you did not answer within 30 seconds. The correct answer was **${
+                                            answer + 1
+                                        } [${choices[answer].title}](${choices[answer].url})**.`
+                                    )
+                            )
+                            .run(
+                                this.client,
+                                message,
+                                message, // await message.channel.send('Loading ...')
+                                '',
+                                {
+                                    collectorTimeout: 180000,
+                                }
+                            );
+                    },
                 }
             );
             const choice = await handler.selection;
-            const embed = this.client.embeds.default().setFooter('Quiz session ended');
             const done = this.client.embeds
                 .richDisplay({ removeOnly: true, removeRequest: false })
                 .useCustomFooters();
-            if (choice === null) {
-                if (message.deleted || handler.message.deleted) return;
-                return done
-                    .addPage(
-                        embed
-                            .setColor('#ffff00')
-                            .setAuthor('⌛\u2000Timed out')
-                            .setDescription(
-                                `The session timed out as you did not answer within 30 seconds. The correct answer was **${
-                                    answer + 1
-                                } [${choices[answer].title}](${choices[answer].url})**.`
-                            )
-                    )
-                    .run(
-                        this.client,
-                        message,
-                        message // await message.channel.send('Loading ...')
-                    );
-            }
             if (choice === answer) {
-                return done
-                    .addPage(
-                        embed
-                            .setColor('#008000')
-                            .setAuthor('✅\u2000Correct')
-                            .setDescription(
-                                `Congratulations! You got it right!\nThe correct answer was **[${
-                                    answer + 1
-                                }] [${choices[answer].title}](${choices[answer].url})**.`
-                            )
-                    )
-                    .run(
-                        this.client,
-                        message,
-                        message // await message.channel.send('Loading ...')
-                    );
-            }
-            return done
-                .addPage(
+                done.addPage(
+                    embed
+                        .setColor('#008000')
+                        .setAuthor('✅\u2000Correct')
+                        .setDescription(
+                            `Congratulations! You got it right!\nThe correct answer was **[${
+                                answer + 1
+                            }] [${choices[answer].title}](${choices[answer].url})**.`
+                        )
+                ).run(
+                    this.client,
+                    message,
+                    message // await message.channel.send('Loading ...')
+                );
+            } else {
+                done.addPage(
                     embed
                         .setColor('#ff0000')
                         .setAuthor('❌\u2000Wrong Answer')
@@ -217,12 +218,12 @@ export default class extends Command {
                                 choices[choice].url
                             })**.`
                         )
-                )
-                .run(
+                ).run(
                     this.client,
                     message,
                     message // await message.channel.send('Loading ...')
                 );
+            }
         } catch (err) {
             this.client.logger.error(err.message);
         }
