@@ -58,6 +58,11 @@ export default class extends Command {
                     settings: { danger: false },
                 }).save();
             }
+            this.iteration = 0;
+            this.gallery = null;
+            this.related = null;
+            this.rawChoices = [];
+            this.blacklists = [];
             this.danger = server.settings.danger;
             this.warning = false;
         } catch (err) {
