@@ -7,6 +7,7 @@ import { Blacklist } from '@models/tag';
 import { Gallery, GalleryResult } from '@api/nhentai';
 import { BANNED_TAGS } from '@utils/constants';
 import config from '@config';
+import { configLoader } from 'tsconfig-paths/lib/config-loader';
 const PREFIX = config.settings.prefix.nsfw[0];
 
 export default class extends Command {
@@ -15,6 +16,7 @@ export default class extends Command {
             aliases: ['quiz'],
             nsfw: true,
             cooldown: 30000,
+            typing: false,
             description: {
                 content:
                     'Starts a quiz session: try to guess the title of the displayed random doujin page picked from 1 of 4 choices.\nNote: There can only be one quiz session at a time.',
@@ -74,8 +76,8 @@ export default class extends Command {
                 .catch(err => this.client.logger.error(err.message));
             if (
                 !result ||
-                (!result.gallery.tags &&
-                    typeof result.gallery.tags[Symbol.iterator] === 'function')
+                !result.gallery.tags ||
+                typeof result.gallery.tags[Symbol.iterator] !== 'function'
             ) {
                 continue;
             }
@@ -156,7 +158,7 @@ export default class extends Command {
                 message, // await message.channel.send('Searching ...'),
                 `> **Guess the doujin • [** ${message.author.tag} **]**`,
                 {
-                    time: 30000,
+                    collectorTimeout: 30000,
                 }
             );
             const choice = await handler.selection;

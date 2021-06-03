@@ -189,7 +189,7 @@ export default class extends Command {
                 `> **SauceNAO Search Result • [** ${tag ?? message.author.tag} **]**`,
                 {
                     users,
-                    idle: 300000,
+                    collectorTimeout: 300000,
                 }
             );
         } catch (err) {

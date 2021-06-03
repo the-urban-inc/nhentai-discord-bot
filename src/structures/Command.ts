@@ -45,7 +45,7 @@ export class Command extends C {
     movePage?: (currentHandler: ReactionHandler, diff: number) => Promise<boolean>;
     constructor(id: string, options?: CommandOptions) {
         options.channel = 'guild';
-        options.typing = true;
+        options.typing = options.typing ?? true;
         super(id, options);
         const { isConditionalorRegexCommand = false, subAliases = {}, error = {} } = options;
         this.isConditionalorRegexCommand = Boolean(isConditionalorRegexCommand);

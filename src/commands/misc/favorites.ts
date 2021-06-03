@@ -92,7 +92,7 @@ export default class extends Command {
                     await msg.edit('Done.'),
                     `> **Favorites List • [** ${message.author.tag} **]**\n> **Galleries are sorted by date added**`,
                     {
-                        idle: 300000,
+                        collectorTimeout: 300000,
                     }
                 );
 

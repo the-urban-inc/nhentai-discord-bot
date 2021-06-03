@@ -101,7 +101,10 @@ export default class extends Command {
                         this.client,
                         message,
                         message, // await message.channel.send('Loading ...')
-                        `> **Viewing profile • [** ${message.author.tag} **]**`
+                        `> **Viewing profile • [** ${message.author.tag} **]**`,
+                        {
+                            collectorTimeout: 180000,
+                        }
                     );
                 }
                 return message.channel.send(`> **Viewing profile • [** ${message.author.tag} **]**`, embed);

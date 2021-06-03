@@ -212,7 +212,7 @@ export default class extends Command {
                             message, // await message.channel.send('Loading ...'),
                             '',
                             {
-                                time: 300000,
+                                collectorTimeout: 300000,
                             }
                         );
                 }
@@ -225,7 +225,7 @@ export default class extends Command {
                 message, // await message.channel.send('Searching ...'),
                 `> **Searching for galleries • [** ${message.author.tag} **]**`,
                 {
-                    idle: 300000,
+                    collectorTimeout: 300000,
                     danger: this.danger,
                 }
             );
@@ -241,7 +241,7 @@ export default class extends Command {
                         message, // await message.channel.send('Loading ...'),
                         '',
                         {
-                            time: 300000,
+                            collectorTimeout: 300000,
                         }
                     );
                 handler.warning = warning;

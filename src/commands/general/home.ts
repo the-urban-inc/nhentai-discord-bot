@@ -174,7 +174,7 @@ export default class extends Command {
                             message, // await message.channel.send('Loading ...'),
                             '',
                             {
-                                time: 300000,
+                                collectorTimeout: 300000,
                             }
                         );
                 }
@@ -187,7 +187,7 @@ export default class extends Command {
                 message, // await message.channel.send('Searching ...'),
                 pageNum === 1 ? '> `🧻` **New Uploads**' : '',
                 {
-                    idle: 300000,
+                    collectorTimeout: 300000,
                     danger: this.danger,
                 }
             );
@@ -203,7 +203,7 @@ export default class extends Command {
                         message, // await message.channel.send('Loading ...'),
                         '',
                         {
-                            time: 300000,
+                            collectorTimeout: 300000,
                         }
                     );
                 handler.warning = warning;

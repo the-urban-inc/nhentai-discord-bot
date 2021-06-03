@@ -114,7 +114,11 @@ export default class extends Command {
             return list.run(
                 this.client,
                 message,
-                message // await message.channel.send('Fetching list...')
+                message, // await message.channel.send('Fetching list...')
+                '',
+                {
+                    collectorTimeout: 180000,
+                }
             );
         } catch (err) {
             this.client.logger.error(err);

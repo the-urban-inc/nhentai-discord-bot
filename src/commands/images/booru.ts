@@ -235,7 +235,7 @@ export default class extends Command {
                     message, // await message.channel.send('Searching ...'),
                     `> **Searching for posts • [** ${message.author.tag} **]**`,
                     {
-                        time: 180000,
+                        collectorTimeout: 180000,
                     }
                 );
                 if (!this.danger && this.warning) {
@@ -246,7 +246,11 @@ export default class extends Command {
                         .run(
                             this.client,
                             message,
-                            message // await message.channel.send('Loading ...')
+                            message, // await message.channel.send('Loading ...')
+                            '',
+                            {
+                                collectorTimeout: 180000,
+                            }
                         );
                 }
             })

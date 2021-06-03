@@ -62,7 +62,7 @@ export default class extends Command {
                 message, // await message.channel.send('Loading leaderboard ...'),
                 `> **Viewing server rankings • [** ${message.author.tag} **]**`,
                 {
-                    time: 180000,
+                    collectorTimeout: 180000,
                 }
             );
         } catch (err) {

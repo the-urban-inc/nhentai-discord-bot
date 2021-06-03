@@ -107,7 +107,7 @@ export default class extends Command {
                 message,
                 `> **Fakku Search Result • [** ${message.author.tag} **]**`,
                 {
-                    idle: 300000,
+                    collectorTimeout: 300000,
                 }
             );
         } catch (err) {

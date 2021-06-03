@@ -95,14 +95,20 @@ export default class extends Command {
                     this.client,
                     message,
                     message, // await message.channel.send('Searching ...'),
-                    `> **Searching for random gallery • [** ${message.author.tag} **]**`
+                    `> **Searching for random gallery • [** ${message.author.tag} **]**`,
+                    {
+                        collectorTimeout: 300000,
+                    }
                 );
             } else {
                 await displayGallery.run(
                     this.client,
                     message,
                     message, // await message.channel.send('Searching ...')
-                    `> **Searching for random gallery • [** ${message.author.tag} **]**`
+                    `> **Searching for random gallery • [** ${message.author.tag} **]**`,
+                    {
+                        collectorTimeout: 300000,
+                    }
                 );
             }
 
@@ -119,7 +125,10 @@ export default class extends Command {
                     this.client,
                     message,
                     message, // await message.channel.send('Searching ...'),
-                    '> **More Like This**'
+                    '> **More Like This**',
+                    {
+                        collectorTimeout: 300000,
+                    }
                 );
 
                 if (!comments.length) return;
@@ -128,7 +137,10 @@ export default class extends Command {
                     this.client,
                     message,
                     message, // await message.channel.send('Searching ...'),
-                    '> `💬` **Comments**'
+                    '> `💬` **Comments**',
+                    {
+                        collectorTimeout: 300000,
+                    }
                 );
             }
 
@@ -140,7 +152,11 @@ export default class extends Command {
                     .run(
                         this.client,
                         message,
-                        message // await message.channel.send('Loading ...')
+                        message, // await message.channel.send('Loading ...')
+                        '',
+                        {
+                            collectorTimeout: 300000,
+                        }
                     );
             }
         } catch (err) {

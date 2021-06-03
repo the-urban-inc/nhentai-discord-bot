@@ -272,7 +272,7 @@ export default class extends Command {
                 message, // await message.channel.send('Searching ...'),
                 '',
                 {
-                    time: 180000,
+                    collectorTimeout: 180000,
                 }
             );
         } catch (err) {

@@ -188,7 +188,7 @@ export default class extends Command {
             message, // await message.channel.send('Loading command list...'),
             '',
             {
-                time: 180000,
+                collectorTimeout: 180000,
             }
         );
     }
