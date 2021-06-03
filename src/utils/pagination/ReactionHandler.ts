@@ -27,6 +27,7 @@ export interface ReactionHandlerOptions extends ReactionCollectorOptions {
     autoTimeout?: number;
     messageTimeout?: number;
     collectorTimeout?: number;
+    onTimeout?: () => any;
 }
 
 export const enum ReactionMethods {
@@ -72,6 +73,7 @@ export class ReactionHandler {
     private readonly autoTimeout: number;
     private readonly messageTimeout: number;
     private readonly collectorTimeout: number;
+    private readonly onTimeout: () => any;
     readonly collector: ReactionCollector;
     ended = false;
     #awaiting = false;
@@ -112,6 +114,7 @@ export class ReactionHandler {
         this.autoTimeout = options.autoTimeout ?? 30000;
         this.messageTimeout = options.messageTimeout ?? 5000;
         this.collectorTimeout = options.collectorTimeout ?? 900000;
+        this.onTimeout = options.onTimeout ?? (() => { return; });
         this.dispose = options.dispose ?? true;
         this.selection = emojis.has(ReactionMethods.One)
             ? new Promise(resolve => {
@@ -140,6 +143,9 @@ export class ReactionHandler {
                 this.methods.get(method)?.call(this, user),
             ]);
             if (signals[1]) this.collector.stop();
+        });
+        this.collector.on('end', async (collected, reason) => {
+            if (reason === 'idle') this.onTimeout();
         });
     }
 
@@ -534,6 +540,7 @@ export class ReactionHandler {
                 async function (this: ReactionHandler, user: User): Promise<boolean> {
                     if (this.users.length && !this.users.includes(user.id))
                         return Promise.resolve(false);
+                    this.collector.stop('Aborted');
                     await this.stop();
                     if (this.#autoMode) clearInterval(this.#autoMode);
                     if (!this.message.deleted) await this.message.delete();
