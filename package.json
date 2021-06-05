@@ -1,6 +1,6 @@
 {
     "name": "nhentai",
-    "version": "2.11.15",
+    "version": "2.12.0",
     "description": "NSFW discord bot (with some SFW commands)",
     "main": "build/src/index.js",
     "types": "build/src/index.d.ts",
