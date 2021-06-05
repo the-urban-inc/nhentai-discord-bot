@@ -104,7 +104,12 @@ export default class extends Command {
     async exec(message: Message) {
         try {
             await this.fetchRandomDoujin();
-            if (!this.gallery || !this.gallery.tags || this.iteration > 3) {
+            if (
+                !this.gallery ||
+                !this.gallery.tags ||
+                typeof this.gallery.tags[Symbol.iterator] !== 'function' ||
+                this.iteration > 3
+            ) {
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
             const page = this.client.util.random(this.client.nhentai.getPages(this.gallery));
