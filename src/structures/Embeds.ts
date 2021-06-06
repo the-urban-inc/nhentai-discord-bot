@@ -142,15 +142,20 @@ export class Embeds {
                 .setInfo({ id, type: 'g', name: title })
                 .setInfoPage(
                     this.displayGalleryInfo(gallery, danger, blacklists).info.setFooter(
-                        `ID : ${id}${auto ? '• React with 🇦 to start an auto session' : ''}`
+                        `ID : ${id}${
+                            auto ? '\u2000•\u2000React with 🇦 to start an auto session' : ''
+                        }`
                     )
                 );
             if (caller) displayGallery.setCaller(caller);
-            this.client.nhentai
-                .getPages(gallery)
-                .forEach((page: string) =>
-                    displayGallery.addPage(this.default().setImage(page).setTimestamp())
-                );
+            this.client.nhentai.getPages(gallery).forEach((page, i) =>
+                displayGallery.addPage(
+                    this.default()
+                        .setImage(page)
+                        .setFooter(`ID : ${id}\u2000•\u2000Page ${i + 1} of ${gallery.num_pages}`)
+                        .setTimestamp()
+                )
+            );
             return { displayGallery, rip };
         } else {
             return {
