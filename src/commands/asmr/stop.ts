@@ -4,7 +4,7 @@ import { Message } from 'discord.js';
 export default class extends Command {
     constructor() {
         super('stop', {
-            aliases: ['stop'],
+            aliases: ['stop', 'disconnect', 'dc'],
             nsfw: true,
             description: {
                 content: `Stop the current session.`,

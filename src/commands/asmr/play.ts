@@ -124,7 +124,7 @@ export default class extends Command {
                 message.channel.send(
                     this.client.embeds
                         .default()
-                        .setDescription(`✅\u2000Joined channel \`${voiceChannel.name}\``)
+                        .setDescription(`✅\u2000Joined voice channel \`${voiceChannel.name}\``)
                 );
             }
             const msg = await message.channel.send(
