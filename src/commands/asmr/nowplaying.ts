@@ -16,21 +16,16 @@ export default class extends Command {
     async exec(message: Message) {
         try {
             const connection = message.guild.voice.connection;
-            const { title, url, duration } = this.client.current.get(message.guild.id);
-            console.log(duration);
-            if (!connection || !connection.dispatcher || !duration || isNaN(duration)) {
+            if (!connection || !connection.dispatcher || !this.client.current.get(message.guild.id)) {
                 return message.channel.send(
                     this.client.embeds.default().setDescription("Nothing's playing")
                 );
             }
+            let { title, url, duration } = this.client.current.get(message.guild.id);
             if (connection.channel) {
-                const time = connection.dispatcher.streamTime / 1000;
-                const cm = String(time / 60).padStart(2, '0'),
-                    cs = String(time % 60).padStart(2, '0');
-                const tm = String(duration / 60).padStart(2, '0'),
-                    ts = String(duration % 60).padStart(2, '0');
-                const now = '🔵';
-                const progress = '▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬';
+                const time = connection.dispatcher.streamTime;
+                const now = '`🔘`';
+                const progress = '▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬';
                 const i = Math.round(progress.length * (time / duration));
                 return message.channel.send(
                     this.client.embeds
@@ -39,7 +34,7 @@ export default class extends Command {
                         .setDescription(
                             `[${title}](${url})\n${
                                 progress.slice(0, i) + now + progress.slice(i + 1)
-                            }\u2000${cm}:${cs}/${tm}:${ts}`
+                            }\u2000${this.client.util.formatMilliseconds(time)} / ${this.client.util.formatMilliseconds(duration)}`
                         )
                         .setFooter('ASMR file from jasmr.net')
                 );
