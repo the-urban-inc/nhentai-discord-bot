@@ -1,11 +1,9 @@
 import { Command } from '@structures';
 import { Message } from 'discord.js';
-import { Readable } from 'stream';
-import fs from 'fs';
-const fsp = fs.promises;
-import path from 'path';
-import axios from 'axios';
+import { PassThrough } from 'stream';
 import ffmpeg from 'fluent-ffmpeg';
+import ffprobe from 'ffprobe-static';
+ffmpeg.setFfprobePath(ffprobe.path);
 
 const TAGS = [
     'Pure',
@@ -33,30 +31,17 @@ const TAGS = [
     'Yuri',
 ];
 
-// this doesn't work
-async function getDuration(input: string) {
-    return new Promise(async (resolve, reject) => {
-        const buff = Buffer.alloc(100);
-        const header = Buffer.from('mvhd');
-        const response = await axios.get(input, {
-            responseType: 'stream',
-        });
-        const fn = path.join(__dirname, path.basename(input));
-        const w = response.data.pipe(fs.createWriteStream(fn));
-        w.on('finish', async () => {
-            const file = await fsp.open(fn, 'r');
-            const { buffer } = await file.read(buff, 0, 100, 0);
-            await fsp.unlink(fn);
-            const start = buffer.indexOf(header) + 17;
-            const duration = buffer.readUInt32BE(start + 4);
-            resolve(duration);
+function getDuration(input: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+        ffmpeg(input).ffprobe((err, data) => {
+            resolve(data.format.duration ?? -1);
         });
     });
 }
 
 async function extractAudio(input: string) {
-    const cmd = await ffmpeg(input).audioChannels('1').format('mp3');
-    return cmd.stream() as Readable;
+    const cmd = ffmpeg(input).audioChannels(1).format('mp3');
+    return cmd.pipe() as PassThrough;
 }
 
 export default class extends Command {
@@ -142,21 +127,33 @@ export default class extends Command {
                         .setDescription(`✅\u2000Joined channel \`${voiceChannel.name}\``)
                 );
             }
-            const dispatcher = connection.play(mp3Stream);
-            message.channel.send(
-                this.client.embeds
-                    .default()
-                    .setAuthor('▶️\u2000Now Playing')
-                    .setDescription(`[${title}](${url})`)
-                    .setFooter('ASMR file from jasmr.net')
+            const msg = await message.channel.send(
+                this.client.embeds.default().setDescription('🔎\u2000Searching for ASMR file ...')
             );
-            const duration = await getDuration(video) as number;
-            console.log(duration);
+            const duration = (await getDuration(video)) * 1000;
             this.client.current.set(message.guild.id, {
                 title,
                 url,
                 duration,
             });
+            const dispatcher = connection.play(mp3Stream);
+            if (msg.editable) {
+                await msg.edit(
+                    this.client.embeds
+                        .default()
+                        .setAuthor('▶️\u2000Now Playing')
+                        .setDescription(`[${title}](${url})`)
+                        .setFooter('ASMR file from jasmr.net')
+                );
+            } else {
+                await message.channel.send(
+                    this.client.embeds
+                        .default()
+                        .setAuthor('▶️\u2000Now Playing')
+                        .setDescription(`[${title}](${url})`)
+                        .setFooter('ASMR file from jasmr.net')
+                );
+            }
             dispatcher.on('finish', () => {
                 connection.disconnect();
                 voiceChannel.leave();
