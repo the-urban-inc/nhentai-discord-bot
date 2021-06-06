@@ -94,7 +94,7 @@ export default class extends Command {
                 );
             }
             const tagID = TAGS[TAGS.map(x => x.toLowerCase()).indexOf(tag)];
-            const voiceChannel = message.member.voice.channel;
+            const voiceChannel = message.member.voice?.channel;
             if (!voiceChannel) {
                 return this.client.commandHandler.emitError(
                     new Error('No Voice Channel'),
