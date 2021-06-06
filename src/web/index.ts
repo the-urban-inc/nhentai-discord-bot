@@ -2,21 +2,31 @@ import express from 'express';
 import PDFDocument from 'pdfkit';
 import he from 'he';
 import axios from 'axios';
+import path from 'path';
 import { Logger } from '@structures';
-import { Client as NhentaiAPI } from '@api/nhentai';
+import { Client as NhentaiAPI, Gallery } from '@api/nhentai';
 const log = new Logger();
 const api = new NhentaiAPI();
 const app = express();
 const port = process.env.PORT ?? 3000;
 
+app.set('view engine', 'html');
+app.engine('html', require('ejs').renderFile);
+
 app.get('/download/:code/', async (req, res) => {
     const code = req.params.code;
+    let gallery: Gallery = null;
+    try {
+        gallery = (await api.g(+code)).gallery;
+    } catch (err) {
+        if (err) return res.redirect('/');
+    }
+    if (!gallery || !gallery.tags) return res.redirect('/');
     res.writeHead(200, {
         'Content-Type': 'application/pdf',
         'Access-Control-Allow-Origin': '*',
-        'Content-Disposition': `attachment; filename=${code}.pdf`
+        'Content-Disposition': `attachment; filename=${code}.pdf`,
     });
-    const gallery = (await api.g(+code)).gallery;
     const {
         title: { english: title },
         upload_date,
@@ -39,7 +49,7 @@ app.get('/download/:code/', async (req, res) => {
             Keywords: t.get('tag').join(', '),
             CreationDate: new Date(upload_date * 1000),
         },
-        autoFirstPage: false
+        autoFirstPage: false,
     });
     const stream = doc.pipe(res);
     const pages = api.getPages(gallery);
@@ -53,6 +63,14 @@ app.get('/download/:code/', async (req, res) => {
     }
     doc.end();
     stream.on('end', () => res.end());
+});
+
+app.get('/', (req, res) => {
+    res.render(path.join(__dirname, 'error.html'));
+});
+
+app.get('*', (req, res) => {
+    res.redirect('/');
 });
 
 app.listen(port, () => {
