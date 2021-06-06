@@ -32,7 +32,7 @@ export default class extends Inhibitor {
                 message.channel.send(
                     this.client.embeds.clientError(
                         `I'm missing the following permissions to execute your command: ${requirements
-                            .map(x => `${x}`)
+                            .map(x => `${this.client.util.toTitleCase(x)}`)
                             .join(' ')}.`
                     )
                 );

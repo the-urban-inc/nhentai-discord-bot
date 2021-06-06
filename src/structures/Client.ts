@@ -1,7 +1,8 @@
 import { AkairoClient, ListenerHandler, InhibitorHandler } from 'discord-akairo';
-import { TextChannel, DMChannel, User } from 'discord.js';
+import { TextChannel, DMChannel, Guild } from 'discord.js';
 import { Command, CommandHandler, Embeds, Inhibitor, Listener, Logger, Util } from './index';
 import config from '@config';
+import { Client as JASMRAPI } from '@api/jasmr';
 import { Client as NhentaiAPI } from '@api/nhentai';
 import { Client as FakkuAPI } from '@api/fakku';
 import { Client as ImageAPI } from '@api/images';
@@ -18,10 +19,12 @@ export class Client extends AkairoClient {
     public commandHandler: CommandHandler;
     public listenerHandler: ListenerHandler;
     public inhibitorHandler: InhibitorHandler;
+    public jasmr: JASMRAPI;
     public nhentai: NhentaiAPI;
     public fakku: FakkuAPI;
     public images: ImageAPI;
     public notifier: ChildProcess;
+    public current: Map<Guild['id'], { title: string; url: string; duration: number }>;
     constructor(...options: ConstructorParameters<typeof AkairoClient>) {
         super(
             options[0],
@@ -68,9 +71,11 @@ export class Client extends AkairoClient {
         this.commandHandler
             .useInhibitorHandler(this.inhibitorHandler)
             .useListenerHandler(this.listenerHandler);
+        this.jasmr = new JASMRAPI();
         this.nhentai = new NhentaiAPI();
         this.fakku = new FakkuAPI();
         this.images = new ImageAPI();
+        this.current = new Map<Guild['id'], { title: string; url: string; duration: number }>();
     }
 
     async start(): Promise<void> {
@@ -113,7 +118,7 @@ export class Client extends AkairoClient {
         });
         this.listenerHandler.loadAll();
         await this.db.init();
-        await this.fakku.setup(); // Comment this line out if you don't want to scrape Fakku magazine page everytime the bot starts up
+        // await this.fakku.setup(); // Comment this line out if you don't want to scrape Fakku magazine page everytime the bot starts up
         await super.login(DISCORD_TOKEN);
         const owner = (await super.fetchApplication()).owner!.id;
         this.ownerID = this.commandHandler.ignoreCooldown = owner;

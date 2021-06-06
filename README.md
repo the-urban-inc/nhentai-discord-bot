@@ -3,7 +3,7 @@
 
    <img alt="nhentai" src="https://i.imgur.com/my4t1Hb.png"><br>
 
-[![Invite nhentai](https://img.shields.io/badge/invite-me-7289da.svg?style=flat-square&logo=discord)](https://discordapp.com/api/oauth2/authorize?client_id=663743798722953258&permissions=387136&scope=bot)
+[![Invite nhentai](https://img.shields.io/badge/invite-me-7289da.svg?style=flat-square&logo=discord)](https://discord.com/api/oauth2/authorize?client_id=674866980070621184&permissions=37087296&scope=bot)
 [![Join the support server](https://img.shields.io/badge/join-the%20support%20server-7289da.svg?style=flat-square&logo=discord)](https://discord.gg/8PX6QZb)
 [![Library](https://img.shields.io/badge/library-discord.js-blue.svg?style=flat-square)](https://discord.js.org/#/)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
@@ -20,9 +20,10 @@ nhentai is an open source nhentai Discord bot powered by [TypeScript](https://ww
 - Almost every basic features of the **[nhentai](https://nhentai.net/)** website.
 - EXP system based on the number of doujins searched
 - Follow a tag and receive a DM whenever a doujin with that tag is released
-- Reverse image search using SauceNAO (experimental)
+- Reverse image search using SauceNAO
 - Random reddit post from [r/nhentai](https://www.reddit.com/r/nhentai/).
 - SFW and NSFW images from [nekobot](https://nekobot.xyz/), [nekos.life](https://nekos.life/) and multiple booru sites such as Danbooru, Gelbooru, and much more.
+- ASMR voice broadcast (experimental)
 
 # Requirements
 

@@ -55,7 +55,7 @@ export class Embeds {
             .setColor('#ff0000')
             .setTitle(`\`❌\`\u2009\u2009${error.message}`)
             .setDescription(
-                err.message === 'No Result' || err.message === 'Parsing Failed'
+                ['No Voice Channel', 'No Result', 'Parsing Failed'].includes(err.message)
                     ? example
                     : `Example: \`${prefix}${id}${example}\` ${description}\nType \`${prefix}help ${id}\` for more info.`
             )

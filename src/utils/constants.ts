@@ -1,6 +1,9 @@
 import config from '@config';
 
 export const PERMISSIONS = <const>[
+    'CONNECT',
+    'SPEAK',
+    'USE_VAD',
     'MANAGE_MESSAGES',
     'SEND_MESSAGES',
     'EMBED_LINKS',

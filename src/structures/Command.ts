@@ -12,13 +12,20 @@ export type SubAlias = {
     };
 };
 
-export type ErrorType = 'Invalid Query' | 'Invalid Page Index' | 'Invalid Sort Method' | 'No Result' | 'Parsing Failed';
+export type ErrorType =
+    | 'Invalid Query'
+    | 'Invalid Page Index'
+    | 'Invalid Sort Method'
+    | 'Unable To Join'
+    | 'No Voice Channel'
+    | 'No Result'
+    | 'Parsing Failed';
 
 type ErrorResponse = {
     [key in ErrorType]?: {
         message: string;
         example: string;
-    }
+    };
 };
 
 export interface CommandOptions extends CO {
@@ -55,7 +62,8 @@ export class Command extends C {
         if ('nsfw' in options) {
             this.nsfw = Boolean(options.nsfw);
             this.prefix = async message => {
-                if (!message.guild) return this.client.config.settings.prefix[this.nsfw ? 'nsfw' : 'sfw'];
+                if (!message.guild)
+                    return this.client.config.settings.prefix[this.nsfw ? 'nsfw' : 'sfw'];
                 if (
                     !this.client.commandHandler.splitPrefix ||
                     !this.client.commandHandler.splitPrefix.has(message.guild.id)

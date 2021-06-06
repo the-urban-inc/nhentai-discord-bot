@@ -1,6 +1,6 @@
 {
     "name": "nhentai",
-    "version": "2.12.1",
+    "version": "3.0.0",
     "description": "NSFW discord bot (with some SFW commands)",
     "main": "build/src/index.js",
     "types": "build/src/index.d.ts",
@@ -12,6 +12,7 @@
         "url": "https://github.com/the-urban-inc/nhentai-discord-bot.git"
     },
     "dependencies": {
+        "@discordjs/opus": "^0.5.0",
         "@octokit/rest": "^18.0.0",
         "axios": "^0.21.1",
         "booru": "^2.0.5",
@@ -24,6 +25,8 @@
         "dotenv": "^8.0.0",
         "ejs": "^3.1.6",
         "express": "^4.17.1",
+        "ffmpeg-static": "^4.3.0",
+        "fluent-ffmpeg": "^2.1.2",
         "fuse.js": "^6.4.6",
         "google-it": "^1.6.1",
         "he": "^1.2.0",
