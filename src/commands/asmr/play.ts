@@ -34,7 +34,7 @@ const TAGS = [
 function getDuration(input: string): Promise<number> {
     return new Promise((resolve, reject) => {
         ffmpeg(input).ffprobe((err, data) => {
-            resolve(data.format.duration ?? -1);
+            resolve(data?.format?.duration ?? -1);
         });
     });
 }
@@ -131,6 +131,7 @@ export default class extends Command {
                 this.client.embeds.default().setDescription('🔎\u2000Searching for ASMR file ...')
             );
             const duration = (await getDuration(video)) * 1000;
+            if (duration < 0 || isNaN(duration)) throw new Error('Fetching metadata failed.');
             this.client.current.set(message.guild.id, {
                 title,
                 url,
@@ -172,6 +173,13 @@ export default class extends Command {
                         .default()
                         .setColor('#ff0000')
                         .setDescription('An unexpected error has occurred while connecting')
+                );
+            } else if (err.message === 'Fetching metadata failed.') {
+                return message.channel.send(
+                    this.client.embeds
+                        .default()
+                        .setColor('#ff0000')
+                        .setDescription('An unexpected error has occurred while fetching metadata')
                 );
             }
             return this.client.logger.error(err.message);
