@@ -6,6 +6,7 @@ const TITLE_LIST = {
     general: 'General',
     misc: 'Misc',
     info: 'Info',
+    asmr: 'ASMR',
     images: 'Images',
     owner: 'Owner',
     settings: 'Settings',
