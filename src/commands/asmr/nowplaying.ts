@@ -15,7 +15,7 @@ export default class extends Command {
 
     async exec(message: Message) {
         try {
-            const connection = message.guild.voice.connection;
+            const connection = message.guild.voice?.connection;
             if (!connection || !connection.dispatcher || !this.client.current.get(message.guild.id)) {
                 return message.channel.send(
                     this.client.embeds.default().setDescription("Nothing's playing")

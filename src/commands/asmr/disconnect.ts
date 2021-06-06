@@ -22,7 +22,7 @@ export default class extends Command {
 
     async exec(message: Message) {
         try {
-            const voiceChannel = message.member.voice.channel;
+            const voiceChannel = message.member.voice?.channel;
             if (!voiceChannel) {
                 return this.client.commandHandler.emitError(
                     new Error('No Voice Channel'),
@@ -30,7 +30,7 @@ export default class extends Command {
                     this
                 );
             }
-            const connection = message.guild.voice.connection;
+            const connection = message.guild.voice?.connection;
             if (!connection) {
                 return message.channel.send(
                     this.client.embeds
