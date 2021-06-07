@@ -5,6 +5,7 @@ export default class extends Command {
     constructor() {
         super('resume', {
             aliases: ['resume'],
+            cooldown: 30000,
             nsfw: true,
             description: {
                 content: 'Resume current session.',

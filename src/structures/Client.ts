@@ -8,6 +8,7 @@ import { Client as FakkuAPI } from '@api/fakku';
 import { Client as ImageAPI } from '@api/images';
 import * as DB from '@database/index';
 import { fork, ChildProcess } from 'child_process';
+import { FfmpegCommand } from 'fluent-ffmpeg';
 const { DISCORD_TOKEN } = process.env;
 
 export class Client extends AkairoClient {
@@ -24,7 +25,14 @@ export class Client extends AkairoClient {
     public fakku: FakkuAPI;
     public images: ImageAPI;
     public notifier: ChildProcess;
-    public current: Map<Guild['id'], { title: string; url: string; duration: number }>;
+    public current: Map<
+        Guild['id'],
+        {
+            title: string;
+            url: string;
+            duration: number;
+        }
+    >;
     constructor(...options: ConstructorParameters<typeof AkairoClient>) {
         super(
             options[0],
@@ -75,7 +83,14 @@ export class Client extends AkairoClient {
         this.nhentai = new NhentaiAPI();
         this.fakku = new FakkuAPI();
         this.images = new ImageAPI();
-        this.current = new Map<Guild['id'], { title: string; url: string; duration: number }>();
+        this.current = new Map<
+            Guild['id'],
+            {
+                title: string;
+                url: string;
+                duration: number;
+            }
+        >();
     }
 
     async start(): Promise<void> {
@@ -118,7 +133,7 @@ export class Client extends AkairoClient {
         });
         this.listenerHandler.loadAll();
         await this.db.init();
-        // await this.fakku.setup(); // Comment this line out if you don't want to scrape Fakku magazine page everytime the bot starts up
+        await this.fakku.setup(); // Comment this line out if you don't want to scrape Fakku magazine page everytime the bot starts up
         await super.login(DISCORD_TOKEN);
         const owner = (await super.fetchApplication()).owner!.id;
         this.ownerID = this.commandHandler.ignoreCooldown = owner;

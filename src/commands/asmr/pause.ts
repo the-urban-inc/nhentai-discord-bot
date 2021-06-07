@@ -5,6 +5,7 @@ export default class extends Command {
     constructor() {
         super('pause', {
             aliases: ['pause'],
+            cooldown: 30000,
             nsfw: true,
             description: {
                 content: 'Pause current session.',
