@@ -16,6 +16,7 @@ export type ErrorType =
     | 'Invalid Query'
     | 'Invalid Page Index'
     | 'Invalid Sort Method'
+    | 'In Use'
     | 'Unable To Join'
     | 'No Voice Channel'
     | 'No Result'

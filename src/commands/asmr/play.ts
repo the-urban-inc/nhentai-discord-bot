@@ -58,6 +58,10 @@ export default class extends Command {
                     message: 'Unable to join or speak in voice channel!',
                     example: 'Please make sure I have the correct permissions.',
                 },
+                'In Use': {
+                    message: 'I\'m currently in use!',
+                    example: 'Join other members or wait for them to finish.',
+                },
                 'No Result': {
                     message: 'No gallery found!',
                     example: 'Try again with a different tag.',
@@ -117,6 +121,14 @@ export default class extends Command {
                     this
                 );
             }
+            let connection = message.guild.voice?.connection;
+            if (connection && connection?.dispatcher) {
+                return this.client.commandHandler.emitError(
+                    new Error('In Use'),
+                    message,
+                    this
+                );
+            }
             const { title, url } = await this.client.jasmr.tag(tagID);
             if (!title || !url) {
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
@@ -125,7 +137,7 @@ export default class extends Command {
             if (!video) {
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
-            let connection = message.guild.voice?.connection;
+
             if (!connection || connection.channel !== voiceChannel) {
                 connection = await voiceChannel.join();
                 message.channel.send(
