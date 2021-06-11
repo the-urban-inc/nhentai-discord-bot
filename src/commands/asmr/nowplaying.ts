@@ -36,7 +36,7 @@ export default class extends Command {
                                 progress.slice(0, i) + now + progress.slice(i + 1)
                             }\u2000${this.client.util.formatMilliseconds(time)} / ${this.client.util.formatMilliseconds(duration)}`
                         )
-                        .setFooter('ASMR file from jasmr.net')
+                        .setFooter(`Broadcasting in ${connection.channel.name}\u2000•\u2000ASMR file from jasmr.net`)
                 );
             }
         } catch (err) {

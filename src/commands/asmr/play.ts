@@ -168,7 +168,7 @@ export default class extends Command {
                                     Math.floor(duration)
                                 )}`
                             )
-                            .setFooter('ASMR file from jasmr.net')
+                            .setFooter(`Broadcasting in ${connection.channel.name}\u2000•\u2000ASMR file from jasmr.net`)
                     );
                 } else {
                     await message.channel.send(
@@ -180,7 +180,7 @@ export default class extends Command {
                                     Math.floor(duration)
                                 )}`
                             )
-                            .setFooter('ASMR file from jasmr.net')
+                            .setFooter(`Broadcasting in ${connection.channel.name}\u2000•\u2000ASMR file from jasmr.net`)
                     );
                 }
                 dispatcher.on('finish', () => {
