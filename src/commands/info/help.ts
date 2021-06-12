@@ -110,7 +110,7 @@ export default class extends Command {
     async execCommandList(message: Message) {
         const prefix = this.client.config.settings.prefix.nsfw[0];
         const prefixList = this.client.commandHandler.splitPrefix.get(message.guild.id);
-        const display = this.client.embeds.richDisplay({ love: false }).addPage(
+        const display = this.client.embeds.richDisplay({ love: false }).setInfoPage(
             this.client.embeds
                 .default()
                 .setTitle('Command List')
@@ -121,9 +121,7 @@ export default class extends Command {
                             ', '
                         )}].\nCommands in the Images category that isn't NSFW can only be used SFW prefix(es) [${prefixList.sfw
                         .map(p => `\`${p}\``)
-                        .join(
-                            ', '
-                        )}].\nOther commands can be used with both types of prefix.\nTurn to next page for the actual command list.`
+                        .join(', ')}].\nOther commands can be used with both types of prefix.`
                 )
                 .addField('Command Guide', [
                     'While searching for command help, you might come across theses symbols `<>`, `[]` or `()` in the help message. They mean:',
@@ -134,17 +132,19 @@ export default class extends Command {
                 ])
                 .addField('Emote Guide', [
                     'Use these reactions to navigate between pages:',
-                    '• ⏪ ⏩ : Jumps to first/last page',
-                    '• ◀ ▶ : Jumps to previous/next page',
-                    '• ↗️ : Jumps to specified page',
-                    '• ℹ️ : Jumps to info page/Views info of a doujin in doujin list view/Searches for image source using SauceNAO',
-                    `• 🇦 ⏹ : Turns on/off auto browsing mode (automatically browse pages) (add --auto to use this feature in ${prefix}g and ${prefix}random command)`,
+                    '• ⏪ ⏩ : Jumps to first/last page⁽¹⁾',
+                    '• ◀ ▶ : Jumps to previous/next page⁽¹⁾',
+                    '• ↗️ : Jumps to specified page⁽¹⁾',
+                    '• ℹ️ : Jumps to info page/Views info of a doujin in doujin list view/Searches for image source using SauceNAO⁽¹⁾',
+                    `• 🇦 ⏹ : Turns on/off auto browsing mode (automatically browse pages) (add --auto to use this feature in ${prefix}g and ${prefix}random command)⁽¹⁾`,
                     '• ❤️ : Adds/Removes a doujin to/from favorites',
                     '• 🔖 : Follows/Unfollows a tag/artist/parody/etc.',
                     '• 🏴 : Blacklists a tag/artist/parody/etc.',
                     '• 📥 : Downloads current doujin',
-                    '• 🗑 : Deletes bot message',
+                    "• 🗑 : Deletes bot message (and sometimes the user's message)⁽¹⁾",
+                    '(1) **Only the person who used the command can use these emotes.**',
                 ])
+                .setFooter('Turn to next page for the actual command list.')
         );
         for (const [category, commands] of this.client.commandHandler.categories) {
             const title = TITLE_LIST[category as keyof typeof TITLE_LIST];
