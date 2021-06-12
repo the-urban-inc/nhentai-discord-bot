@@ -45,7 +45,7 @@ export default class extends Command {
                         '• Blog: `blog.nhentai.net`'
                 )
                 .addField('‎', 'Thanks for supporting the site!\n' + '❤️ Love,\n' + '–Team nhentai')
-                .setFooter(`For bot info, use ${this.client.config.settings.prefix[0]}about`)
+                .setFooter(`For bot info, use ${this.client.config.settings.prefix.nsfw[0]}about`)
         );
     }
 }
