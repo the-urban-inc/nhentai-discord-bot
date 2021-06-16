@@ -25,55 +25,13 @@ nhentai is an open source nhentai Discord bot powered by [TypeScript](https://ww
 - SFW and NSFW images from [nekobot](https://nekobot.xyz/), [nekos.life](https://nekos.life/) and multiple booru sites such as Danbooru, Gelbooru, and much more.
 - ASMR voice broadcast (experimental)
 
-# Requirements
+# Suggestions, Bugs, Feature Requests
 
-1. Discord Bot Token. You can learn how to get one **[here](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot)**.
-2. A MongoDB server. Read **[this](https://docs.mongodb.com/manual/)** for more info.
-3. Node.js v14.0.0 or newer
+If you find bugs or would like to suggest features, join my bot development/support server (link above).
 
-# Installation
+# Self-host
 
-```
-git clone https://github.com/the-urban-inc/nhentai-discord-bot.git
-cd nhentai-discord-bot
-npm install
-npm build
-```
-
-After installation finishes you can use `npm start` to start the bot.
-
-# Configuration
-
-Copy or Rename `.env.example` to `.env` and fill out the values:
-
-```
-DISCORD_TOKEN = 'Insert your bot's token here'
-MONGODB_URI = 'URL of MongoDB server'
-SAUCENAO_TOKEN = 'Insert your SauceNAO token here'
-```
-
-Edit the `config.json` file if you prefer different prefixes or inserting your own donate link
-```json
-{
-    "description": "",
-    "settings": {
-        "prefix": {
-            "sfw": ["s!"],
-            "nsfw": ["n!"]
-        },
-        "donateLink": ""
-    }
-}
-```
-
-# Contributing
-
-1. [Fork the repository](https://github.com/the-urban-inc/nhentai-discord-bot/fork)
-2. Clone your fork: `git clone https://github.com/your-username/nhentai-discord-bot.git`
-3. Create your feature branch: `git checkout -b my-new-feature`
-4. Commit your changes: `git commit -am 'Add some feature'`
-5. Push to the branch: `git push origin my-new-feature`
-6. Submit a pull request
+Self-hosting your own copy of this bot is not supported. The source code is provided here so users and other bot developers can see how the bot functions. No help will be provided for editing, or building any code in this repository.
 
 # License
 nhentai is licensed under the **[MIT License](https://github.com/the-urban-inc/nhentai-discord-bot/blob/master/LICENSE)**
