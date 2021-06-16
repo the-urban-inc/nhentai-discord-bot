@@ -7,21 +7,17 @@ export default class extends Command {
         super('invite', {
             aliases: ['invite', 'join'],
             description: {
-                content: 'Shows invite link and GitHub link.',
+                content: 'Shows invite link.',
                 examples: ['\nInvite me to your server!'],
             },
         });
     }
 
     async exec(message: Message) {
-        const [repo, owner] = process.env.npm_package_repository_url
-            .split('/')
-            .filter(a => a)
-            .reverse();
         const embed = this.client.embeds.default().setDescription(
             `[Here](${await this.client.generateInvite({
                 permissions: PERMISSIONS,
-            })}) is my invite link! You can also [self-host](https://github.com/${owner}/${repo}) me if you prefer.`
+            })}) is my invite link!`
         );
         return message.channel.send({ embed });
     }
