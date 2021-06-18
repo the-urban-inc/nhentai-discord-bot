@@ -5,7 +5,7 @@ import { Server } from '@models/server';
 export default class extends Command {
     constructor() {
         super('leaderboard', {
-            aliases: ['leaderboard', 'top'],
+            aliases: ['leaderboard', 'top', 'lb'],
             cooldown: 10000,
             description: {
                 content: "Shows server's leaderboard.",
@@ -46,16 +46,16 @@ export default class extends Command {
                     list: 10,
                 })
                 .useCustomFooters();
-            pervs.forEach(async perv => {
+            for (const perv of pervs) {
                 let level = `**Level** : ${perv.level}`,
-                    score = `**Total Score** : ${perv.points}`;
+                score = `**Total Score** : ${perv.points}`;
                 if (perv === pervs[pos]) (level = `__${level}__`), (score = `__${score}__`);
                 list.addChoice(
                     0,
                     `${(await this.client.users.fetch(perv.id)).tag}`,
                     `${level}\u2000•\u2000${score}`
                 );
-            });
+            }
             return list.run(
                 this.client,
                 message,
