@@ -50,6 +50,12 @@ export class Embeds {
             error = subAliases[id]?.error?.[err.message as ErrorType] ?? error;
         }
         if (!error) return;
+        if (
+            !['Invalid Sort Method', 'No Result'].includes(err.message) &&
+            (command.cooldown ?? 0) > 0
+        ) {
+            this.client.cooldown.set(`${message.author.id}:${command.id}`, true);
+        }
         const [example = '', description = ''] = error.example.replace('\n', '\x01').split('\x01');
         return new MessageEmbed()
             .setColor('#ff0000')

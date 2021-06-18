@@ -34,6 +34,14 @@ export class CommandHandler extends CH {
         super.deregister(command);
     }
 
+    runCooldowns(message: Message, command: Command) {
+        if (this.client.cooldown.has(`${message.author.id}:${command.id}`)) {
+            this.client.cooldown.delete(`${message.author.id}:${command.id}`);
+            return false;
+        }
+        return super.runCooldowns(message, command);
+    }
+
     async updatePrefix(message: Message) {
         if (!this.splitPrefix) this.splitPrefix = new Collection();
         let { nsfw, sfw } = this.client.config.settings.prefix;

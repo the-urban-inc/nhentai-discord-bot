@@ -21,5 +21,8 @@ export default class extends Listener {
                 command.id
             })`
         );
+        if (this.client.cooldown.has(`${message.author.id}:${command.id}`)) {
+            this.client.cooldown.delete(`${message.author.id}:${command.id}`);
+        }
     }
 }

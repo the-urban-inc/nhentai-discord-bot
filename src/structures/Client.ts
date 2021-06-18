@@ -1,5 +1,5 @@
 import { AkairoClient, ListenerHandler, InhibitorHandler } from 'discord-akairo';
-import { TextChannel, DMChannel, Guild } from 'discord.js';
+import { TextChannel, DMChannel, Guild, User } from 'discord.js';
 import { Command, CommandHandler, Embeds, Inhibitor, Listener, Logger, Util } from './index';
 import config from '@config';
 import { Client as JASMRAPI } from '@api/jasmr';
@@ -8,7 +8,6 @@ import { Client as FakkuAPI } from '@api/fakku';
 import { Client as ImageAPI } from '@api/images';
 import * as DB from '@database/index';
 import { fork, ChildProcess } from 'child_process';
-import { FfmpegCommand } from 'fluent-ffmpeg';
 const { DISCORD_TOKEN } = process.env;
 
 export class Client extends AkairoClient {
@@ -33,6 +32,7 @@ export class Client extends AkairoClient {
             duration: number;
         }
     >;
+    public cooldown: Map<string, boolean>;
     constructor(...options: ConstructorParameters<typeof AkairoClient>) {
         super(
             options[0],
@@ -91,6 +91,7 @@ export class Client extends AkairoClient {
                 duration: number;
             }
         >();
+        this.cooldown = new Map<string, boolean>();
     }
 
     async start(): Promise<void> {
