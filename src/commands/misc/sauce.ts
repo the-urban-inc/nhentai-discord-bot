@@ -16,7 +16,7 @@ export default class extends Command {
                     '\nYou can also attach image, or reply to a message that contains attachment(s). Note that it will only search for the first image attachment.',
                 ],
                 additionalInfo:
-                    "Recommend using a full picture for best result. Cropped search rarely gives you the correct link.",
+                    'Recommend using a full picture for best result. Cropped search rarely gives you the correct link.',
             },
             error: {
                 'No Result': {
@@ -74,18 +74,18 @@ export default class extends Command {
                     this
                 );
             }
-            const url =
+            const imageURL =
                 query ??
                 this.checkforImage(message)[0]?.url ??
                 this.checkforImage(referencedMessage)[0]?.url;
-            if (!this.client.util.isUrl(url)) {
+            if (!this.client.util.isUrl(imageURL)) {
                 return this.client.commandHandler.emitError(
                     new Error('Invalid Query'),
                     message,
                     this
                 );
             }
-            const results = await sauceNAO(url, { results: 8, db: 999 });
+            const results = await sauceNAO(imageURL, { results: 8, db: 999 });
             if (!results || !results.length) {
                 return this.client.commandHandler.emitError(new Error('No Result'), message, this);
             }
@@ -179,6 +179,17 @@ export default class extends Command {
                 }
                 if ((data as any).est_time && (data as any).est_time.length) {
                     info.addField('Est Time', (data as any).est_time ?? 'Unknown');
+                }
+                if (similarity <= 60) {
+                    const googleURL = `https://www.google.com/searchbyimage?image_url=${imageURL}&safe=off`,
+                        iqdbURL = `https://iqdb.org/?url=${imageURL}`,
+                        tineyeURL = `https://tineye.com/search/?url=${imageURL}`,
+                        ascii2dURL = `https://ascii2d.net/search/url/${imageURL}`,
+                        yandexURL = `https://yandex.com/images/search?url=${imageURL}&rpt=imageview`;
+                    info.addField(
+                        "This isn't what you were looking for?",
+                        `Check out other sources: [Google Image](${googleURL}), [IQDB](${iqdbURL}), [TinEye](${tineyeURL}), [ascii2D](${ascii2dURL}), [Yandex](${yandexURL})`
+                    );
                 }
                 display.addPage(info);
             }
