@@ -120,7 +120,7 @@ export default class extends Command {
                 return false;
             }
 
-            if (pageNum === 1) {
+            if (pageNum === 1 && !this.internalCall && !this.currentHandler) {
                 const popularNow = data.popular_now;
                 const { displayList: displayPopular, rip } = this.client.embeds.displayGalleryList(
                     popularNow,
