@@ -18,7 +18,7 @@ export class Database {
         this.xp = new XP();
     }
     async init() {
-        mongoose.connect(process.env.MONGODB_URI, {
+        await mongoose.connect(process.env.MONGODB_URI, {
             useNewUrlParser: true,
             autoIndex: true,
             useUnifiedTopology: true,
@@ -26,7 +26,10 @@ export class Database {
             serverSelectionTimeoutMS: 5000
         });
         mongoose.connection
-            .on('connected', () => log.info(`[DATABASE] Connected to MongoDB successfully!`))
+            .on('connected', async () => {
+                log.info(`[DATABASE] Connected to MongoDB successfully!`);
+                if (!this.client.notifier.current) await this.client.notifier.start();
+            })
             .on('disconnected', () => log.warn(`[DATABASE] Disconnected.`))
             .on('err', e => log.error(`[DATABASE] Connection error : ${e}`));
     }

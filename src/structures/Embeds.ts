@@ -58,7 +58,12 @@ export class Embeds {
         });
     }
 
-    displayGalleryInfo(gallery: Gallery, danger = false, blacklists: Blacklist[] = []) {
+    displayGalleryInfo(
+        gallery: Gallery,
+        danger = false,
+        blacklists: Blacklist[] = [],
+        follows: number[] = []
+    ) {
         const { tags, num_pages, upload_date } = gallery;
         const id = gallery.id.toString(),
             title = decode(gallery.title.english);
@@ -82,6 +87,7 @@ export class Embeds {
             })\``;
             // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
             if (blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
+            if (follows.some(fl => fl === id)) s = `__${s}__`;
             a.push(s);
             t.set(type, a);
         });

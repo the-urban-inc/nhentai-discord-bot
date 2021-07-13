@@ -15,6 +15,15 @@ client.once('ready', async () => {
     await client.commandHandler.loadCommands();
 });
 
+client.on('guildCreate', async guild => {
+    client.logger.discord = true;
+    client.logger.info(
+        `Joined guild "${guild.name}" (ID: ${guild.id}) (Total: ${client.guilds.cache.size} guilds)`
+    );
+    client.logger.discord = false;
+});
+
 client.on('error', err => client.logger.error(err));
+client.on('disconnect', () => client.logger.warn('[EVENT] Disconnecting...'));
 process.on('uncaughtException', err => client.logger.stackTrace(err));
 process.on('unhandledRejection', err => client.logger.stackTrace(err));

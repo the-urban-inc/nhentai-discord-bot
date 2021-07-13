@@ -1,7 +1,7 @@
 import { Client } from './Client';
 import { Command } from './Command';
 import { UserError } from './Error';
-import { ApplicationCommandManager, Collection, CommandInteraction, TextChannel } from 'discord.js';
+import { ApplicationCommandManager, Collection, CommandInteraction, DMChannel, TextChannel } from 'discord.js';
 import { URL } from 'url';
 import { Server } from '@database/models';
 import { readdirSync } from 'fs';
@@ -48,6 +48,7 @@ export class CommandHandler extends ApplicationCommandManager {
     constructor(client: Client) {
         super(client);
         this.client.on('messageCreate', async message => {
+            if (message.channel instanceof DMChannel) return;
             try {
                 let server = await Server.findOne({ serverID: message.guild.id }).exec();
                 if (!server) {

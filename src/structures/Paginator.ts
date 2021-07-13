@@ -613,16 +613,28 @@ export class Paginator {
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
                 try {
-                    /* const info = this.display.info;
-                        if (!info) return Promise.resolve(false);
-                        const { id, type, name } = info;
-                        this.client.notifier.send({
-                            tag: +id,
-                            type,
-                            name,
-                            channel: this.message.channel.id,
-                            user: user.id,
-                        }); */
+                    const info = { ...this.info, type: this.interaction.commandName };
+                    if (!info) return Promise.resolve(false);
+                    const { id, type, name } = info;
+                    const adding = await this.client.db.user.follow(interaction.user.id, type, +id, name);
+                    (this.methodMap.get(Interactions.Follow) as MessageButton)
+                        .setLabel(
+                            adding
+                                ? `Started following ${type} ${name}`
+                                : `Stopped following ${type} ${name}`
+                        )
+                        .setEmoji('')
+                        .setStyle(adding ? 'SUCCESS' : 'DANGER')
+                        .setDisabled(true);
+                    await this.update(interaction);
+                    setTimeout(async () => {
+                        (this.methodMap.get(Interactions.Follow) as MessageButton)
+                            .setLabel('Follow')
+                            .setEmoji('🔖')
+                            .setStyle('SECONDARY')
+                            .setDisabled(false);
+                        await this.update(interaction);
+                    }, 3000);
                     return Promise.resolve(false);
                 } catch (err) {
                     this.client.logger.error(err);
@@ -648,8 +660,8 @@ export class Paginator {
                     (this.methodMap.get(Interactions.Blacklist) as MessageButton)
                         .setLabel(
                             adding
-                                ? `Added ${type} \`${name}\` to blacklist`
-                                : `Removed ${type} \`${name}\` from blacklist`
+                                ? `Added ${type} ${name} to blacklist`
+                                : `Removed ${type} ${name} from blacklist`
                         )
                         .setEmoji('')
                         .setStyle(adding ? 'SUCCESS' : 'DANGER')

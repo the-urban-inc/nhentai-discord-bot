@@ -1,5 +1,5 @@
-import { Command, CommandHandler, Embeds, MusicSubscription, Util, Logger } from './index';
-import { Client as C, ClientOptions, Collection, Guild, Snowflake, User } from 'discord.js';
+import { Command, CommandHandler, Embeds, Notifier, MusicSubscription, Util, Logger } from './index';
+import { Client as C, ClientOptions, Collection, Snowflake, User } from 'discord.js';
 import { Database } from '@database/index';
 import { Client as JASMRAPI } from '@api/jasmr';
 import { Client as NhentaiAPI } from '@api/nhentai';
@@ -18,6 +18,7 @@ export class Client extends C {
     fakku: FakkuAPI;
     images: ImageAPI;
     embeds: Embeds;
+    notifier: Notifier;
     util: Util;
     logger: Logger;
     subscriptions: Collection<Snowflake, MusicSubscription>;
@@ -37,6 +38,7 @@ export class Client extends C {
         this.commandHandler = new CommandHandler(this);
         this.db = new Database(this);
         this.embeds = new Embeds(this);
+        this.notifier = new Notifier(this);
         this.util = new Util(this);
         this.logger = new Logger(this);
         this.jasmr = new JASMRAPI();
