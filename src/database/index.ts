@@ -1,20 +1,33 @@
+
 import mongoose from 'mongoose';
-import { Logger } from '@structures';
+import { Server } from './settings/server';
+import { User } from './settings/user';
+import { XP } from './settings/xp';
+import { Client, Logger } from '@structures';
+const log = new Logger();
 
-export async function init() {
-    const log = new Logger();
-    mongoose.connect(process.env.MONGODB_URI, {
-        useNewUrlParser: true,
-        autoIndex: true,
-        useUnifiedTopology: true,
-        useFindAndModify: false,
-    });
-    mongoose.connection
-        .on('connected', () => log.info(`[DATABASE] Connected to MongoDB successfully!`))
-        .on('disconnected', () => log.warn(`[DATABASE] Disconnected.`))
-        .on('err', e => log.error(`[DATABASE] Connection error : ${e}`));
+export class Database {
+    client: Client;
+    server: Server;
+    user: User;
+    xp: XP;
+    constructor(client: Client) {
+        this.client = client;
+        this.server = new Server();
+        this.user = new User();
+        this.xp = new XP();
+    }
+    async init() {
+        mongoose.connect(process.env.MONGODB_URI, {
+            useNewUrlParser: true,
+            autoIndex: true,
+            useUnifiedTopology: true,
+            useFindAndModify: false,
+            serverSelectionTimeoutMS: 5000
+        });
+        mongoose.connection
+            .on('connected', () => log.info(`[DATABASE] Connected to MongoDB successfully!`))
+            .on('disconnected', () => log.warn(`[DATABASE] Disconnected.`))
+            .on('err', e => log.error(`[DATABASE] Connection error : ${e}`));
+    }
 }
-
-export * as Server from './settings/server';
-export * as User from './settings/user';
-export * as XP from './xp/xp';

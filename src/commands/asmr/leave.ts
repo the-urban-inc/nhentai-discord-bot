@@ -4,8 +4,8 @@ import { CommandInteraction } from 'discord.js';
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
-            name: 'resume',
-            description: 'Resumes playback of the current ASMR file',
+            name: 'leave',
+            description: 'Leaves the voice channel',
             cooldown: 10000,
         });
     }
@@ -13,8 +13,9 @@ export default class extends Command {
     async exec(interaction: CommandInteraction) {
         const subscription = this.client.subscriptions.get(interaction.guildId);
         if (subscription) {
-            subscription.audioPlayer.unpause();
-            return interaction.editReply('▶️\u2000Resumed!');
+            subscription.voiceConnection.destroy();
+            this.client.subscriptions.delete(interaction.guildId);
+            return interaction.editReply(`📭\u2000Disconnected from voice channel`);
         }
         return interaction.editReply("❌\u2000Nothing's playing in this server!");
     }

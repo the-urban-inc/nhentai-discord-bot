@@ -1,113 +1,136 @@
-import { Command } from '@structures';
-import { Message } from 'discord.js';
+import { Client, Command, Paginator, UserError } from '@structures';
+import { CommandInteraction, MessageEmbed } from 'discord.js';
+import { Server } from '@database/models';
+import { BANNED_TAGS_TEXT } from '@constants';
 
 const ICON = 'https://awa-con.com/wp-content/uploads/2019/10/FAKKU.png';
 
 export default class extends Command {
-    constructor() {
-        super('magazine', {
-            aliases: ['magazine'],
+    constructor(client: Client) {
+        super(client, {
+            name: 'magazine',
+            description: 'Searches for magazine on Fakku',
+            cooldown: 10000,
             nsfw: true,
-            cooldown: 30000,
-            description: {
-                content: 'Searches for magazines on Fakku.',
-                examples: [
-                    ' Comic Kairakuten\nSearches for releases of Comic Kairakuten on [Fakku](https://fakku.net).',
-                ],
-                additionalInfo:
-                    "Creator's Note: This is an experimental command. Thus, anything can change, including the deletion of this command.",
-            },
-            error: {
-                'No Result': {
-                    message: 'No result found!',
-                    example: 'Try again with a different query.',
-                },
-                'Invalid Query': {
-                    message: 'Please provide a magazine name!',
-                    example: ' Comic Kairakuten\nto search for Comic Kairakuten releases.',
-                },
-            },
-            args: [
+            options: [
                 {
-                    id: 'query',
-                    type: 'string',
-                    match: 'content',
+                    name: 'query',
+                    type: 'STRING',
+                    description: 'The query to search for',
+                    required: true,
                 },
             ],
         });
     }
 
-    async exec(message: Message, { query }: { query: string }) {
+    danger = false;
+    warning = false;
+
+    async before(interaction: CommandInteraction) {
         try {
-            if (!query) {
-                return this.client.commandHandler.emitError(
-                    new Error('Invalid Query'),
-                    message,
-                    this
+            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
+            if (!server) {
+                server = await new Server({
+                    settings: { danger: false },
+                }).save();
+            }
+            this.danger = server.settings.danger;
+            this.warning = false;
+        } catch (err) {
+            this.client.logger.error(err);
+            throw new Error(`Database error: ${err.message}`);
+        }
+    }
+
+    paginate(display: Paginator, mags: string[], embed: MessageEmbed) {
+        const page = display.pages.info.length,
+            l = 10;
+        let description = '';
+        for (
+            let i = 0, mag = mags[i + page * l];
+            i + page * l < mags.length && i < l;
+            i++, mag = mags[i + page * l]
+        ) {
+            description += mag;
+        }
+        display.addPage('info', { embed: embed.setDescription(description) });
+        if (mags.length > (page + 1) * l) return this.paginate(display, mags, embed);
+        return display;
+    }
+
+    async exec(interaction: CommandInteraction) {
+        await this.before(interaction);
+        const query = interaction.options.get('query').value as string;
+        const magazines = this.client.fakku.findMagazine(query);
+        if (!magazines || !magazines.length) {
+            throw new UserError('NO_RESULT', query);
+        }
+        if (magazines[0].score < 0.000001) {
+            const { title, url, image } = magazines[0].item;
+            const magazine = await this.client.fakku.fetchSingleMagazine(url);
+            const { publisher, coverIllust, artists, doujins } = magazine;
+            const info = this.client.embeds
+                .default()
+                .setTitle(title)
+                .setURL(`https://fakku.net${url}`)
+                .setTimestamp();
+            if (publisher.length) {
+                info.setDescription(
+                    `${publisher}\n\n**Cover Illustration**: ${coverIllust}\n\n**Artists**: ${artists}`
                 );
             }
-            const magazines = this.client.fakku.findMagazine(query);
-            if (!magazines || !magazines.length) {
-                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
-            }
-            if (magazines[0].score < 0.1) {
-                const { title, url, image } = magazines[0].item;
-                const magazine = await this.client.fakku.fetchSingleMagazine(url);
-                const { publisher, coverIllust, artists, doujins } = magazine;
-                const info = this.client.embeds
-                    .default()
-                    .setTitle(title)
-                    .setURL(`https://fakku.net${url}`)
-                    .setThumbnail(image)
-                    .setTimestamp();
-                if (publisher.length) {
-                    info.setDescription(
-                        `${publisher}\n\n**Cover Illustration**: ${coverIllust}\n\n**Artists**: ${artists}`
+            if (!doujins || !doujins.length)
+                return interaction.editReply({ embeds: [info.setThumbnail(image)] });
+            const display = this.client.embeds.paginator(this.client, {
+                collectorTimeout: 300000,
+            });
+            const results = doujins.map(
+                ({ title, artist, thumbnail, description, price, tags }) => {
+                    const prip = this.client.util.hasCommon(
+                        tags.map(t => t.name),
+                        BANNED_TAGS_TEXT
                     );
-                }
-                const display = this.client.embeds.richDisplay({ love: false }).setInfoPage(info);
-                if (!doujins || !doujins.length) return message.channel.send(info);
-                for (const { title, artist, thumbnail, description, price, tags } of doujins) {
-                    const info = this.client.embeds
+                    if (prip) this.warning = true;
+                    const embed = this.client.embeds
                         .default()
                         .setAuthor(artist.name, ICON, `https://fakku.net${artist.href}`)
                         .setTitle(title.name)
                         .setURL(`https://fakku.net${title.href}`)
-                        .setThumbnail('https:' + thumbnail)
                         .setDescription(this.client.util.shorten(description, '\n', 2000));
-                    if (price.length) info.addField('Price', price);
-                    info.addField(
-                        'Tags',
-                        this.client.util.gshorten(
-                            tags.map((d: { name: string; href: string }) => `\`${d.name}\``)
+                    if (this.danger || !prip)
+                        embed.setThumbnail(
+                            thumbnail.startsWith('https') ? thumbnail : 'https:' + thumbnail
+                        );
+                    if (price.length) embed.addField('Price', price);
+                    embed
+                        .addField(
+                            'Tags',
+                            this.client.util.gshorten(
+                                tags.map((d: { name: string; href: string }) => `\`${d.name}\``)
+                            )
                         )
-                    ).setTimestamp();
-                    display.addPage(info);
+                        .setTimestamp();
+                    return { embed };
                 }
-                return await display.run(
-                    this.client,
-                    message,
-                    message,
-                    `> **Fakku Search Result • [** ${message.author.tag} **]**`,
-                    {
-                        collectorTimeout: 300000,
-                    }
-                );
+            );
+            if (!this.warning) info.setThumbnail(image);
+            await display
+                .addPage('info', { embed: info })
+                .addPage('info', results)
+                .run(interaction, `> **Searching Fakku Magazines for** **\`${query}\`**`);
+            if (!this.danger && this.warning) {
+                await interaction.followUp(this.client.util.communityGuidelines());
             }
-            let desc = magazines
-                .slice(0, 10)
-                .map(({ item: { title, url } }) => `• [${title}](https://fakku.net${url})`)
-                .join('\n');
-            if (magazines.length > 10) desc += `\n... and ${magazines.length - 10} more result(s)`;
-            message.channel.send(`> **Fakku Search Result • [** ${message.author.tag} **]**`, {
-                embed: this.client.embeds
-                    .default()
-                    .setTitle('Magazines List')
-                    .setDescription(desc)
-                    .setTimestamp(),
-            });
-        } catch (err) {
-            this.client.logger.error(err);
+            return;
         }
+        const display = this.client.embeds.paginator(this.client, {
+            collectorTimeout: 180000,
+        });
+        const embed = this.client.embeds.default().setTitle('Magazines List');
+        return this.paginate(
+            display,
+            magazines.map(({ item: { title, url } }) => `• [${title}](https://fakku.net${url})\n`),
+            embed
+        ).run(interaction, `> **Searching Fakku Magazines for** **\`${query}\`**`);
     }
 }

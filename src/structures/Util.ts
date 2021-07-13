@@ -1,12 +1,15 @@
-import { AkairoClient, ClientUtil } from 'discord-akairo';
+import { Client } from './Client';
+import { MessageActionRow, MessageButton } from 'discord.js';
+import { BLOCKED_MESSAGE } from '@constants';
 
 const PROTOCOL_AND_DOMAIN_RE = /^(?:\w+:)?\/\/(\S+)$/;
 const LOCALHOST_DOMAIN_RE = /^localhost[\:?\d]*(?:[^\:?\d]\S*)?$/;
 const NON_LOCALHOST_DOMAIN_RE = /^[^\s\.]+\.\S{2,}$/;
 
-export class Util extends ClientUtil {
-    constructor(client: AkairoClient) {
-        super(client);
+export class Util {
+    client: Client;
+    constructor(client: Client) {
+        this.client = client;
     }
 
     base64(text: string, mode = 'encode') {
@@ -103,6 +106,39 @@ export class Util extends ClientUtil {
         });
     }
 
+    communityGuidelines() {
+        return {
+            content: BLOCKED_MESSAGE,
+            components: [
+                new MessageActionRow().addComponents(
+                    new MessageButton()
+                        .setLabel('Discord Community Guidelines')
+                        .setURL('https://discord.com/guidelines')
+                        .setStyle('LINK')
+                ),
+            ],
+            ephemeral: true,
+        };
+    }
+
+    compareObject(object1: Object, object2: Object, first = true) {
+        const keys1 = Object.keys(object1);
+        const keys2 = Object.keys(object2);
+        const keys = first ? keys1.filter(key => keys2.includes(key)) : keys1;
+        for (const key of keys) {
+            const val1 = object1[key];
+            const val2 = object2[key];
+            const areObjects = this.isObject(val1) && this.isObject(val2);
+            if (
+                (areObjects && !this.compareObject(val1, val2, false)) ||
+                (!areObjects && val1 !== val2)
+            ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     escapeMarkdown(text: string) {
         let unescaped = text.replace(/\\(\*|_|`|~|\\)/g, '$1');
         let escaped = unescaped.replace(/(\*|_|`|~|\\)/g, '\\$1');
@@ -127,6 +163,10 @@ export class Util extends ClientUtil {
 
     hasCommon<T>(texts: T[], keywords: T[]) {
         return [...new Set(texts)].some(x => new Set(keywords).has(x));
+    }
+
+    isObject(object: any) {
+        return object != null && typeof object === 'object';
     }
 
     isUrl(s: string) {
@@ -164,9 +204,9 @@ export class Util extends ClientUtil {
             [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
-    }    
+    }
 
-    toTitleCase(text: string) {
+    resolvePerm(text: string) {
         return text
             .toLowerCase()
             .replace(/guild/g, 'Server')

@@ -1,12 +1,11 @@
-import { Message, MessageEmbed } from 'discord.js';
-import { RichDisplay, RichDisplayOptions, RichMenu } from '@utils/pagination';
+import { MessageEmbed } from 'discord.js';
 import type { Client } from './Client';
-import type { Command, ErrorType } from './Command';
-import he from 'he';
+import { Paginator, PaginatorOptions } from './Paginator';
+import { decode } from 'he';
 import moment from 'moment';
 import { Gallery, Comment, Language } from '@api/nhentai';
-import { ICON, BANNED_TAGS, FLAG_EMOJIS } from '@utils/constants';
-import { Blacklist } from '@models/tag';
+import { ICON, BANNED_TAGS, FLAG_EMOJIS } from '@constants';
+import { Blacklist } from '@database/models';
 
 export class Embeds {
     public client: Client;
@@ -18,54 +17,12 @@ export class Embeds {
         return new MessageEmbed().setColor('#000000');
     }
 
-    richDisplay(options?: RichDisplayOptions) {
-        return new RichDisplay(options);
-    }
-
-    richMenu(options?: RichDisplayOptions) {
-        return new RichMenu(options);
-    }
-
     success() {
         return new MessageEmbed().setColor('#008000');
     }
 
     info(text: string) {
         return new MessageEmbed().setColor('#f0f0f0').setDescription(text);
-    }
-
-    commandError(err: Error, message: Message, command: Command) {
-        let { id, areMultipleCommands, nsfw, subAliases, error: e } = command;
-        let alias = message.util?.parsed?.alias;
-        if (alias.startsWith('nsfw_')) alias = alias.slice(5);
-        const prefix =
-            nsfw || !('nsfw' in command)
-                ? this.client.config.settings.prefix.nsfw[0]
-                : this.client.config.settings.prefix.sfw[0];
-        let error = e[err.message as ErrorType];
-        if (areMultipleCommands) {
-            id = Object.keys(subAliases).find(
-                key => key === alias || subAliases[key].aliases?.includes(alias)
-            );
-            error = subAliases[id]?.error?.[err.message as ErrorType] ?? error;
-        }
-        if (!error) return;
-        if (
-            !['Invalid Sort Method', 'No Result'].includes(err.message) &&
-            (command.cooldown ?? 0) > 0
-        ) {
-            this.client.cooldown.set(`${message.author.id}:${command.id}`, true);
-        }
-        const [example = '', description = ''] = error.example.replace('\n', '\x01').split('\x01');
-        return new MessageEmbed()
-            .setColor('#ff0000')
-            .setTitle(`\`❌\`\u2009\u2009${error.message}`)
-            .setDescription(
-                ['No Voice Channel', 'No Result', 'Parsing Failed'].includes(err.message)
-                    ? example
-                    : `Example: \`${prefix}${id}${example}\` ${description}\nType \`${prefix}help ${id}\` for more info.`
-            )
-            .setFooter(message.author.tag, message.author.displayAvatarURL());
     }
 
     clientError(text: string) {
@@ -82,12 +39,32 @@ export class Embeds {
             );
     }
 
+    paginator(client: Client, options: PaginatorOptions) {
+        return new Paginator(client, options);
+    }
+
+    private getPages(gallery: Gallery) {
+        return this.client.nhentai.getPages(gallery).map(page => {
+            const { id, title, upload_date } = gallery;
+            return {
+                galleryID: String(id),
+                embed: this.default()
+                    .setTitle(`${decode(title.english)}`)
+                    .setURL(`https://nhentai.net/g/${id}`)
+                    .setImage(page)
+                    .setFooter(`ID : ${id}`)
+                    .setTimestamp(upload_date * 1000),
+            };
+        });
+    }
+
     displayGalleryInfo(gallery: Gallery, danger = false, blacklists: Blacklist[] = []) {
         const { tags, num_pages, upload_date } = gallery;
         const id = gallery.id.toString(),
-            title = he.decode(gallery.title.english);
+            title = decode(gallery.title.english);
         const info = this.default()
-            .setAuthor(title, ICON, `https://nhentai.net/g/${id}`)
+            .setTitle(title)
+            .setURL(`https://nhentai.net/g/${id}`)
             .setFooter(`ID : ${id}`)
             .setTimestamp(upload_date * 1000);
         const rip = this.client.util.hasCommon(
@@ -132,45 +109,28 @@ export class Embeds {
 
     displayFullGallery(
         gallery: Gallery,
+        page: number,
         danger = false,
-        auto = false,
-        blacklists: Blacklist[] = [],
-        caller?: string
+        blacklists: Blacklist[] = []
     ) {
         const rip = this.client.util.hasCommon(
             gallery.tags.map(x => x.id.toString()),
             BANNED_TAGS
         );
+        const id = gallery.id.toString(),
+            title = decode(gallery.title.english);
+        const displayGallery = this.paginator(this.client, {
+            startPage: page,
+            info: { id, name: title },
+            collectorTimeout: 300000,
+        }).addPage('info', {
+            galleryID: id,
+            embed: this.displayGalleryInfo(gallery, danger, blacklists).info,
+        });
         if (danger || !rip) {
-            const id = gallery.id.toString(),
-                title = he.decode(gallery.title.english);
-            const displayGallery = this.richDisplay({ auto, download: true })
-                .setInfo({ id, type: 'g', name: title })
-                .setInfoPage(
-                    this.displayGalleryInfo(gallery, danger, blacklists).info.setFooter(
-                        `ID : ${id}${
-                            auto ? '\u2000•\u2000React with 🇦 to start an auto session' : ''
-                        }`
-                    )
-                );
-            if (caller) displayGallery.setCaller(caller);
-            this.client.nhentai.getPages(gallery).forEach((page, i) =>
-                displayGallery.addPage(
-                    this.default()
-                        .setImage(page)
-                        .setFooter(`ID : ${id}\u2000•\u2000Page ${i + 1} of ${gallery.num_pages}`)
-                        .setTimestamp()
-                )
-            );
-            return { displayGallery, rip };
-        } else {
-            return {
-                displayGallery: this.richDisplay({ removeOnly: true })
-                    .addPage(this.displayGalleryInfo(gallery, danger, blacklists).info)
-                    .useCustomFooters(),
-                rip,
-            };
+            displayGallery.addPage('thumbnail', this.getPages(gallery));
         }
+        return { displayGallery, rip };
     }
 
     displayGalleryList(
@@ -181,33 +141,24 @@ export class Embeds {
             page?: number;
             num_pages?: number;
             num_results?: number;
-            caller?: string;
-            additional_options?: RichDisplayOptions;
+            additional_options?: PaginatorOptions;
         }
     ) {
         let rip = false;
-        const {
-            page = 0,
-            num_pages = 0,
-            num_results = 0,
-            caller = '',
-            additional_options = {},
-        } = options || {};
-        const displayList = this.richDisplay({
-            info: true,
-            download: true,
-            removeRequest: false,
+        const { page = 0, num_pages = 0, num_results = 0, additional_options = {} } = options || {};
+        const displayList = this.paginator(this.client, {
+            startView: 'thumbnail',
+            collectorTimeout: 300000,
             ...additional_options,
-        }).useCustomFooters();
-        if (caller.length) displayList.setCaller(caller);
-        for (const [idx, gallery] of galleries.entries()) {
+        });
+        for (const gallery of galleries) {
             const { id, title, tags, upload_date } = gallery;
             let language: Language = null;
             if (tags.some(tag => tag.id === 6346)) language = Language.Japanese;
             else if (tags.some(tag => tag.id === 12227)) language = Language.English;
             else if (tags.some(tag => tag.id === 29963)) language = Language.Chinese;
             const thumb = this.default()
-                .setTitle(`${he.decode(title.english)}`)
+                .setTitle(`${decode(title.english)}`)
                 .setURL(`https://nhentai.net/g/${id}`)
                 .setDescription(
                     `**ID** : ${id}` +
@@ -215,71 +166,57 @@ export class Embeds {
                             ? `\u2000•\u2000**Language** : ${FLAG_EMOJIS[language]}`
                             : '')
                 )
-                .setFooter(
-                    `Gallery ${idx + 1} of ${galleries.length}` +
-                        (page ? `\u2000•\u2000Page ${page} of ${num_pages || 1}` : '') +
-                        (num_results ? `\u2000•\u2000${num_results} galleries` : '')
-                )
                 .setTimestamp(upload_date * 1000);
-            const bTags = blacklists.filter(b => tags.some(tag => tag.id.toString() === b.id)),
-                len = bTags.length;
-            if (len) {
-                thumb.description +=
-                    '\n\nThis gallery contains ' +
-                    (len === 1 ? 'a blacklisted tag' : 'several blacklisted tags') +
-                    '. Therefore, thumbnail image will be hidden.';
-                let t = new Map<string, string[]>();
-                bTags.forEach(tag => {
-                    const { type, name } = tag;
-                    let a = t.get(type) || [];
-                    a.push(`\`${name}\``);
-                    t.set(type, a);
-                });
-                let s = '';
-                [
-                    ['parody', 'Parodies'],
-                    ['character', 'Characters'],
-                    ['tag', 'Tags'],
-                    ['artist', 'Artists'],
-                    ['group', 'Groups'],
-                    ['language', 'Languages'],
-                    ['category', 'Categories'],
-                ].forEach(([key, fieldName]) => {
-                    if (t.has(key)) s += `• **${fieldName}** : ${t.get(key).join(', ')}\n`;
-                });
-                thumb.addField('Blacklist', this.client.util.shorten(s, '\n', 1024));
-            }
+            const footer =
+                (page ? `Page ${page} of ${num_pages || 1}` : '') +
+                (num_results ? `${page ? '\u2000•\u2000' : ''}${num_results} galleries` : '');
+            if (footer.length) thumb.setFooter(footer);
             const prip = this.client.util.hasCommon(
                 tags.map(tag => tag.id.toString()),
                 BANNED_TAGS
             );
             if (prip) rip = true;
-            if ((danger || !prip) && !len)
+            if (
+                (danger || !prip) &&
+                !blacklists.filter(b => tags.some(tag => tag.id.toString() === b.id)).length
+            ) {
                 thumb.setImage(this.client.nhentai.getCoverThumbnail(gallery));
-            displayList.addPage(thumb, gallery);
+            }
+            const info = {
+                galleryID: String(id),
+                embed: this.displayGalleryInfo(gallery, danger, blacklists).info,
+            };
+            displayList.addPage(
+                'info',
+                danger || !prip ? { pages: this.getPages(gallery), ...info } : info
+            );
+            const thumbnail = {
+                galleryID: String(id),
+                embed: thumb,
+            };
+            displayList.addPage(
+                'thumbnail',
+                danger || !prip ? { pages: this.getPages(gallery), ...thumbnail } : thumbnail
+            );
         }
         return { displayList, rip };
     }
 
     displayCommentList(comments: Comment[]) {
-        const displayComments = this.richDisplay({
-            love: false,
-            removeRequest: false,
-        }).useCustomFooters();
-        for (const [
-            idx,
-            {
-                id,
-                gallery_id,
-                poster: { id: uid, username, avatar_url },
-                body,
-                post_date,
-            },
-        ] of comments.entries()) {
-            displayComments.addPage(
-                this.default()
+        const displayComments = this.paginator(this.client, {
+            collectorTimeout: 180000,
+        });
+        for (const {
+            id,
+            gallery_id,
+            poster: { id: uid, username, avatar_url },
+            body,
+            post_date,
+        } of comments) {
+            displayComments.addPage('thumbnail', {
+                embed: this.default()
                     .setAuthor(
-                        `${he.decode(username)}`,
+                        `${decode(username)}`,
                         `https://i5.nhentai.net/${avatar_url}`,
                         `https://nhentai.net/users/${uid}/${username}`
                     )
@@ -288,12 +225,8 @@ export class Embeds {
                             body
                         )}](http://nhentai.net/g/${gallery_id}/#comment-${id})`
                     )
-                    .setFooter(
-                        `Comment ${idx + 1} of ${comments.length}\u2000•\u2000Posted ${moment(
-                            post_date * 1000
-                        ).fromNow()}`
-                    )
-            );
+                    .setTimestamp(post_date * 1000),
+            });
         }
         return displayComments;
     }

@@ -4,10 +4,10 @@
  */
 
 import chalk from 'chalk';
-import type { Client } from 'discord.js';
-import { MessageEmbed, TextChannel } from 'discord.js';
 import moment from 'moment';
 import util from 'util';
+import type { Client, ColorResolvable, Snowflake } from 'discord.js';
+import { MessageEmbed, TextChannel } from 'discord.js';
 
 enum Color {
     RED = 'red',
@@ -89,15 +89,17 @@ export class Logger {
 
         if (this.discord)
             for (let channel_id of this.channels) {
-                let channel = this?.client.channels.cache.get(channel_id);
+                let channel = this?.client.channels.fetch(channel_id as Snowflake);
                 if (channel instanceof TextChannel)
-                    channel.send(
-                        new MessageEmbed()
-                            .setDescription('```\n' + content + '\n```')
-                            .setColor(color)
-                            .setFooter(tag)
-                            .setTimestamp()
-                    );
+                    channel.send({
+                        embeds: [
+                            new MessageEmbed()
+                                .setDescription('```\n' + content + '\n```')
+                                .setColor(color.toUpperCase() as ColorResolvable)
+                                .setFooter(tag)
+                                .setTimestamp(),
+                        ],
+                    });
             }
     }
 

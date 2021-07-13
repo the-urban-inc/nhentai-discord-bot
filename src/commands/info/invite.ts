@@ -1,24 +1,31 @@
-import { Command } from '@structures';
-import { Message } from 'discord.js';
-import { PERMISSIONS } from '@utils/constants';
+import { Client, Command } from '@structures';
+import { CommandInteraction, MessageActionRow, MessageButton } from 'discord.js';
+import { PERMISSIONS } from '@constants';
 
 export default class extends Command {
-    constructor() {
-        super('invite', {
-            aliases: ['invite', 'join'],
-            description: {
-                content: 'Shows invite link.',
-                examples: ['\nInvite me to your server!'],
-            },
+    constructor(client: Client) {
+        super(client, {
+            name: 'invite',
+            description: 'Invite me to your server',
         });
     }
 
-    async exec(message: Message) {
-        const embed = this.client.embeds.default().setDescription(
-            `[Here](${await this.client.generateInvite({
-                permissions: PERMISSIONS,
-            })}) is my invite link!`
-        );
-        return message.channel.send({ embed });
+    exec(interaction: CommandInteraction) {
+        return interaction.editReply({
+            content: 'Click the button below to invite me to your server',
+            components: [
+                new MessageActionRow().addComponents(
+                    new MessageButton()
+                        .setLabel('Invite')
+                        .setURL(
+                            this.client.generateInvite({
+                                scopes: ['bot', 'applications.commands'],
+                                permissions: PERMISSIONS,
+                            })
+                        )
+                        .setStyle('LINK')
+                ),
+            ],
+        });
     }
 }

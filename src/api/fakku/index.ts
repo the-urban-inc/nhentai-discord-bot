@@ -1,4 +1,4 @@
-import { BaseTag, Doujin, Magazine, Game, DoujinThumb } from './lib/structures';
+import { BaseTag, Doujin, Magazine, Game, DoujinThumb } from './structures';
 import axios, { AxiosResponse } from 'axios';
 import { load } from 'cheerio';
 import Fuse from 'fuse.js';
@@ -21,13 +21,17 @@ const _ = {
 
 export class Client {
     public baseURL = 'https://fakku.net';
-    private magazineList: Array<{ title: string; url: string; image: string }>;
+    private magazineList: { title: string; url: string; image: string }[];
 
     public async setup(): Promise<void> {
         this.magazineList = [];
         return new Promise(async (resolve, reject) => {
             for (let i = 1; i <= 7; i++) {
-                await this.fetchMagazinePage(i);
+                try {
+                    await this.fetchMagazinePage(i);
+                } catch (err) {
+                    /* do nothing */
+                }
                 this.magazineList = this.magazineList.filter(({ title }, i, a) => title.length);
             }
             resolve();
@@ -35,10 +39,13 @@ export class Client {
     }
 
     private async fetch<T>(path: string): Promise<AxiosResponse<T>> {
-        const url = `${this.baseURL}${path}`;
-        const res = await axios.get(url);
-        if (res.data.error) throw new Error(res.data.error);
-        return res;
+        try {
+            const url = `${this.baseURL}${path}`;
+            const res = await axios.get(url);
+            return res;
+        } catch (err) {
+            throw err;
+        }
     }
 
     private async handleSingleMagazine(res: AxiosResponse): Promise<Magazine> {

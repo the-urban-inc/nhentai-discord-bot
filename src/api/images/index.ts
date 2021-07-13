@@ -140,142 +140,139 @@ export const SFW_METHODS = {
 };
 
 export const NSFW_METHODS = {
-    nsfw_ahegao: {
+    ahegao: {
         hmtai: ['ahegao'],
     },
-    nsfw_anal: {
+    anal: {
         nekoslife: ['anal'],
         nekobot: ['hanal'],
     },
-    nsfw_ass: {
+    ass: {
         nekobot: ['hass'],
         hmtai: ['ass'],
     },
-    nsfw_avatar: {
+    avatar: {
         nekoslife: ['avatar'],
     },
-    nsfw_bdsm: {
+    bdsm: {
         hmtai: ['bdsm'],
     },
-    nsfw_blowjob: {
+    blowjob: {
         nekoslife: ['bJ', 'blowJob'],
         hmtai: ['blowjob'],
     },
-    nsfw_boobs: {
+    boobs: {
         nekoslife: ['boobs', 'tits'],
         nekobot: ['hboobs'],
     },
-    nsfw_creampie: {
-        hmtai: ['creampie'],
-    },
-    nsfw_cuckold: {
+    cuckold: {
         hmtai: ['cuckold'],
     },
-    nsfw_cum: {
+    cum: {
         nekoslife: ['cumsluts', 'cumArts'],
-        hmtai: ['cum'],
+        hmtai: ['cum', 'creampie'],
     },
-    nsfw_elf: {
+    elf: {
         hmtai: ['elves'],
     },
-    nsfw_ero: {
+    ero: {
         nekoslife: ['ero'],
         hmtai: ['ero'],
     },
-    nsfw_feet: {
+    feet: {
         nekoslife: ['feet', 'feetGif', 'eroFeet'],
         hmtai: ['foot'],
     },
-    nsfw_femdom: {
+    femdom: {
         nekoslife: ['femdom'],
         hmtai: ['femdom'],
     },
-    nsfw_futa: {
+    futa: {
         nekoslife: ['futanari'],
     },
-    nsfw_glasses: {
+    glasses: {
         hmtai: ['glasses'],
     },
-    nsfw_hentai: {
+    hentai: {
         nekoslife: ['classic', 'randomHentaiGif'],
         nekobot: ['hentai'],
         hmtai: ['hentai', 'gif'],
     },
-    nsfw_holo: {
+    holo: {
         nekoslife: ['holo', 'holoEro'],
         nekobot: ['holo'],
     },
-    nsfw_incest: {
+    incest: {
         hmtai: ['incest'],
     },
-    nsfw_kemonomimi: {
+    kemonomimi: {
         nekoslife: ['kemonomimi', 'eroKemonomimi'],
         nekobot: ['kemonomimi'],
     },
-    nsfw_keta: {
+    keta: {
         nekoslife: ['keta'],
     },
-    nsfw_kitsune: {
+    kitsune: {
         nekoslife: ['kitsune'],
         nekobot: ['hkitsune'],
     },
-    nsfw_kuni: {
+    kuni: {
         nekoslife: ['kuni'],
     },
-    nsfw_masturbation: {
+    masturbation: {
         nekoslife: ['girlSolo', 'girlSoloGif'],
         hmtai: ['masturbation'],
     },
-    nsfw_midriff: {
+    midriff: {
         nekobot: ['hmidriff'],
     },
-    nsfw_neko: {
+    neko: {
         nekoslife: ['neko', 'eroNeko', 'nekoGif'],
         nekobot: ['hneko'],
         hmtai: ['nsfwNeko'],
     },
-    nsfw_orgy: {
+    orgy: {
         hmtai: ['orgy'],
     },
-    nsfw_paizuri: {
+    paizuri: {
         nekobot: ['paizuri'],
         hmtai: ['boobjob'],
     },
-    nsfw_pantsu: {
+    pantsu: {
         hmtai: ['pantsu'],
     },
-    nsfw_public: {
+    public: {
         hmtai: ['public'],
     },
-    nsfw_pussy: {
+    pussy: {
         nekoslife: ['pussy', 'pussyWankGif', 'pussyArt'],
         hmtai: ['vagina'],
     },
-    nsfw_tentacle: {
+    tentacle: {
         nekobot: ['tentacle'],
         hmtai: ['tentacles'],
     },
-    nsfw_thigh: {
+    thigh: {
         nekobot: ['hthigh'],
         hmtai: ['thighs'],
     },
-    nsfw_trap: {
+    trap: {
         nekoslife: ['trap'],
     },
-    nsfw_uniform: {
+    uniform: {
         hmtai: ['uniform'],
     },
-    nsfw_wallpaper: {
+    wallpaper: {
         hmtai: ['nsfwMobileWallpaper'],
     },
-    nsfw_yaoi: {
+    yaoi: {
         nekobot: ['yaoi'],
     },
-    nsfw_yuri: {
+    yuri: {
         nekoslife: ['yuri', 'eroYuri', 'lesbian'],
         hmtai: ['yuri'],
     },
-    nsfw_zettaiRyouiki: {
+    'zettai ryouiki': {
         hmtai: ['zettaiRyouiki'],
     },
 };

@@ -1,32 +1,26 @@
-import { Command } from '@structures';
-import { Message } from 'discord.js';
+import { Client, Command } from '@structures';
+import { CommandInteraction } from 'discord.js';
 import util from 'util';
 
 export default class extends Command {
-    constructor() {
-        super('eval', {
-            aliases: ['eval', 'e'],
-            ownerOnly: true,
-            args: [
+    constructor(client: Client) {
+        super(client, {
+            name: 'eval',
+            description: 'Evaluates a code block',
+            owner: true,
+            options: [
                 {
-                    id: 'code',
-                    match: 'content',
+                    name: 'code',
+                    type: 'STRING',
+                    description: 'The code to evaluate',
                 },
             ],
         });
     }
 
-    async exec(msg: Message, { code }: { code: string }) {
-        if (!code) return msg.channel.send(this.client.embeds.clientError('No code was provided!'));
-
-        const evaled = {
-            message: msg,
-            errored: false,
-            output: '',
-        };
-
+    async exec(interaction: CommandInteraction) {
+        const code = interaction.options.get('code').value as string;
         const logs = [''];
-
         const token = this.client.token!.split('').join('[^]{0,2}');
         const rev = this.client.token!.split('').reverse().join('[^]{0,2}');
         const tokenRegex = new RegExp(`${token}|${rev}`, 'g');
@@ -37,48 +31,36 @@ export default class extends Command {
             if (output instanceof Promise) output = await output;
 
             if (typeof output !== 'string') output = util.inspect(output, { depth: 0 });
-            output = `${logs.join('\n')}\n${logs.length && output === 'undefined' ? '' : output}`;
-            output = output.replace(tokenRegex, '[TOKEN]');
+            output = `${logs.join('\n')}\n${
+                logs.length && output === 'undefined' ? '' : output
+            }`.replace(tokenRegex, '[TOKEN]');
 
             if (output.length + code.length > 1900) output = 'Output too long.';
 
-            const sent = await msg.channel.send([
-                `📥\u2000**Input**${cb}js`,
-                code,
-                cb,
-                `📤\u2000**Output**${cb}js`,
-                output,
-                cb,
-            ]);
-
-            evaled.message = sent;
-            evaled.errored = false;
-            evaled.output = output;
-
-            return sent;
+            return await interaction.editReply(
+                `📥\u2000**Input**${cb}js\n` +
+                    code +
+                    cb +
+                    `\n📤\u2000**Output**${cb}js\n` +
+                    output +
+                    cb
+            );
         } catch (err) {
             this.client.logger.error('An eval error occured.');
             this.client.logger.stackTrace(err);
-            let error = err;
+            let error = err.toString();
+            error = `${logs.join('\n')}\n${
+                logs.length && error === 'undefined' ? '' : error
+            }`.replace(tokenRegex, '[TOKEN]');
 
-            error = error.toString();
-            error = `${logs.join('\n')}\n${logs.length && error === 'undefined' ? '' : error}`;
-            error = error.replace(tokenRegex, '[TOKEN]');
-
-            const sent = await msg.channel.send([
-                `📥\u2000**Input**${cb}js`,
-                code,
-                cb,
-                `☠\u2000**Error**${cb}js`,
-                error,
-                cb,
-            ]);
-
-            evaled.message = sent;
-            evaled.errored = true;
-            evaled.output = error;
-
-            return sent;
+            return await interaction.editReply(
+                `📥\u2000**Input**${cb}js\n` +
+                    code +
+                    cb +
+                    `\n☠\u2000**Error**${cb}js\n` +
+                    error +
+                    cb
+            );
         }
     }
 }
