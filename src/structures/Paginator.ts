@@ -150,38 +150,26 @@ export class Paginator {
             )
             .set(
                 Interactions.Love,
-                new MessageButton()
-                    .setCustomId('love')
-                    .setLabel('Favorite')
-                    .setEmoji('❤️')
-                    .setStyle('SECONDARY')
+                new MessageButton().setCustomId('love').setLabel('❤️').setStyle('SECONDARY')
             )
             .set(
                 Interactions.Follow,
-                new MessageButton()
-                    .setCustomId('follow')
-                    .setLabel('Follow')
-                    .setEmoji('🔖')
-                    .setStyle('SECONDARY')
+                new MessageButton().setCustomId('follow').setLabel('🔖').setStyle('SECONDARY')
             )
             .set(
                 Interactions.Blacklist,
-                new MessageButton()
-                    .setCustomId('blacklist')
-                    .setLabel('Blacklist')
-                    .setEmoji('🏴')
-                    .setStyle('SECONDARY')
+                new MessageButton().setCustomId('blacklist').setLabel('🏴').setStyle('SECONDARY')
             )
             .set(
                 Interactions.Download,
                 new MessageButton()
-                    .setLabel('Download')
+                    .setLabel('📥')
                     .setStyle('LINK')
                     .setURL('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
             )
             .set(
                 Interactions.Remove,
-                new MessageButton().setCustomId('remove').setLabel('Dismiss').setStyle('DANGER')
+                new MessageButton().setCustomId('remove').setLabel('🗑️').setStyle('DANGER')
             );
     }
 
@@ -573,7 +561,7 @@ export class Paginator {
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
                 try {
-                    let id = this.pages[this.#currentPage]?.galleryID ?? this.info.id;
+                    let id = this.pages[this.#currentView][this.#currentPage]?.galleryID ?? this.info.id;
                     if (!id) return Promise.resolve(false);
                     const adding = await this.client.db.user.favorite(
                         interaction.user.id,
@@ -581,16 +569,16 @@ export class Paginator {
                     );
                     (this.methodMap.get(Interactions.Love) as MessageButton)
                         .setLabel(
-                            adding ? `Added ${id} to favorites` : `Removed ${id} from favorites`
+                            adding ? `Added ${id}` : `Removed ${id}`
                         )
-                        .setEmoji('')
+                        .setEmoji(adding ? '✅' : '❌')
                         .setStyle(adding ? 'SUCCESS' : 'DANGER')
                         .setDisabled(true);
                     await this.update(interaction);
                     setTimeout(async () => {
                         (this.methodMap.get(Interactions.Love) as MessageButton)
-                            .setLabel('Favorite')
-                            .setEmoji('❤️')
+                            .setLabel('❤️')
+                            .setEmoji('')
                             .setStyle('SECONDARY')
                             .setDisabled(false);
                         await this.update(interaction);
@@ -616,21 +604,26 @@ export class Paginator {
                     const info = { ...this.info, type: this.interaction.commandName };
                     if (!info) return Promise.resolve(false);
                     const { id, type, name } = info;
-                    const adding = await this.client.db.user.follow(interaction.user.id, type, +id, name);
+                    const adding = await this.client.db.user.follow(
+                        interaction.user.id,
+                        type,
+                        +id,
+                        name
+                    );
                     (this.methodMap.get(Interactions.Follow) as MessageButton)
                         .setLabel(
                             adding
                                 ? `Started following ${type} ${name}`
                                 : `Stopped following ${type} ${name}`
                         )
-                        .setEmoji('')
+                        .setEmoji(adding ? '✅' : '❌')
                         .setStyle(adding ? 'SUCCESS' : 'DANGER')
                         .setDisabled(true);
                     await this.update(interaction);
                     setTimeout(async () => {
                         (this.methodMap.get(Interactions.Follow) as MessageButton)
-                            .setLabel('Follow')
-                            .setEmoji('🔖')
+                            .setLabel('🔖')
+                            .setEmoji('')
                             .setStyle('SECONDARY')
                             .setDisabled(false);
                         await this.update(interaction);
@@ -660,17 +653,17 @@ export class Paginator {
                     (this.methodMap.get(Interactions.Blacklist) as MessageButton)
                         .setLabel(
                             adding
-                                ? `Added ${type} ${name} to blacklist`
-                                : `Removed ${type} ${name} from blacklist`
+                                ? `Added ${type} ${name}`
+                                : `Removed ${type} ${name}`
                         )
-                        .setEmoji('')
+                        .setEmoji(adding ? '✅' : '❌')
                         .setStyle(adding ? 'SUCCESS' : 'DANGER')
                         .setDisabled(true);
                     await this.update(interaction);
                     setTimeout(async () => {
                         (this.methodMap.get(Interactions.Blacklist) as MessageButton)
-                            .setLabel('Blacklist')
-                            .setEmoji('🏴')
+                            .setLabel('🏴')
+                            .setEmoji('')
                             .setStyle('SECONDARY')
                             .setDisabled(false);
                         await this.update(interaction);
