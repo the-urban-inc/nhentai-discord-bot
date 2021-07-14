@@ -49,6 +49,10 @@ export class CommandHandler extends ApplicationCommandManager {
         super(client);
         this.client.on('messageCreate', async message => {
             if (message.channel instanceof DMChannel) return;
+            if (message.content.startsWith('n!')) {
+                await message.reply('The bot now uses slash commands, completely removing any support for `n!` commands. If you don\'t see it appearing in your server, wait for a few hours/days for Discord to update its cache.');
+                return;
+            }
             try {
                 let server = await Server.findOne({ serverID: message.guild.id }).exec();
                 if (!server) {
@@ -246,9 +250,10 @@ export class CommandHandler extends ApplicationCommandManager {
                             );
                             return cloned;
                         }
-                        return c;
+                        return [c];
                     })
                 );
+                this.client.categories.set(folder, [].concat(...commands).map(c => c.data.name));
                 allCommands = allCommands.concat(...commands);
             }
             const updatedCommands = await this.client.application?.commands.set(

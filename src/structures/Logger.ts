@@ -3,11 +3,12 @@
  * @author: 1Computer (1Computer1)
  */
 
+import { Client } from './Client';
 import chalk from 'chalk';
 import moment from 'moment';
 import util from 'util';
-import type { Client, ColorResolvable, Snowflake } from 'discord.js';
-import { MessageEmbed, TextChannel } from 'discord.js';
+import type { ColorResolvable, Snowflake } from 'discord.js';
+import { TextChannel } from 'discord.js';
 
 enum Color {
     RED = 'red',
@@ -93,7 +94,7 @@ export class Logger {
                 if (channel instanceof TextChannel)
                     channel.send({
                         embeds: [
-                            new MessageEmbed()
+                            this.client.embeds.default()
                                 .setDescription('```\n' + content + '\n```')
                                 .setColor(color.toUpperCase() as ColorResolvable)
                                 .setFooter(tag)

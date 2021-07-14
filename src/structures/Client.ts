@@ -10,6 +10,7 @@ const { DISCORD_TOKEN } = process.env;
 export class Client extends C {
     ownerID: string;
     commands: Collection<string, Command>;
+    categories: Collection<string, string[]>;
     cooldowns: Collection<string, Collection<User['id'], number>>;
     commandHandler: CommandHandler;
     db: Database;
@@ -34,6 +35,7 @@ export class Client extends C {
             ],
         });
         this.commands = new Collection<string, Command>();
+        this.categories = new Collection<string, string[]>();
         this.cooldowns = new Collection<string, Collection<User['id'], number>>();
         this.commandHandler = new CommandHandler(this);
         this.db = new Database(this);
