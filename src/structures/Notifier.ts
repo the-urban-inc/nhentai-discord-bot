@@ -8,7 +8,7 @@ export class Notifier {
     public current: NodeJS.Timeout;
     private last: number;
     private interval = 300 * 1000;
-    
+
     constructor(client: Client) {
         this.client = client;
     }
@@ -33,7 +33,9 @@ export class Notifier {
             pages.push(...cur);
             page++;
         } while (from < last);
-        return pages.filter(({ tags }) => tags.some(t => filter.has(t.id)));
+        return pages.filter(
+            ({ id, tags }) => from <= +id && +id <= to && tags.some(t => filter.has(t.id))
+        );
     }
 
     async dispatch(galleries: Gallery[]) {
