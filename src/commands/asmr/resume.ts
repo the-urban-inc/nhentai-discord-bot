@@ -7,6 +7,7 @@ export default class extends Command {
             name: 'resume',
             description: 'Resumes playback of the current ASMR file',
             cooldown: 10000,
+            nsfw: true,
         });
     }
 

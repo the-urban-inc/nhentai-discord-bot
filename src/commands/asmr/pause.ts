@@ -7,6 +7,7 @@ export default class extends Command {
             name: 'pause',
             description: 'Pauses the ASMR file that is playing',
             cooldown: 10000,
+            nsfw: true,
         });
     }
 

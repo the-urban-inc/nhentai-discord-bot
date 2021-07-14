@@ -7,6 +7,7 @@ export default class extends Command {
             name: 'leave',
             description: 'Leaves the voice channel',
             cooldown: 10000,
+            nsfw: true,
         });
     }
 

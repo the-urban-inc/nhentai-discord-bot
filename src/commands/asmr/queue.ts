@@ -8,6 +8,7 @@ export default class extends Command {
             name: 'queue',
             description: 'Shows the current queue',
             cooldown: 10000,
+            nsfw: true,
         });
     }
 

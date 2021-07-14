@@ -7,6 +7,7 @@ export default class extends Command {
             name: 'skip',
             description: 'Skips to the next ASMR file',
             cooldown: 10000,
+            nsfw: true,
         });
     }
 
