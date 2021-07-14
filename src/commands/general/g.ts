@@ -61,7 +61,10 @@ export default class extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction, internal?: boolean, message?: Message) {
+    async exec(
+        interaction: CommandInteraction,
+        { internal, message }: { internal?: boolean; message?: Message } = {}
+    ) {
         await this.before(interaction);
         const code = interaction.options.get('query').value as number;
         const more = interaction.options.get('more')?.value as boolean;

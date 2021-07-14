@@ -48,7 +48,10 @@ export default class extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction, internal?: boolean, message?: Message) {
+    async exec(
+        interaction: CommandInteraction,
+        { internal, message }: { internal?: boolean; message?: Message } = {}
+    ) {
         await this.before(interaction);
         const page = (interaction.options.get('page')?.value as number) ?? 1;
         const data = await this.client.nhentai
@@ -92,7 +95,13 @@ export default class extends Command {
         await displayNew.run(
             interaction,
             page === 1 ? '> `🧻` **New Uploads**' : '',
-            internal === true ? message : page === 1 ? 'followUp' : 'editReply'
+            internal === true
+                ? message
+                    ? message
+                    : 'editReply'
+                : page === 1
+                ? 'followUp'
+                : 'editReply'
         );
 
         if (!this.danger && this.warning) {

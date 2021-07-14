@@ -1,5 +1,5 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { CommandInteraction, User } from 'discord.js';
 import sagiri from 'sagiri';
 const sauceNAO = sagiri(process.env.SAUCENAO_TOKEN);
 
@@ -21,7 +21,7 @@ export default class extends Command {
         });
     }
 
-    async exec(interaction: CommandInteraction, internal?: boolean) {
+    async exec(interaction: CommandInteraction, { internal, user }: { internal?: boolean; user?: User['id'] }) {
         const imageURL = interaction.options.get('query')!.value as string;
         if (!this.client.util.isUrl(imageURL)) {
             throw new UserError('INVALID_IMAGE', imageURL);
@@ -33,6 +33,7 @@ export default class extends Command {
         const display = this.client.embeds.paginator(this.client, {
             startView: 'thumbnail',
             collectorTimeout: 300000,
+            priorityUser: user
         });
         for (const {
             url,

@@ -26,8 +26,10 @@ export class Track implements TrackData {
 	public readonly onFinish: () => void;
 	public readonly onError: (error: Error) => void;
 
-	private constructor({ url, title, onStart, onFinish, onError }: TrackData) {
+	private constructor({ url,  videoURL, imageURL, title, onStart, onFinish, onError }: TrackData) {
 		this.url = url;
+		this.videoURL = videoURL;
+		this.imageURL = imageURL;
 		this.title = title;
 		this.onStart = onStart;
 		this.onFinish = onFinish;
@@ -35,7 +37,7 @@ export class Track implements TrackData {
 	}
 
     private async extractAudio(): Promise<PassThrough> {
-        const response = await axios.get(this.url, {
+        const response = await axios.get(this.videoURL, {
             responseType: 'stream',
         });
         const stream = new PassThrough();

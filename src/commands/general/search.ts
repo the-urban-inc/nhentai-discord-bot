@@ -41,7 +41,7 @@ export default class extends Command {
     warning = false;
     blacklists: Blacklist[] = [];
 
-    async before(interaction: CommandInteraction, internal?: boolean, message?: Message) {
+    async before(interaction: CommandInteraction) {
         try {
             let user = await User.findOne({ userID: interaction.user.id }).exec();
             if (!user) {
@@ -65,7 +65,10 @@ export default class extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction, internal?: boolean, message?: Message) {
+    async exec(
+        interaction: CommandInteraction,
+        { internal, message }: { internal?: boolean; message?: Message } = {}
+    ) {
         await this.before(interaction);
         const query = interaction.options.get('query').value as string;
         const page = (interaction.options.get('page')?.value as number) ?? 1;
@@ -107,7 +110,13 @@ export default class extends Command {
         message = await displayList.run(
             interaction,
             `> **Searching for** **\`${query}\`**`,
-            message
+            internal === true
+                ? message
+                    ? message
+                    : 'editReply'
+                : page === 1
+                ? 'followUp'
+                : 'editReply'
         );
 
         if (!this.danger && this.warning) {

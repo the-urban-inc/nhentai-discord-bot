@@ -75,7 +75,10 @@ export default class C extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction, internal?: boolean, message?: Message) {
+    async exec(
+        interaction: CommandInteraction,
+        { internal, message }: { internal?: boolean; message?: Message } = {}
+    ) {
         await this.before(interaction);
         const type = interaction.commandName;
         const tag = interaction.options.get('query').value as string;
@@ -131,7 +134,13 @@ export default class C extends Command {
         message = await displayList.run(
             interaction,
             `> **Searching for ${type}** **\`${tag}\`**`,
-            message
+            internal === true
+                ? message
+                    ? message
+                    : 'editReply'
+                : page === 1
+                ? 'followUp'
+                : 'editReply'
         );
 
         if (!this.danger && this.warning) {

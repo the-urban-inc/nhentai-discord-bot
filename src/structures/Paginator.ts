@@ -1,5 +1,6 @@
 import { Client } from '@structures';
 import {
+    Collection,
     CollectorFilter,
     CommandInteraction,
     InteractionCollector,
@@ -12,6 +13,7 @@ import {
     MessageSelectMenu,
     MessageSelectOptionData,
     TextChannel,
+    User,
 } from 'discord.js';
 import { URL } from 'url';
 import { Gallery } from '@api/nhentai';
@@ -55,6 +57,7 @@ export interface PaginatorOptions extends InteractionCollectorOptions<MessageCom
     prompt?: string;
     jumpTimeout?: number;
     collectorTimeout?: number;
+    priorityUser?: User['id'];
 }
 
 const TAGS = ['tag', 'artist', 'character', 'category', 'group', 'parody', 'language'];
@@ -66,7 +69,8 @@ export class Paginator {
     pages: Record<Views, Page[]>;
     private followedUp: boolean;
     private goBack: { previousView: 'info' | 'thumbnail'; previousPage: number; pages: Page[] };
-    private readonly methodMap: Map<Interactions, MessageButton | MessageSelectMenu>;
+    private readonly methodMap: Collection<Interactions, MessageButton | MessageSelectMenu>;
+    private readonly priorityUser: User['id'] | null;
     private readonly info: Info;
     private readonly filter: CollectorFilter<[MessageComponentInteraction]>;
     private image: string | null;
@@ -83,7 +87,8 @@ export class Paginator {
         this.client = client;
         this.pages = { info: [], thumbnail: [] };
         this.followedUp = false;
-        this.methodMap = new Map<Interactions, MessageButton | MessageSelectMenu>();
+        this.methodMap = new Collection<Interactions, MessageButton | MessageSelectMenu>();
+        this.priorityUser = options.priorityUser;
         this.info = options.info ?? { id: '', name: '' };
         this.filter = options.filter ?? (() => true);
         this.image = options.image;
@@ -198,7 +203,7 @@ export class Paginator {
             },
         ];
         if (
-            ['home', 'search', ...TAGS].includes(this.interaction.commandName) &&
+            ['home', 'search', 'favorite', ...TAGS].includes(this.interaction.commandName) &&
             (this.pages[this.#currentView][this.#currentPage]?.embed?.image ||
                 this.pages[this.#currentView][this.#currentPage]?.embed?.thumbnail)
         ) {
@@ -219,7 +224,7 @@ export class Paginator {
             this.methodMap.get(Interactions.Last),
         ]);
         const optionsRow = new MessageActionRow().addComponents(
-            TAGS.includes(this.interaction.commandName)
+            ['home', 'search', ...TAGS].includes(this.interaction.commandName)
                 ? [
                       this.methodMap.get(Interactions.Love),
                       this.methodMap.get(Interactions.Follow),
@@ -278,6 +283,10 @@ export class Paginator {
     addPage(view: Views, page: Page | Page[]) {
         this.pages[view] = this.pages[view].concat(page);
         return this;
+    }
+
+    private toggleDisable(): void {
+        this.methodMap.forEach((v, k) => this.methodMap.get(k).setDisabled(!v.disabled));
     }
 
     private async update(interaction: MessageComponentInteraction): Promise<boolean> {
@@ -346,20 +355,32 @@ export class Paginator {
                 this: Paginator,
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
-                if (interaction.user !== this.interaction.user) return Promise.resolve(false);
+                if (
+                    this.priorityUser
+                        ? this.priorityUser === interaction.user.id
+                        : interaction.user.id !== this.interaction.user.id
+                )
+                    return Promise.resolve(false);
                 if (this.#currentPage === 0) {
                     if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
                         if (
-                            this.interaction.commandName === 'home' &&
-                            (this.interaction.options.get('page')?.value ?? 1) === 1
+                            (this.interaction.commandName === 'home' &&
+                                (this.interaction.options.get('page')?.value ?? 1) === 1) ||
+                            !this.interaction.options.get('page')
                         )
                             return Promise.resolve(false);
                         this.interaction.options.get('page')!.value =
                             (this.interaction.options.get('page')!.value as number) - 1;
-                        await this.client.commands
-                            .get(this.interaction.commandId)
-                            .exec(this.interaction);
-                        return Promise.resolve(false);
+                        this.toggleDisable();
+                        await this.update(interaction);
+                        this.collector.stop('Aborted');
+                        try {
+                            await this.client.commands
+                                .get(this.interaction.commandId)
+                                .exec(this.interaction);
+                        } catch (err) {} finally {
+                            return Promise.resolve(false);
+                        }
                     }
                     return Promise.resolve(false);
                 }
@@ -373,20 +394,32 @@ export class Paginator {
                 this: Paginator,
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
-                if (interaction.user !== this.interaction.user) return Promise.resolve(false);
+                if (
+                    this.priorityUser
+                        ? this.priorityUser === interaction.user.id
+                        : interaction.user.id !== this.interaction.user.id
+                )
+                    return Promise.resolve(false);
                 if (this.#currentPage <= 0) {
                     if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
                         if (
-                            this.interaction.commandName === 'home' &&
-                            (this.interaction.options.get('page')?.value ?? 1) === 1
+                            (this.interaction.commandName === 'home' &&
+                                (this.interaction.options.get('page')?.value ?? 1) === 1) ||
+                            !this.interaction.options.get('page')
                         )
                             return Promise.resolve(false);
                         this.interaction.options.get('page')!.value =
                             (this.interaction.options.get('page')!.value as number) - 1;
-                        await this.client.commands
-                            .get(this.interaction.commandId)
-                            .exec(this.interaction);
-                        return Promise.resolve(false);
+                        this.toggleDisable();
+                        await this.update(interaction);
+                        this.collector.stop('Aborted');
+                        try {
+                            await this.client.commands
+                                .get(this.interaction.commandId)
+                                .exec(this.interaction);
+                        } catch (err) {} finally {
+                            return Promise.resolve(false);
+                        }
                     }
                     return Promise.resolve(false);
                 }
@@ -400,7 +433,12 @@ export class Paginator {
                 this: Paginator,
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
-                if (interaction.user !== this.interaction.user) return Promise.resolve(false);
+                if (
+                    this.priorityUser
+                        ? this.priorityUser === interaction.user.id
+                        : interaction.user.id !== this.interaction.user.id
+                )
+                    return Promise.resolve(false);
                 if (this.#currentPage >= this.pages[this.#currentView].length - 1) {
                     if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
                         if (
@@ -418,10 +456,16 @@ export class Paginator {
                             });
                         this.interaction.options.get('page')!.value =
                             (this.interaction.options.get('page')!.value as number) + 1;
-                        await this.client.commands
-                            .get(this.interaction.commandId)
-                            .exec(this.interaction);
-                        return Promise.resolve(false);
+                        this.toggleDisable();
+                        await this.update(interaction);
+                        this.collector.stop('Aborted');
+                        try {
+                            await this.client.commands
+                                .get(this.interaction.commandId)
+                                .exec(this.interaction);
+                        } catch (err) {} finally {
+                            return Promise.resolve(false);
+                        }
                     }
                     return Promise.resolve(false);
                 }
@@ -435,7 +479,12 @@ export class Paginator {
                 this: Paginator,
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
-                if (interaction.user !== this.interaction.user) return Promise.resolve(false);
+                if (
+                    this.priorityUser
+                        ? this.priorityUser === interaction.user.id
+                        : interaction.user.id !== this.interaction.user.id
+                )
+                    return Promise.resolve(false);
                 if (this.#currentPage === this.pages[this.#currentView].length - 1) {
                     if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
                         if (
@@ -453,10 +502,16 @@ export class Paginator {
                             });
                         this.interaction.options.get('page')!.value =
                             (this.interaction.options.get('page')!.value as number) + 1;
-                        await this.client.commands
-                            .get(this.interaction.commandId)
-                            .exec(this.interaction);
-                        return Promise.resolve(false);
+                        this.toggleDisable();
+                        await this.update(interaction);
+                        this.collector.stop('Aborted');
+                        try {
+                            await this.client.commands
+                                .get(this.interaction.commandId)
+                                .exec(this.interaction);
+                        } catch (err) {} finally {
+                            return Promise.resolve(false);
+                        }
                     }
                     return Promise.resolve(false);
                 }
@@ -470,7 +525,12 @@ export class Paginator {
                 this: Paginator,
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
-                if (interaction.user !== this.interaction.user) return Promise.resolve(false);
+                if (
+                    this.priorityUser
+                        ? this.priorityUser === interaction.user.id
+                        : interaction.user.id !== this.interaction.user.id
+                )
+                    return Promise.resolve(false);
                 this.methodMap.get(Interactions.Jump).setDisabled(true);
                 await this.update(interaction);
                 const message = (await interaction.followUp({
@@ -518,17 +578,18 @@ export class Paginator {
                         pages: this.pages.thumbnail,
                     };
                     this.pages.thumbnail = this.pages[this.#currentView][this.#currentPage].pages;
-                    if (this.#currentView === 'info') this.#currentView = 'thumbnail';
                     this.#currentPage = 0;
                     this.#previewing = true;
                     return this.update(interaction);
                 }
                 if (
-                    ['home', 'search', ...TAGS].includes(this.interaction.commandName) &&
+                    ['home', 'search', 'favorite', ...TAGS].includes(
+                        this.interaction.commandName
+                    ) &&
                     this.#previewing
                 ) {
                     if (!this.goBack.pages.length) return Promise.resolve(false);
-                    this.#currentView = this.goBack.previousView;
+                    this.#currentView = interaction.values[0] as Views;
                     this.#currentPage = this.goBack.previousPage;
                     this.pages.thumbnail = this.goBack.pages;
                     this.goBack.pages = [];
@@ -550,7 +611,9 @@ export class Paginator {
                     type: 'STRING',
                     value: this.image,
                 });
-                await this.client.commandHandler.findCommand('sauce').exec(this.interaction, true);
+                await this.client.commandHandler
+                    .findCommand('sauce')
+                    .exec(this.interaction, { internal: true, user: interaction.user.id });
                 return Promise.resolve(false);
             }
         )
@@ -561,16 +624,15 @@ export class Paginator {
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
                 try {
-                    let id = this.pages[this.#currentView][this.#currentPage]?.galleryID ?? this.info.id;
+                    let id =
+                        this.pages[this.#currentView][this.#currentPage]?.galleryID ?? this.info.id;
                     if (!id) return Promise.resolve(false);
                     const adding = await this.client.db.user.favorite(
                         interaction.user.id,
                         id.toString()
                     );
                     (this.methodMap.get(Interactions.Love) as MessageButton)
-                        .setLabel(
-                            adding ? `Added ${id}` : `Removed ${id}`
-                        )
+                        .setLabel(adding ? `Added ${id}` : `Removed ${id}`)
                         .setEmoji(adding ? '✅' : '❌')
                         .setStyle(adding ? 'SUCCESS' : 'DANGER')
                         .setDisabled(true);
@@ -651,11 +713,7 @@ export class Paginator {
                     const { type, name } = info;
                     const adding = await this.client.db.user.blacklist(interaction.user.id, info);
                     (this.methodMap.get(Interactions.Blacklist) as MessageButton)
-                        .setLabel(
-                            adding
-                                ? `Added ${type} ${name}`
-                                : `Removed ${type} ${name}`
-                        )
+                        .setLabel(adding ? `Added ${type} ${name}` : `Removed ${type} ${name}`)
                         .setEmoji(adding ? '✅' : '❌')
                         .setStyle(adding ? 'SUCCESS' : 'DANGER')
                         .setDisabled(true);
@@ -685,7 +743,12 @@ export class Paginator {
                 this: Paginator,
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
-                if (interaction.user !== this.interaction.user) return Promise.resolve(false);
+                if (
+                    this.priorityUser
+                        ? this.priorityUser === interaction.user.id
+                        : interaction.user.id !== this.interaction.user.id
+                )
+                    return Promise.resolve(false);
                 this.collector.stop('Aborted');
                 if ((interaction.message as Message).deletable) {
                     await (interaction.message as Message).delete();

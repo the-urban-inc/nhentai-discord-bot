@@ -117,7 +117,7 @@ export class CommandHandler extends ApplicationCommandManager {
                     type: 'STRING',
                     value: sort,
                 });
-                await command.exec(interaction, true, message);
+                await command.exec(interaction, { internal: true, message });
             } catch (err) {
                 this.client.logger.error(err);
             }
@@ -258,7 +258,7 @@ export class CommandHandler extends ApplicationCommandManager {
             }
             const updatedCommands = await this.client.application?.commands.set(
                 allCommands.map(c => c.data),
-                '576000465444012044'
+                '539394242745991178'
             );
             allCommands.forEach(cc => {
                 const cmd = updatedCommands.find(dc => dc.name === cc.data.name);

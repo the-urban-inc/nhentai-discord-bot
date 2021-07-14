@@ -28,7 +28,7 @@ export default class extends Command {
     warning = false;
     blacklists: Blacklist[] = [];
 
-    async before(interaction: CommandInteraction, internal?: boolean, message?: Message) {
+    async before(interaction: CommandInteraction) {
         try {
             let user = await User.findOne({ userID: interaction.user.id }).exec();
             if (!user) {
@@ -52,7 +52,10 @@ export default class extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction, internal?: boolean, message?: Message) {
+    async exec(
+        interaction: CommandInteraction,
+        { internal, message }: { internal?: boolean; message?: Message } = {}
+    ) {
         await this.before(interaction);
         const more = interaction.options.get('more')?.value as boolean;
         const page = (interaction.options.get('page')?.value as number) ?? 1;

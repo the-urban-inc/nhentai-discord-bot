@@ -13,6 +13,7 @@ export default class extends Command {
                     name: 'code',
                     type: 'STRING',
                     description: 'The code to evaluate',
+                    required: true
                 },
             ],
         });

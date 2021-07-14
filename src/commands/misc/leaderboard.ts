@@ -64,8 +64,8 @@ export default class extends Command {
             .setThumbnail(interaction.guild.iconURL())
             .setFooter(
                 `Your guild placing stats : Rank [${pos + 1}]\u2000•\u2000Level : ${
-                    pervs[pos].level
-                }\u2000•\u2000Total Score : ${pervs[pos].points}`
+                    pervs[pos]?.level ?? 0
+                }\u2000•\u2000Total Score : ${pervs[pos]?.points ?? 0}`
             );
         return this.paginate(display, members, embed).run(
             interaction,

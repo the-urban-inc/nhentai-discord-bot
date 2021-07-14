@@ -10,7 +10,10 @@ export default class extends Command {
         });
     }
 
-    async exec(interaction: CommandInteraction, internal?: boolean, message?: Message) {
+    async exec(
+        interaction: CommandInteraction,
+        { internal, message }: { internal?: boolean; message?: Message } = {}
+    ) {
         const content = {
             embeds: [
                 this.client.embeds

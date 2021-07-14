@@ -86,9 +86,6 @@ export default class extends Command {
             throw new UserError('NO_RESULT', tag);
         }
         const dataPosts = res.posts.filter(x => this.client.util.isUrl(x.fileUrl));
-        if (!dataPosts.length) {
-            throw new UserError('NO_RESULT', tag);
-        }
         const display = this.client.embeds.paginator(this.client, {
             startView: 'thumbnail',
             collectorTimeout: 180000,

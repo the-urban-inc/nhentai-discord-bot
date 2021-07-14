@@ -14,7 +14,7 @@ const CATEGORIES = {
     general: ['🧻', 'General'],
     images: ['🖼️', 'Images'],
     info: ['📄', 'Info'],
-    misc: ['🛠️', 'Miscellaneous'],
+    misc: ['🛠️', 'Misc'],
     owner: ['🔒', 'Owner'],
 };
 
@@ -27,9 +27,10 @@ export default class extends Command {
         });
     }
 
-    update(category: string) {
+    update(category: string, owner: boolean) {
         const menu = new MessageSelectMenu().setCustomId('select');
         for (const c of Object.keys(CATEGORIES).reverse()) {
+            if (c === 'owner' && owner) continue;
             menu.spliceOptions(0, 0, {
                 label: CATEGORIES[c][1],
                 value: c,
@@ -60,7 +61,7 @@ export default class extends Command {
         }
         const message = (await interaction.editReply({
             embeds: [embeds.get('general')],
-            components: [new MessageActionRow().addComponents(this.update('general'))],
+            components: [new MessageActionRow().addComponents(this.update('general', interaction.user.id === this.client.ownerID))],
         })) as Message;
         const collector = message.createMessageComponentCollector({
             filter: i => i.user.id === interaction.user.id,
@@ -72,7 +73,7 @@ export default class extends Command {
             const category = i.values[0];
             await interaction.editReply({
                 embeds: [embeds.get(category)],
-                components: [new MessageActionRow().addComponents(this.update(category))],
+                components: [new MessageActionRow().addComponents(this.update(category, interaction.user.id === this.client.ownerID))],
             });
         });
     }
