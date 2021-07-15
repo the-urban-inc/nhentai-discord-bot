@@ -280,13 +280,10 @@ export class Paginator {
         return rows;
     }
 
-    addPage(view: Views, page: Page | Page[]) {
-        this.pages[view] = this.pages[view].concat(page);
-        return this;
-    }
-
-    private toggleDisable(): void {
+    private async turnPage(interaction: MessageComponentInteraction): Promise<void> {
         this.methodMap.forEach((v, k) => this.methodMap.get(k).setDisabled(!v.disabled));
+        await this.update(interaction);
+        this.collector.stop('Aborted');
     }
 
     private async update(interaction: MessageComponentInteraction): Promise<boolean> {
@@ -300,6 +297,11 @@ export class Paginator {
             components: this.getButtons(),
         });
         return false;
+    }
+
+    addPage(view: Views, page: Page | Page[]) {
+        this.pages[view] = this.pages[view].concat(page);
+        return this;
     }
 
     async run(
@@ -371,9 +373,7 @@ export class Paginator {
                             return Promise.resolve(false);
                         this.interaction.options.get('page')!.value =
                             (this.interaction.options.get('page')!.value as number) - 1;
-                        this.toggleDisable();
-                        await this.update(interaction);
-                        this.collector.stop('Aborted');
+                        await this.turnPage(interaction);
                         try {
                             await this.client.commands
                                 .get(this.interaction.commandId)
@@ -410,9 +410,7 @@ export class Paginator {
                             return Promise.resolve(false);
                         this.interaction.options.get('page')!.value =
                             (this.interaction.options.get('page')!.value as number) - 1;
-                        this.toggleDisable();
-                        await this.update(interaction);
-                        this.collector.stop('Aborted');
+                        await this.turnPage(interaction);
                         try {
                             await this.client.commands
                                 .get(this.interaction.commandId)
@@ -456,9 +454,7 @@ export class Paginator {
                             });
                         this.interaction.options.get('page')!.value =
                             (this.interaction.options.get('page')!.value as number) + 1;
-                        this.toggleDisable();
-                        await this.update(interaction);
-                        this.collector.stop('Aborted');
+                            await this.turnPage(interaction);
                         try {
                             await this.client.commands
                                 .get(this.interaction.commandId)
@@ -502,9 +498,7 @@ export class Paginator {
                             });
                         this.interaction.options.get('page')!.value =
                             (this.interaction.options.get('page')!.value as number) + 1;
-                        this.toggleDisable();
-                        await this.update(interaction);
-                        this.collector.stop('Aborted');
+                            await this.turnPage(interaction);
                         try {
                             await this.client.commands
                                 .get(this.interaction.commandId)
@@ -754,11 +748,9 @@ export class Paginator {
                     await (interaction.message as Message).delete();
                 }
                 if ((interaction.message as Message).reference) {
-                    const { channelId, messageId } = (interaction.message as Message).reference;
-                    const message = await (
-                        (await interaction.guild.channels.fetch(channelId)) as TextChannel
-                    ).messages.fetch(messageId);
-                    if (message.deletable) await message.delete();
+                    const { messageId } = (interaction.message as Message).reference;
+                    const message = await interaction.channel.messages.fetch(messageId);
+                    if (message?.deletable) await message.delete();
                 }
                 return true;
             }

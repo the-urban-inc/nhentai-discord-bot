@@ -134,13 +134,7 @@ export default class C extends Command {
         message = await displayList.run(
             interaction,
             `> **Searching for ${type}** **\`${tag}\`**`,
-            internal === true
-                ? message
-                    ? message
-                    : 'editReply'
-                : page === 1
-                ? 'followUp'
-                : 'editReply'
+            message ?? 'editReply'
         );
 
         if (!this.danger && this.warning) {
