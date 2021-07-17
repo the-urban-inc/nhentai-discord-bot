@@ -1,7 +1,15 @@
 import { Client } from './Client';
 import { Command } from './Command';
 import { UserError } from './Error';
-import { ApplicationCommandManager, Collection, CommandInteraction, DMChannel, TextChannel } from 'discord.js';
+import {
+    ApplicationCommand,
+    ApplicationCommandManager,
+    Collection,
+    CommandInteraction,
+    DMChannel,
+    Snowflake,
+    TextChannel,
+} from 'discord.js';
 import { URL } from 'url';
 import { Server } from '@database/models';
 import { readdirSync } from 'fs';
@@ -50,7 +58,9 @@ export class CommandHandler extends ApplicationCommandManager {
         this.client.on('messageCreate', async message => {
             if (message.channel instanceof DMChannel) return;
             if (message.content.startsWith('n!')) {
-                await message.reply('The bot now uses slash commands, completely removing any support for `n!` commands. If you don\'t see it appearing in your server, wait for a few hours/days for Discord to update its cache.');
+                await message.reply(
+                    "The bot now uses slash commands, completely removing any support for `n!` commands. If you don't see it appearing in your server, wait for a few hours/days for Discord to update its cache."
+                );
                 return;
             }
             try {
@@ -100,7 +110,7 @@ export class CommandHandler extends ApplicationCommandManager {
                     guild_id: message.guild.id,
                     user: message.author,
                     member: message.member,
-                    version: 1
+                    version: 1,
                 });
                 interaction.options.set('query', {
                     name: 'query',
@@ -230,6 +240,26 @@ export class CommandHandler extends ApplicationCommandManager {
         return C;
     }
 
+    compareCommandData(c1: Object, c2: Object) {
+        const keys1 = Object.keys(c1);
+        const keys2 = Object.keys(c2);
+        if (keys1.length !== keys2.length) return false;
+        for (const key of keys1) {
+            const val1 = c1[key];
+            const val2 = c2[key];
+            const areObjects = [val1, val2].every(
+                object => object != null && typeof object === 'object'
+            );
+            if (
+                (areObjects && !this.compareCommandData(val1, val2)) ||
+                (!areObjects && val1 !== val2)
+            ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     async loadCommands() {
         try {
             let allCommands: Command[] = [];
@@ -253,13 +283,42 @@ export class CommandHandler extends ApplicationCommandManager {
                         return [c];
                     })
                 );
-                this.client.categories.set(folder, [].concat(...commands).map(c => c.data.name));
+                this.client.categories.set(
+                    folder,
+                    [].concat(...commands).map(c => c.data.name)
+                );
                 allCommands = allCommands.concat(...commands);
             }
-            const updatedCommands = await this.client.application?.commands.set(
-                allCommands.map(c => c.data),
-                '539394242745991178'
-            );
+            const commands = (await this.client.guilds.fetch('576000465444012044')).commands;
+            const existingCommands = await commands.fetch();
+            let updatedCommands = new Collection<Snowflake, ApplicationCommand>();
+            if (!existingCommands.size) {
+                updatedCommands = await this.client.application?.commands.set(
+                    allCommands.map(c => c.data),
+                    '576000465444012044'
+                );
+            } else {
+                updatedCommands = existingCommands;
+                allCommands.forEach(async cmd => {
+                    const cmddb = existingCommands.find(c => c.name === cmd.data.name);
+                    if (!cmddb) {
+                        const nw = await commands.create(cmd.data);
+                        updatedCommands.set(nw.id, nw);
+                    } else {
+                        const common = Object.keys(cmd.data).filter(k => k in cmddb);
+                        const o1: Record<string, any> = {},
+                            o2: Record<string, any> = {};
+                        common.forEach(k => {
+                            o1[k] = cmd.data[k];
+                            o2[k] = cmddb[k];
+                        });
+                        if (!this.compareCommandData(o1, o2)) {
+                            const up = await commands.edit(cmddb, cmd.data);
+                            updatedCommands.set(up.id, up);
+                        }
+                    }
+                });
+            }
             allCommands.forEach(cc => {
                 const cmd = updatedCommands.find(dc => dc.name === cc.data.name);
                 if (!cmd) return;
