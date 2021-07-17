@@ -45,7 +45,7 @@ export default class extends Command {
         const embeds = new Collection<string, MessageEmbed>();
         for (const [category, commandNames] of this.client.categories.entries()) {
             if (category === 'owner' && interaction.user.id !== this.client.ownerID) continue;
-            const commands = commandNames.map(c => this.client.commandHandler.findCommand(c).data);
+            const commands = commandNames.map(c => this.client.commands.get(c).data);
             const embed = this.client.embeds
                 .default()
                 .setTitle(CATEGORIES[category].join('\u2000'))
@@ -61,7 +61,11 @@ export default class extends Command {
         }
         const message = (await interaction.editReply({
             embeds: [embeds.get('general')],
-            components: [new MessageActionRow().addComponents(this.update('general', interaction.user.id === this.client.ownerID))],
+            components: [
+                new MessageActionRow().addComponents(
+                    this.update('general', interaction.user.id === this.client.ownerID)
+                ),
+            ],
         })) as Message;
         const collector = message.createMessageComponentCollector({
             filter: i => i.user.id === interaction.user.id,
@@ -73,7 +77,11 @@ export default class extends Command {
             const category = i.values[0];
             await interaction.editReply({
                 embeds: [embeds.get(category)],
-                components: [new MessageActionRow().addComponents(this.update(category, interaction.user.id === this.client.ownerID))],
+                components: [
+                    new MessageActionRow().addComponents(
+                        this.update(category, interaction.user.id === this.client.ownerID)
+                    ),
+                ],
             });
         });
     }

@@ -75,7 +75,7 @@ export default class extends Command {
         const sort = (interaction.options.get('sort')?.value as string) ?? 'recent';
 
         if (/^\d+$/.test(query.replace('#', ''))) {
-            const command = this.client.commandHandler.findCommand('g');
+            const command = this.client.commands.get('g');
             interaction.options.get('query')!.value = +query.replace('#', '');
             return command.exec(interaction);
         }

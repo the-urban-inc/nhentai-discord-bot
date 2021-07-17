@@ -376,9 +376,10 @@ export class Paginator {
                         await this.turnPage(interaction);
                         try {
                             await this.client.commands
-                                .get(this.interaction.commandId)
+                                .get(this.interaction.commandName)
                                 .exec(this.interaction);
-                        } catch (err) {} finally {
+                        } catch (err) {
+                        } finally {
                             return Promise.resolve(false);
                         }
                     }
@@ -413,9 +414,10 @@ export class Paginator {
                         await this.turnPage(interaction);
                         try {
                             await this.client.commands
-                                .get(this.interaction.commandId)
+                            .get(this.interaction.commandName)
                                 .exec(this.interaction);
-                        } catch (err) {} finally {
+                        } catch (err) {
+                        } finally {
                             return Promise.resolve(false);
                         }
                     }
@@ -454,12 +456,13 @@ export class Paginator {
                             });
                         this.interaction.options.get('page')!.value =
                             (this.interaction.options.get('page')!.value as number) + 1;
-                            await this.turnPage(interaction);
+                        await this.turnPage(interaction);
                         try {
                             await this.client.commands
-                                .get(this.interaction.commandId)
+                            .get(this.interaction.commandName)
                                 .exec(this.interaction);
-                        } catch (err) {} finally {
+                        } catch (err) {
+                        } finally {
                             return Promise.resolve(false);
                         }
                     }
@@ -498,12 +501,13 @@ export class Paginator {
                             });
                         this.interaction.options.get('page')!.value =
                             (this.interaction.options.get('page')!.value as number) + 1;
-                            await this.turnPage(interaction);
+                        await this.turnPage(interaction);
                         try {
                             await this.client.commands
-                                .get(this.interaction.commandId)
+                            .get(this.interaction.commandName)
                                 .exec(this.interaction);
-                        } catch (err) {} finally {
+                        } catch (err) {
+                        } finally {
                             return Promise.resolve(false);
                         }
                     }
@@ -605,8 +609,8 @@ export class Paginator {
                     type: 'STRING',
                     value: this.image,
                 });
-                await this.client.commandHandler
-                    .findCommand('sauce')
+                await this.client.commands
+                    .get('sauce')
                     .exec(this.interaction, { internal: true, user: interaction.user.id });
                 return Promise.resolve(false);
             }

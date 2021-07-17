@@ -99,8 +99,10 @@ export class CommandHandler extends ApplicationCommandManager {
                 if (q !== '') path.push(q);
                 const cmd = path[0],
                     page = pageNum.toString();
-                const id = this.client.commandHandler.findCommandId(cmd);
-                const command = this.client.commands.get(id);
+                const command = this.client.commands.get(cmd);
+                const id = (
+                    await this.client.guilds.fetch('576000465444012044')
+                ).commands.cache.findKey(c => c.name === cmd); // this.client.application?.commands.cache.findKey(c => c.name === cmd);
                 const interaction = new CommandInteraction(this.client, {
                     id: message.id,
                     type: 2,
@@ -135,13 +137,13 @@ export class CommandHandler extends ApplicationCommandManager {
         this.client.on('interactionCreate', async interaction => {
             if (!interaction.isCommand()) return;
             if (!(interaction.channel instanceof TextChannel)) return;
-            if (this.client.commands.has(interaction.commandId)) {
+            if (this.client.commands.has(interaction.commandName)) {
                 try {
                     await interaction.defer({
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
                     const { commands, cooldowns } = this.client;
-                    const command = commands.get(interaction.commandId);
+                    const command = commands.get(interaction.commandName);
                     const { name, permissions, cooldown, nsfw, owner } = command.data;
 
                     if (owner && interaction.user.id !== this.client.ownerID) {
@@ -222,14 +224,6 @@ export class CommandHandler extends ApplicationCommandManager {
         });
     }
 
-    findCommandId(name: string) {
-        return this.client.commands.findKey(c => c.data.name === name);
-    }
-
-    findCommand(name: string) {
-        return this.client.commands.find(c => c.data.name === name);
-    }
-
     cloneCommandData(c: Command, rep: string) {
         const C = c.clone();
         const clone = C.data.clone;
@@ -289,7 +283,7 @@ export class CommandHandler extends ApplicationCommandManager {
                 );
                 allCommands = allCommands.concat(...commands);
             }
-            const commands = (await this.client.guilds.fetch('576000465444012044')).commands;
+            const commands = (await this.client.guilds.fetch('576000465444012044')).commands; // this.client.application?.commands;
             const existingCommands = await commands.fetch();
             let updatedCommands = new Collection<Snowflake, ApplicationCommand>();
             if (!existingCommands.size) {
@@ -322,7 +316,7 @@ export class CommandHandler extends ApplicationCommandManager {
             allCommands.forEach(cc => {
                 const cmd = updatedCommands.find(dc => dc.name === cc.data.name);
                 if (!cmd) return;
-                this.client.commands.set(cmd.id, cc);
+                this.client.commands.set(cmd.name, cc);
             });
             this.client.logger.info(
                 `[COMMANDS] Loaded ${this.client.commands.size} commands successfully.`
