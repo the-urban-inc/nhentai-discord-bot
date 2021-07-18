@@ -414,7 +414,7 @@ export class Paginator {
                         await this.turnPage(interaction);
                         try {
                             await this.client.commands
-                            .get(this.interaction.commandName)
+                                .get(this.interaction.commandName)
                                 .exec(this.interaction);
                         } catch (err) {
                         } finally {
@@ -459,7 +459,7 @@ export class Paginator {
                         await this.turnPage(interaction);
                         try {
                             await this.client.commands
-                            .get(this.interaction.commandName)
+                                .get(this.interaction.commandName)
                                 .exec(this.interaction);
                         } catch (err) {
                         } finally {
@@ -504,7 +504,7 @@ export class Paginator {
                         await this.turnPage(interaction);
                         try {
                             await this.client.commands
-                            .get(this.interaction.commandName)
+                                .get(this.interaction.commandName)
                                 .exec(this.interaction);
                         } catch (err) {
                         } finally {
@@ -629,20 +629,12 @@ export class Paginator {
                         interaction.user.id,
                         id.toString()
                     );
-                    (this.methodMap.get(Interactions.Love) as MessageButton)
-                        .setLabel(adding ? `Added ${id}` : `Removed ${id}`)
-                        .setEmoji(adding ? '✅' : '❌')
-                        .setStyle(adding ? 'SUCCESS' : 'DANGER')
-                        .setDisabled(true);
-                    await this.update(interaction);
-                    setTimeout(async () => {
-                        (this.methodMap.get(Interactions.Love) as MessageButton)
-                            .setLabel('❤️')
-                            .setEmoji('')
-                            .setStyle('SECONDARY')
-                            .setDisabled(false);
-                        await this.update(interaction);
-                    }, 3000);
+                    await interaction.followUp({
+                        content: adding
+                            ? `✅\u2000Added \`${id}\` to your favorites`
+                            : `❌\u2000Removed \`${id}\` from your favorites`,
+                        ephemeral: true,
+                    });
                     return Promise.resolve(false);
                 } catch (err) {
                     this.client.logger.error(err);
@@ -670,24 +662,12 @@ export class Paginator {
                         +id,
                         name
                     );
-                    (this.methodMap.get(Interactions.Follow) as MessageButton)
-                        .setLabel(
-                            adding
-                                ? `Started following ${type} ${name}`
-                                : `Stopped following ${type} ${name}`
-                        )
-                        .setEmoji(adding ? '✅' : '❌')
-                        .setStyle(adding ? 'SUCCESS' : 'DANGER')
-                        .setDisabled(true);
-                    await this.update(interaction);
-                    setTimeout(async () => {
-                        (this.methodMap.get(Interactions.Follow) as MessageButton)
-                            .setLabel('🔖')
-                            .setEmoji('')
-                            .setStyle('SECONDARY')
-                            .setDisabled(false);
-                        await this.update(interaction);
-                    }, 3000);
+                    await interaction.followUp({
+                        content: adding
+                            ? `✅\u2000Started following ${type} ${name}`
+                            : `❌\u2000Stopped following ${type} ${name}`,
+                        ephemeral: true,
+                    });
                     return Promise.resolve(false);
                 } catch (err) {
                     this.client.logger.error(err);
@@ -710,20 +690,12 @@ export class Paginator {
                     if (!info) return Promise.resolve(false);
                     const { type, name } = info;
                     const adding = await this.client.db.user.blacklist(interaction.user.id, info);
-                    (this.methodMap.get(Interactions.Blacklist) as MessageButton)
-                        .setLabel(adding ? `Added ${type} ${name}` : `Removed ${type} ${name}`)
-                        .setEmoji(adding ? '✅' : '❌')
-                        .setStyle(adding ? 'SUCCESS' : 'DANGER')
-                        .setDisabled(true);
-                    await this.update(interaction);
-                    setTimeout(async () => {
-                        (this.methodMap.get(Interactions.Blacklist) as MessageButton)
-                            .setLabel('🏴')
-                            .setEmoji('')
-                            .setStyle('SECONDARY')
-                            .setDisabled(false);
-                        await this.update(interaction);
-                    }, 3000);
+                    await interaction.followUp({
+                        content: adding
+                            ? `✅\u2000Added ${type} ${name} to your blacklist`
+                            : `❌\u2000Removed ${type} ${name} from your blacklist`,
+                        ephemeral: true,
+                    });
                     return Promise.resolve(false);
                 } catch (err) {
                     this.client.logger.error(err);
