@@ -118,7 +118,8 @@ export default class extends Command {
                 .addPage('info', { embed: info })
                 .addPage('info', results)
                 .run(interaction, `> **Searching Fakku Magazines for** **\`${query}\`**`);
-            if (!this.danger && this.warning) {
+            if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+                this.client.warned.add(interaction.user.id);
                 await interaction.followUp(this.client.util.communityGuidelines());
             }
             return;

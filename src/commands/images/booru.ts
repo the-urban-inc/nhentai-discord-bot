@@ -109,7 +109,8 @@ export default class extends Command {
             display.addPage('thumbnail', { embed });
         });
         await display.run(interaction, `> **Searching for posts with tag** **\`${tag}\`**`);
-        if (!this.danger && this.warning) {
+        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+            this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
         }
     }

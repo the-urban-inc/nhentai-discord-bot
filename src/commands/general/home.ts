@@ -104,7 +104,8 @@ export default class extends Command {
                 : 'editReply'
         );
 
-        if (!this.danger && this.warning) {
+        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+            this.client.warned.add(interaction.user.id);
             internal
                 ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
                       setTimeout(() => {

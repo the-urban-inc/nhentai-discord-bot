@@ -12,6 +12,7 @@ export class Client extends C {
     commands: Collection<string, Command>;
     categories: Collection<string, string[]>;
     cooldowns: Collection<string, Collection<User['id'], number>>;
+    warned: Set<User['id']>;
     commandHandler: CommandHandler;
     db: Database;
     jasmr: JASMRAPI;
@@ -37,6 +38,7 @@ export class Client extends C {
         this.commands = new Collection<string, Command>();
         this.categories = new Collection<string, string[]>();
         this.cooldowns = new Collection<string, Collection<User['id'], number>>();
+        this.warned = new Set<User['id']>();
         this.commandHandler = new CommandHandler(this);
         this.db = new Database(this);
         this.embeds = new Embeds(this);

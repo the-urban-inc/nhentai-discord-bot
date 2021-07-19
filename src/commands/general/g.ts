@@ -108,7 +108,8 @@ export default class extends Command {
             await displayComments.run(interaction, '> `💬` **Comments**');
         }
 
-        if (!this.danger && this.warning) {
+        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+            this.client.warned.add(interaction.user.id);
             internal
                 ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
                       setTimeout(() => {
@@ -142,7 +143,7 @@ export default class extends Command {
             );
             if (leveledUp)
                 message
-                    ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
+                    ? await message.reply('Congratulations! You have leveled up!').then(msg =>
                           setTimeout(() => {
                               if (msg.deletable) msg.delete();
                           }, 180000)
