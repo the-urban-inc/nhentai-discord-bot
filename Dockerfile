@@ -2,7 +2,7 @@ FROM node:14.15.0-alpine3.11 as build
 
 WORKDIR /app
 
-RUN apk --no-cache add --virtual .build-deps build-base ca-certificates
+RUN apk --no-cache add --virtual .build-deps build-base ca-certificates libtool
 
 COPY package.json .
 RUN yarn install
