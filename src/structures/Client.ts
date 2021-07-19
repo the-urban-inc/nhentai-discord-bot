@@ -30,7 +30,6 @@ export class Client extends C {
             ...options,
             intents: [
                 'GUILDS',
-                'GUILD_MEMBERS',
                 'GUILD_MESSAGES',
                 'GUILD_VOICE_STATES',
             ],
