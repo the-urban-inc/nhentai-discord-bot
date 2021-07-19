@@ -6,7 +6,6 @@ COPY package.json .
 RUN yarn install
 
 COPY tsconfig.json .
-COPY config.json .
 COPY src/ src/
 RUN yarn build
 
