@@ -2,6 +2,8 @@ FROM node:14.15.0-alpine3.11 as build
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install autoconf automake g++ libtool
+
 COPY package.json .
 RUN yarn install
 
