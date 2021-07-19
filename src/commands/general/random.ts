@@ -1,43 +1,24 @@
-import { Command } from '@structures';
-import { Message } from 'discord.js';
-import { User } from '@models/user';
-import { Server } from '@models/server';
-import { Blacklist } from '@models/tag';
-import { BLOCKED_MESSAGE } from '@utils/constants';
-import config from '@config';
-const PREFIX = config.settings.prefix.nsfw[0];
+import { Client, Command, UserError } from '@structures';
+import { CommandInteraction, Message } from 'discord.js';
+import { User, Server, Blacklist } from '@database/models';
 
 export default class extends Command {
-    constructor() {
-        super('random', {
-            aliases: ['random'],
-            nsfw: true,
+    constructor(client: Client) {
+        super(client, {
+            name: 'random',
+            description: 'Shows a random gallery',
             cooldown: 20000,
-            description: {
-                content: 'Shows a random gallery.',
-                usage: '[--more] [--auto]',
-                examples: [
-                    '\nShows info of a random gallery.',
-                    ' --more\nShows info of a random gallery, with the addition of similar galleries and comments made on the main site.',
-                    ' --auto\nAdds the option of reading the gallery with auto mode, meaning nhentai will turn the pages for you after a set number of seconds (your choice).',
-                ],
-            },
-            error: {
-                'No Result': {
-                    message: 'Failed to fetch a random gallery!',
-                    example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
-                },
-            },
-            args: [
+            nsfw: true,
+            options: [
                 {
-                    id: 'more',
-                    match: 'flag',
-                    flag: ['-m', '--more'],
+                    name: 'page',
+                    type: 'INTEGER',
+                    description: 'Starting page number (default: 1)',
                 },
                 {
-                    id: 'auto',
-                    match: 'flag',
-                    flag: ['-a', '--auto'],
+                    name: 'more',
+                    type: 'BOOLEAN',
+                    description: 'Views more info about the doujin (default: false)',
                 },
             ],
         });
@@ -47,16 +28,17 @@ export default class extends Command {
     warning = false;
     blacklists: Blacklist[] = [];
 
-    async before(message: Message) {
+    async before(interaction: CommandInteraction) {
         try {
-            let user = await User.findOne({ userID: message.author.id }).exec();
+            let user = await User.findOne({ userID: interaction.user.id }).exec();
             if (!user) {
                 user = await new User({
                     blacklists: [],
+                    anonymous: true,
                 }).save();
             }
             this.blacklists = user.blacklists;
-            let server = await Server.findOne({ serverID: message.guild.id }).exec();
+            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
                     settings: { danger: false },
@@ -66,101 +48,65 @@ export default class extends Command {
             this.warning = false;
         } catch (err) {
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
+            throw new Error(`Database error: ${err.message}`);
         }
     }
 
     async exec(
-        message: Message,
-        { more, auto, dontLogErr }: { more?: boolean; auto?: boolean; dontLogErr?: boolean }
+        interaction: CommandInteraction,
+        { internal, message }: { internal?: boolean; message?: Message } = {}
     ) {
-        try {
-            const result = await this.client.nhentai
-                .random()
-                .catch(err => this.client.logger.error(err.message));
-            if (!result) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
-            }
+        await this.before(interaction);
+        const more = interaction.options.get('more')?.value as boolean;
+        const page = (interaction.options.get('page')?.value as number) ?? 1;
+        const data = await this.client.nhentai
+            .random(more)
+            .catch(err => this.client.logger.error(err.message));
+        if (!data || !data.gallery) {
+            throw new UserError('NO_RESULT');
+        }
+        const { gallery } = data;
+        if (page < 1 || page > gallery.num_pages) {
+            throw new UserError('INVALID_PAGE_INDEX', page, gallery.num_pages);
+        }
 
-            const { displayGallery, rip } = this.client.embeds.displayFullGallery(
-                result.gallery,
-                this.danger,
-                auto,
-                this.blacklists
+        const { displayGallery, rip } = this.client.embeds.displayFullGallery(
+            gallery,
+            page - 1,
+            this.danger,
+            this.blacklists
+        );
+        if (rip) this.warning = true;
+        message = await displayGallery.run(
+            interaction,
+            `> **Searching for random gallery**`,
+            message
+        );
+
+        if (more) {
+            const { related, comments } = data;
+
+            const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(
+                related,
+                this.danger
             );
             if (rip) this.warning = true;
-            if (this.danger || !rip) {
-                await displayGallery.run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...'),
-                    `> **Searching for random gallery • [** ${message.author.tag} **]**`,
-                    {
-                        collectorTimeout: 300000,
-                    }
-                );
-            } else {
-                await displayGallery.run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...')
-                    `> **Searching for random gallery • [** ${message.author.tag} **]**`,
-                    {
-                        collectorTimeout: 300000,
-                    }
-                );
-            }
+            await displayRelated.run(interaction, '> **More Like This**');
 
-            if (more) {
-                const { related, comments } = result;
+            if (!comments.length) return;
+            const displayComments = this.client.embeds.displayCommentList(comments);
+            await displayComments.run(interaction, '> `💬` **Comments**');
+        }
 
-                const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(
-                    related,
-                    this.danger,
-                    this.blacklists
-                );
-                if (rip) this.warning = true;
-                await displayRelated.run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...'),
-                    '> **More Like This**',
-                    {
-                        collectorTimeout: 300000,
-                    }
-                );
-
-                if (!comments.length) return;
-                const displayComments = this.client.embeds.displayCommentList(comments);
-                await displayComments.run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...'),
-                    '> `💬` **Comments**',
-                    {
-                        collectorTimeout: 300000,
-                    }
-                );
-            }
-
-            if (!this.danger && this.warning) {
-                return this.client.embeds
-                    .richDisplay({ removeOnly: true, removeRequest: false })
-                    .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
-                    .useCustomFooters()
-                    .run(
-                        this.client,
-                        message,
-                        message, // await message.channel.send('Loading ...')
-                        '',
-                        {
-                            collectorTimeout: 300000,
-                        }
-                    );
-            }
-        } catch (err) {
-            this.client.logger.error(err.message);
+        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+            this.client.warned.add(interaction.user.id);
+            internal
+                ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
+                      setTimeout(() => {
+                          if (msg.deletable) msg.delete();
+                      }, 180000)
+                  )
+                : await interaction.followUp(this.client.util.communityGuidelines());
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Gallery, Related, Comment, Search, SearchQuery, Sort, ImageT } from './lib/structures';
+import { Gallery, Related, Comment, Search, SearchQuery, Sort, ImageT } from './structures';
 import axios, { AxiosResponse } from 'axios';
 import { load } from 'cheerio';
 type Root = ReturnType<typeof load>;
@@ -283,4 +283,4 @@ export class Client {
     }
 }
 
-export * from './lib/structures';
+export * from './structures';

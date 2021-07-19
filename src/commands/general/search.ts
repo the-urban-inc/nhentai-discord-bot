@@ -1,100 +1,57 @@
-import { Command } from '@structures';
-import { Message } from 'discord.js';
-import { User } from '@models/user';
-import { Server } from '@models/server';
-import { Blacklist } from '@models/tag';
+import { Client, Command, UserError } from '@structures';
+import { CommandInteraction, Message } from 'discord.js';
 import { Sort } from '@api/nhentai';
-import { ReactionHandler } from '@utils/pagination/ReactionHandler';
-import { BLOCKED_MESSAGE } from '@utils/constants';
-const SORT_METHODS = Object.keys(Sort).map(s => Sort[s]);
-type ARGS = { text: string; page: string; sort: string; dontLogErr?: boolean };
+import { User, Server, Blacklist } from '@database/models';
 
 export default class extends Command {
-    constructor() {
-        super('search', {
-            aliases: ['search'],
-            nsfw: true,
+    constructor(client: Client) {
+        super(client, {
+            name: 'search',
+            description: 'Searches nhentai for specified query',
             cooldown: 20000,
-            description: {
-                content: `Searches nhentai for given query.`,
-                usage: `<text> [--page=pagenum] [--sort=(${SORT_METHODS.join('/')})]`,
-                examples: [
-                    ' #110631\nDirectly views info of `110631`.',
-                    ' 110631\nAlso works without `#`.',
-                    ` tag:"big breasts" pages:>15 -milf\nSearches for galleries with over 15 pages that contain tag \`big breasts\` but without tag \`milf\` and displays them as a list of thumbnails.`,
-                    ` naruto uploaded:7d\nSearches for galleries with titles containing the keyword \`naruto\` and were uploaded within 7 days and displays them as a list of thumbnails.`,
-                ],
-                additionalInfo:
-                    '• You can search for multiple terms at the same time, and this will return only galleries that contain both terms. For example, `anal tanlines` finds all galleries that contain both `anal` and `tanlines`.\n' +
-                    '• You can exclude terms by prefixing them with `-`. For example, `anal tanlines -yaoi` matches all galleries matching `anal` and `tanlines` but not `yaoi`.\n' +
-                    '• Exact searches can be performed by wrapping terms in double quotes. For example, `"big breasts"` only matches galleries with "big breasts" somewhere in the title or in tags.\n' +
-                    '• These can be combined with tag namespaces for finer control over the query: `parodies:railgun -tag:"big breasts"`.\n' +
-                    '• You can search for galleries with a specific number of pages with `pages:20`, or with a page range: `pages:>20 pages:<=30`.\n' +
-                    '• You can search for galleries uploaded within some timeframe with `uploaded:20d`. Valid units are `h`, `d`, `w`, `m`, `y`. You can use ranges as well: `uploaded:>20d uploaded:<30d`.',
-            },
-            error: {
-                'Invalid Query': {
-                    message: 'Please provide a search query!',
-                    example:
-                        ' ane naru mono\nto search for galleries with titles contain `ane naru mono`.',
-                },
-                'No Result': {
-                    message: 'No result found!',
-                    example: 'Try again with a different query.',
-                },
-                'Invalid Page Index': {
-                    message: 'Please provide a page index within range!',
-                    example:
-                        ' naruto uploaded:7d --page=3\nto search for galleries with titles containing the keyword `naruto` and were uploaded within 7 days and display them as a list of thumbnails starting from the 2nd page.',
-                },
-                'Invalid Sort Method': {
-                    message: `Invalid sort method provided. Available methods are: ${SORT_METHODS.map(
-                        s => `\`${s}\``
-                    ).join(', ')}.`,
-                    example:
-                        ' tag:"big breasts" pages:>15 -milf --sort=popular\nto search for galleries with over 15 pages that contain tag `big breasts` but without tag `milf` and display them as a list of thumbnails, sorted by popularity.',
-                },
-            },
-            args: [
+            nsfw: true,
+            options: [
                 {
-                    id: 'text',
-                    type: 'string',
-                    match: 'rest',
+                    name: 'query',
+                    type: 'STRING',
+                    description: 'The query to search for on nhentai',
+                    required: true,
                 },
                 {
-                    id: 'page',
-                    match: 'option',
-                    flag: ['--page=', '-p='],
-                    default: '1',
+                    name: 'page',
+                    type: 'INTEGER',
+                    description: 'Page number (default: 1)',
                 },
                 {
-                    id: 'sort',
-                    match: 'option',
-                    flag: ['--sort=', '-s='],
-                    default: 'recent',
+                    name: 'sort',
+                    type: 'STRING',
+                    description: 'Doujin sort method (default: recent)',
+                    choices: Object.keys(Sort).map(k => {
+                        return {
+                            name: k.match(/[A-Z][a-z]+|[0-9]+/g).join(' '),
+                            value: Sort[k],
+                        };
+                    }),
                 },
             ],
         });
     }
 
-    args: ARGS = null;
-    message: Message = null;
-    internalCall = false;
-    currentHandler: ReactionHandler = null;
     danger = false;
     warning = false;
     blacklists: Blacklist[] = [];
 
-    async before(message: Message) {
+    async before(interaction: CommandInteraction) {
         try {
-            let user = await User.findOne({ userID: message.author.id }).exec();
+            let user = await User.findOne({ userID: interaction.user.id }).exec();
             if (!user) {
                 user = await new User({
                     blacklists: [],
+                    anonymous: true,
                 }).save();
             }
             this.blacklists = user.blacklists;
-            let server = await Server.findOne({ serverID: message.guild.id }).exec();
+            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
                     settings: { danger: false },
@@ -104,154 +61,67 @@ export default class extends Command {
             this.warning = false;
         } catch (err) {
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
+            throw new Error(`Database error: ${err.message}`);
         }
     }
 
-    movePage = async (currentHandler: ReactionHandler, diff: number) => {
-        if (!this.args || !this.message) return false;
-        this.args.page = (+this.args.page + diff).toString();
-        this.args.dontLogErr = true;
-        this.internalCall = true;
-        this.currentHandler = currentHandler;
-        return await this.exec(this.message, this.args);
-    };
+    async exec(
+        interaction: CommandInteraction,
+        { internal, message }: { internal?: boolean; message?: Message } = {}
+    ) {
+        await this.before(interaction);
+        const query = interaction.options.get('query').value as string;
+        const page = (interaction.options.get('page')?.value as number) ?? 1;
+        const sort = (interaction.options.get('sort')?.value as string) ?? 'recent';
 
-    async exec(message: Message, { text, page, sort, dontLogErr }: ARGS) {
-        try {
-            if (!text) {
-                if (dontLogErr) return false;
-                this.client.commandHandler.emitError(new Error('Invalid Query'), message, this);
-                return false;
-            }
+        if (/^\d+$/.test(query.replace('#', ''))) {
+            const command = this.client.commands.get('g');
+            interaction.options.get('query')!.value = +query.replace('#', '');
+            return command.exec(interaction);
+        }
 
-            let pageNum = parseInt(page, 10);
-            if (!pageNum || isNaN(pageNum) || pageNum < 1) {
-                if (dontLogErr) return false;
-                this.client.commandHandler.emitError(
-                    new Error('Invalid Page Index'),
-                    message,
-                    this
-                );
-                return false;
-            }
+        const data =
+            sort === 'recent'
+                ? await this.client.nhentai
+                      .search(query, page)
+                      .catch((err: Error) => this.client.logger.error(err.message))
+                : await this.client.nhentai
+                      .search(query, page, sort as Sort)
+                      .catch((err: Error) => this.client.logger.error(err.message));
+        if (!data || !data.result || !data.result.length) {
+            throw new UserError('NO_RESULT', query);
+        }
+        const { result, num_pages, num_results } = data;
+        if (page < 1 || page > num_pages) {
+            throw new UserError('INVALID_PAGE_INDEX', page, num_pages);
+        }
 
-            if (/^\d+$/.test(text.replace('#', ''))) {
-                const command = this.client.commandHandler.findCommand('g');
-                await command.before(message);
-                return command.exec(message, { text: text.replace('#', ''), page: '1' });
+        const { displayList, rip } = this.client.embeds.displayGalleryList(
+            result,
+            this.danger,
+            this.blacklists,
+            {
+                page,
+                num_pages,
+                num_results,
             }
+        );
+        if (rip) this.warning = true;
+        message = await displayList.run(
+            interaction,
+            `> **Searching for** **\`${query}\`**`,
+            message ?? 'editReply'
+        );
 
-            if (!Object.values(Sort).includes(sort as Sort)) {
-                if (dontLogErr) return false;
-                this.client.commandHandler.emitError(
-                    new Error('Invalid Sort Method'),
-                    message,
-                    this
-                );
-                return false;
-            }
-
-            const data =
-                sort === 'recent'
-                    ? await this.client.nhentai
-                          .search(text, pageNum)
-                          .catch(err => this.client.logger.error(err.message))
-                    : await this.client.nhentai
-                          .search(text, pageNum, sort as Sort)
-                          .catch(err => this.client.logger.error(err.message));
-            if (!data) {
-                if (dontLogErr) return false;
-                this.client.commandHandler.emitError(new Error('No Result'), message, this);
-                return false;
-            }
-            const { result, num_pages, num_results } = data;
-            if (!result.length) {
-                if (dontLogErr) return false;
-                this.client.commandHandler.emitError(new Error('No Result'), message, this);
-                return false;
-            }
-
-            if (pageNum > num_pages) {
-                if (dontLogErr) return false;
-                this.client.commandHandler.emitError(
-                    new Error('Invalid Page Index'),
-                    message,
-                    this
-                );
-                return false;
-            }
-
-            const { displayList: displaySearch, rip } = this.client.embeds.displayGalleryList(
-                result,
-                this.danger,
-                this.blacklists,
-                {
-                    page: pageNum,
-                    num_pages,
-                    num_results,
-                    caller: 'search',
-                }
-            );
-            if (rip) this.warning = true;
-            if (this.internalCall && this.currentHandler) {
-                this.currentHandler.display.pages = displaySearch.pages;
-                if (this.currentHandler.warning && !this.warning) {
-                    await this.currentHandler.warning.stop();
-                    if (!this.currentHandler.warning.message.deleted)
-                        await this.currentHandler.warning.message.delete();
-                    this.currentHandler.warning = null;
-                } else if (!this.currentHandler.warning && this.warning) {
-                    this.currentHandler.warning = await this.client.embeds
-                        .richDisplay({ removeOnly: true, removeRequest: false })
-                        .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
-                        .useCustomFooters()
-                        .run(
-                            this.client,
-                            message,
-                            message, // await message.channel.send('Loading ...'),
-                            '',
-                            {
-                                collectorTimeout: 300000,
-                            }
-                        );
-                }
-                this.internalCall = false;
-                return true;
-            }
-            const handler = await displaySearch.run(
-                this.client,
-                message,
-                message, // await message.channel.send('Searching ...'),
-                `> **Searching for galleries • [** ${message.author.tag} **]**`,
-                {
-                    collectorTimeout: 300000,
-                    danger: this.danger,
-                }
-            );
-
-            if (!this.danger && this.warning) {
-                const warning = await this.client.embeds
-                    .richDisplay({ removeOnly: true, removeRequest: false })
-                    .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
-                    .useCustomFooters()
-                    .run(
-                        this.client,
-                        message,
-                        message, // await message.channel.send('Loading ...'),
-                        '',
-                        {
-                            collectorTimeout: 300000,
-                        }
-                    );
-                handler.warning = warning;
-            }
-            this.message = message;
-            this.args = { text, page, sort, dontLogErr };
-            return true;
-        } catch (err) {
-            this.client.logger.error(err.message);
-            return false;
+        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+            this.client.warned.add(interaction.user.id);
+            internal
+                ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
+                      setTimeout(() => {
+                          if (msg.deletable) msg.delete();
+                      }, 180000)
+                  )
+                : await interaction.followUp(this.client.util.communityGuidelines());
         }
     }
 }

@@ -17,13 +17,10 @@
         "emitDecoratorMetadata": false,
         "downlevelIteration": true,
         "paths": {
-            "@notifier/*": ["src/submodules/notifier/*"],
-            "@utils/*": ["src/utils/*"],
-            "@database/*": ["src/database/*"],
-            "@models/*": ["src/database/models/*"],
-            "@structures": ["src/structures/index"],
             "@api/*": ["src/api/*"],
-            "@config": ["config.json"]
+            "@constants": ["src/constants.ts"],
+            "@database/*": ["src/database/*"],
+            "@structures": ["src/structures/index"],
         },
         "plugins": [
             {

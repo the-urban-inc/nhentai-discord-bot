@@ -2,13 +2,9 @@ import { model, Schema, Document } from 'mongoose';
 import type { User } from 'discord.js';
 
 export interface IWatchRecord extends Document {
-    // tag number
     id: number;
-    // type
     type: string;
-    // name
     name: string;
-    // user
     user: User['id'][];
 }
 

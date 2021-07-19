@@ -1,69 +1,64 @@
-import { Command } from '@structures';
-import { Message } from 'discord.js';
-import { WatchModel } from '@notifier/db/models/record';
+import { Client, Command } from '@structures';
+import { CommandInteraction } from 'discord.js';
+import { WatchModel } from '@database/models';
 
 export default class extends Command {
-    constructor() {
-        super('follow', {
-            aliases: ['follow', 'followlist'],
-            nsfw: true,
+    constructor(client: Client) {
+        super(client, {
+            name: 'follow',
+            description: 'Shows your follow list',
             cooldown: 10000,
-            description: {
-                content: 'Shows your own follow list.',
-                examples: ['\nShows your own follow list.'],
-            },
+            nsfw: true,
         });
     }
 
-    async exec(message: Message) {
-        try {
-            const member = message.author;
-            const tags = await WatchModel.find({ user: member.id }).exec();
-            if (!tags) {
-                return message.channel.send(
+    async exec(interaction: CommandInteraction) {
+        const member = interaction.user;
+        const tags = await WatchModel.find({ user: member.id }).exec();
+        if (!tags) {
+            return interaction.editReply({
+                embeds: [
                     this.client.embeds
                         .default()
-                        .setTitle('Follow List')
+                        .setTitle('🔖\u2000Follow List')
                         .setDescription("You haven't followed anything!")
-                        .setFooter(member.tag, member.displayAvatarURL())
-                );
-            } else {
-                if (!tags.length) {
-                    return message.channel.send(
-                        this.client.embeds
-                            .default()
-                            .setTitle('Follow List')
-                            .setDescription("You haven't followed anything!")
-                            .setFooter(member.tag, member.displayAvatarURL())
-                    );
-                }
-                let embed = this.client.embeds
-                    .default()
-                    .setTitle(`Follow List`)
-                    .setFooter(member.tag, member.displayAvatarURL());
-                let t = new Map<string, string[]>();
-                tags.forEach(tag => {
-                    const { type, name } = tag;
-                    let a = t.get(type) || [];
-                    a.push(`\`${name}\``);
-                    t.set(type, a);
-                });
-                [
-                    ['parody', 'Parodies'],
-                    ['character', 'Characters'],
-                    ['tag', 'Tags'],
-                    ['artist', 'Artists'],
-                    ['group', 'Groups'],
-                    ['language', 'Languages'],
-                    ['category', 'Categories'],
-                ].forEach(([key, fieldName]) => {
-                    t.has(key) && embed.addField(fieldName, t.get(key).join(', '));
-                });
-                return message.channel.send(embed);
-            }
-        } catch (err) {
-            this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
+                        .setFooter(member.tag, member.displayAvatarURL()),
+                ],
+            });
         }
+        if (!tags.length) {
+            return interaction.editReply({
+                embeds: [
+                    this.client.embeds
+                        .default()
+                        .setTitle('🔖\u2000Follow List')
+                        .setDescription("You haven't followed anything!")
+                        .setFooter(member.tag, member.displayAvatarURL()),
+                ],
+            });
+        }
+        let embed = this.client.embeds
+            .default()
+            .setTitle(`🔖\u2000Follow List`)
+            .setFooter(member.tag, member.displayAvatarURL());
+        let t = new Map<string, string[]>();
+        tags.forEach(tag => {
+            const { type, name } = tag;
+            let a = t.get(type) || [];
+            a.push(`\`${name}\``);
+            t.set(type, a);
+        });
+        [
+            ['parody', 'Parodies'],
+            ['character', 'Characters'],
+            ['tag', 'Tags'],
+            ['artist', 'Artists'],
+            ['group', 'Groups'],
+            ['language', 'Languages'],
+            ['category', 'Categories'],
+        ].forEach(([key, fieldName]) => {
+            t.has(key) && embed.addField(fieldName, t.get(key).join(', '));
+        });
+        return interaction.editReply({ embeds: [embed] });
     }
 }

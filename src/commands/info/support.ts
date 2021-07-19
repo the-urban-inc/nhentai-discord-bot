@@ -1,24 +1,16 @@
-import { Command } from '@structures';
-import { Message } from 'discord.js';
+import { Client, Command } from '@structures';
+import { CommandInteraction } from 'discord.js';
+import { SUPPORT_SERVER } from '@constants';
 
 export default class extends Command {
-    constructor() {
-        super('support', {
-            aliases: ['support', 'support-server'],
-            description: {
-                content: 'Join the support server!',
-                examples: [
-                    '\nIf you encounter an unexpected result, please report it to the admin/mods in the support server.',
-                ],
-            },
+    constructor(client: Client) {
+        super(client, {
+            name: 'support',
+            description: 'Join the support server',
         });
     }
 
-    async exec(message: Message) {
-        return message.channel.send(
-            this.client.embeds
-                .default()
-                .setDescription(`[Join](https://discord.gg/8PX6QZb) the support server!`)
-        );
+    exec(interaction: CommandInteraction) {
+        return interaction.editReply(SUPPORT_SERVER);
     }
 }

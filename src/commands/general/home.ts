@@ -1,69 +1,40 @@
-import { Command } from '@structures';
-import { Message } from 'discord.js';
-import { User } from '@models/user';
-import { Server } from '@models/server';
-import { Blacklist } from '@models/tag';
-import { ReactionHandler } from '@utils/pagination/ReactionHandler';
-import { BLOCKED_MESSAGE } from '@utils/constants';
-import config from '@config';
-const PREFIX = config.settings.prefix.nsfw[0];
-type ARGS = { page: string; dontLogErr?: boolean };
+import { Client, Command, UserError } from '@structures';
+import { CommandInteraction, Message } from 'discord.js';
+import { User, Server, Blacklist } from '@database/models';
 
 export default class extends Command {
-    constructor() {
-        super('home', {
-            aliases: ['home', 'homepage'],
-            nsfw: true,
+    constructor(client: Client) {
+        super(client, {
+            name: 'home',
+            description:
+                "Shows nhentai homepage. Includes 'Popular Now' section for the first page.",
             cooldown: 20000,
-            description: {
-                content:
-                    "Shows nhentai homepage. Includes 'Popular Now' section for the first page.",
-                usage: '[--page=pagenum]',
-                examples: [
-                    '\nShows a list of galleries (thumbnails) in the homepage.',
-                    ' --page=3\nSame as above but for page 3.',
-                ],
-            },
-            error: {
-                'No Result': {
-                    message: 'Failed to fetch homepage!',
-                    example: `Please try again later. If this error continues to persist, join the support server (${PREFIX}support) and report it to the admin/mods.`,
-                },
-                'Invalid Page Index': {
-                    message: 'Please provide a page index within range!',
-                    example:
-                        ' --page=3\nto show a list of galleries (thumbnails) in the 3rd page of homepage.',
-                },
-            },
-            args: [
+            nsfw: true,
+            options: [
                 {
-                    id: 'page',
-                    match: 'option',
-                    flag: ['--page=', '-p='],
-                    default: '1',
+                    name: 'page',
+                    type: 'INTEGER',
+                    description: 'Page number (default: 1)',
                 },
             ],
         });
     }
 
-    args: ARGS = null;
-    message: Message = null;
-    internalCall = false;
-    currentHandler: ReactionHandler = null;
     danger = false;
     warning = false;
     blacklists: Blacklist[] = [];
 
-    async before(message: Message) {
+    async before(interaction: CommandInteraction) {
         try {
-            let user = await User.findOne({ userID: message.author.id }).exec();
+            let user = await User.findOne({ userID: interaction.user.id }).exec();
             if (!user) {
                 user = await new User({
                     blacklists: [],
+                    anonymous: true,
                 }).save();
             }
             this.blacklists = user.blacklists;
-            let server = await Server.findOne({ serverID: message.guild.id }).exec();
+            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
                     settings: { danger: false },
@@ -73,147 +44,75 @@ export default class extends Command {
             this.warning = false;
         } catch (err) {
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
+            throw new Error(`Database error: ${err.message}`);
         }
     }
 
-    movePage = async (currentHandler: ReactionHandler, diff: number) => {
-        if (!this.args || !this.message) return false;
-        this.args.page = (+this.args.page + diff).toString();
-        this.args.dontLogErr = true;
-        this.internalCall = true;
-        this.currentHandler = currentHandler;
-        return await this.exec(this.message, this.args);
-    };
+    async exec(
+        interaction: CommandInteraction,
+        { internal, message }: { internal?: boolean; message?: Message } = {}
+    ) {
+        await this.before(interaction);
+        const page = (interaction.options.get('page')?.value as number) ?? 1;
+        const data = await this.client.nhentai
+            .home(page)
+            .catch(err => this.client.logger.error(err.message));
+        if (!data || !data.result || !data.result.length) {
+            throw new UserError('NO_RESULT');
+        }
+        const { result, num_pages } = data;
+        if (page < 1 || page > num_pages) {
+            throw new UserError('INVALID_PAGE_INDEX', page, num_pages);
+        }
 
-    async exec(message: Message, { page, dontLogErr }: ARGS) {
-        try {
-            let pageNum = parseInt(page, 10);
-            if (!pageNum || isNaN(pageNum) || pageNum < 1) {
-                if (dontLogErr) return false;
-                this.client.commandHandler.emitError(
-                    new Error('Invalid Page Index'),
-                    message,
-                    this
-                );
-                return false;
-            }
-
-            const data = await this.client.nhentai
-                .home(pageNum)
-                .catch(err => this.client.logger.error(err.message));
-
-            if (!data) {
-                if (dontLogErr) return false;
-                this.client.commandHandler.emitError(new Error('No Result'), message, this);
-                return false;
-            }
-
-            const { result, num_pages } = data;
-            if (pageNum > num_pages) {
-                if (dontLogErr) return false;
-                this.client.commandHandler.emitError(
-                    new Error('Invalid Page Index'),
-                    message,
-                    this
-                );
-                return false;
-            }
-
-            if (pageNum === 1 && !this.internalCall && !this.currentHandler) {
-                const popularNow = data.popular_now;
-                const { displayList: displayPopular, rip } = this.client.embeds.displayGalleryList(
-                    popularNow,
-                    this.danger,
-                    this.blacklists,
-                    {
-                        page: pageNum,
-                        num_pages,
-                    }
-                );
-                if (rip) this.warning = true;
-                await displayPopular.run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...'),
-                    '> `🔥` **Popular Now**',
-                    {
-                        idle: 300000,
-                        danger: this.danger,
-                    }
-                );
-            }
-
-            const newUploads = result;
-            const { displayList: displayNew, rip } = this.client.embeds.displayGalleryList(
-                newUploads,
+        if (page === 1) {
+            const popularNow = data.popular_now;
+            const { displayList: displayPopular, rip } = this.client.embeds.displayGalleryList(
+                popularNow,
                 this.danger,
                 this.blacklists,
                 {
-                    page: pageNum,
+                    page,
                     num_pages,
-                    caller: 'home'
                 }
             );
             if (rip) this.warning = true;
-            if (this.internalCall && this.currentHandler) {
-                this.currentHandler.display.pages = displayNew.pages;
-                if (this.currentHandler.warning && !this.warning) {
-                    await this.currentHandler.warning.stop();
-                    if (!this.currentHandler.warning.message.deleted)
-                        await this.currentHandler.warning.message.delete();
-                    this.currentHandler.warning = null;
-                } else if (!this.currentHandler.warning && this.warning) {
-                    this.currentHandler.warning = await this.client.embeds
-                        .richDisplay({ removeOnly: true, removeRequest: false })
-                        .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
-                        .useCustomFooters()
-                        .run(
-                            this.client,
-                            message,
-                            message, // await message.channel.send('Loading ...'),
-                            '',
-                            {
-                                collectorTimeout: 300000,
-                            }
-                        );
-                }
-                this.internalCall = false;
-                return true;
-            }
-            const handler = await displayNew.run(
-                this.client,
-                message,
-                message, // await message.channel.send('Searching ...'),
-                pageNum === 1 ? '> `🧻` **New Uploads**' : '',
-                {
-                    collectorTimeout: 300000,
-                    danger: this.danger,
-                }
-            );
+            message = await displayPopular.run(interaction, '> `🔥` **Popular Now**', message);
+        }
 
-            if (!this.danger && this.warning) {
-                const warning = await this.client.embeds
-                    .richDisplay({ removeOnly: true, removeRequest: false })
-                    .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
-                    .useCustomFooters()
-                    .run(
-                        this.client,
-                        message,
-                        message, // await message.channel.send('Loading ...'),
-                        '',
-                        {
-                            collectorTimeout: 300000,
-                        }
-                    );
-                handler.warning = warning;
+        const newUploads = result;
+        const { displayList: displayNew, rip } = this.client.embeds.displayGalleryList(
+            newUploads,
+            this.danger,
+            this.blacklists,
+            {
+                page,
+                num_pages,
             }
-            this.message = message;
-            this.args = { page, dontLogErr };
-            return true;
-        } catch (err) {
-            this.client.logger.error(err.message);
-            return false;
+        );
+        if (rip) this.warning = true;
+
+        await displayNew.run(
+            interaction,
+            page === 1 ? '> `🧻` **New Uploads**' : '',
+            internal === true
+                ? message
+                    ? message
+                    : 'editReply'
+                : page === 1
+                ? 'followUp'
+                : 'editReply'
+        );
+
+        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+            this.client.warned.add(interaction.user.id);
+            internal
+                ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
+                      setTimeout(() => {
+                          if (msg.deletable) msg.delete();
+                      }, 180000)
+                  )
+                : await interaction.followUp(this.client.util.communityGuidelines());
         }
     }
 }

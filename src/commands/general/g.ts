@@ -1,62 +1,31 @@
-import { Command } from '@structures';
-import { Message } from 'discord.js';
-import he from 'he';
-import { User } from '@models/user';
-import { Server } from '@models/server';
-import { Blacklist } from '@models/tag';
-import { BLOCKED_MESSAGE } from '@utils/constants';
+import { Client, Command, UserError } from '@structures';
+import { CommandInteraction, Message } from 'discord.js';
+import { decode } from 'he';
+import { User, Server, Blacklist } from '@database/models';
 
 export default class extends Command {
-    constructor() {
-        super('g', {
-            aliases: ['g', 'gallery', 'read'],
-            nsfw: true,
+    constructor(client: Client) {
+        super(client, {
+            name: 'g',
+            description: 'Searches nhentai for specified code',
             cooldown: 20000,
-            description: {
-                content: 'Searches for a code on nhentai.',
-                usage: '<code> [--more] [--auto] [--page=pagenum]',
-                examples: [
-                    ' 177013\nShows info of `177013`.',
-                    ' 177013 --page=5\nImmediately starts reading `177013` at page 5.',
-                    ' 265918 --more\nShows info of `265918`, with the addition of similar galleries and comments made on the main site.',
-                    ' 315281 --auto\nAdds the option of reading `315281` with auto mode, meaning nhentai will turn the pages for you after a set number of seconds (your choice).',
-                ],
-            },
-            error: {
-                'Invalid Query': {
-                    message: 'Please provide a valid code!',
-                    example: ' 177013\nto show info of `177013`.',
-                },
-                'No Result': {
-                    message: 'No gallery found!',
-                    example: 'Try again with a different code.',
-                },
-                'Invalid Page Index': {
-                    message: 'Please provide a page index within range!',
-                    example: ' 177013 --page=5\nto immediately start reading `177013` at page 5.',
-                },
-            },
-            args: [
+            nsfw: true,
+            options: [
                 {
-                    id: 'text',
-                    type: 'string',
-                    match: 'text',
+                    name: 'query',
+                    type: 'INTEGER',
+                    description: 'The code to search for on nhentai',
+                    required: true,
                 },
                 {
-                    id: 'more',
-                    match: 'flag',
-                    flag: ['-m', '--more'],
+                    name: 'page',
+                    type: 'INTEGER',
+                    description: 'Starting page number (default: 1)',
                 },
                 {
-                    id: 'auto',
-                    match: 'flag',
-                    flag: ['-a', '--auto'],
-                },
-                {
-                    id: 'page',
-                    match: 'option',
-                    flag: ['--page=', '-p='],
-                    default: '1',
+                    name: 'more',
+                    type: 'BOOLEAN',
+                    description: 'Views more info about the doujin (default: false)',
                 },
             ],
         });
@@ -67,9 +36,9 @@ export default class extends Command {
     warning = false;
     blacklists: Blacklist[] = [];
 
-    async before(message: Message) {
+    async before(interaction: CommandInteraction) {
         try {
-            let user = await User.findOne({ userID: message.author.id }).exec();
+            let user = await User.findOne({ userID: interaction.user.id }).exec();
             if (!user) {
                 user = await new User({
                     blacklists: [],
@@ -78,7 +47,7 @@ export default class extends Command {
             }
             this.blacklists = user.blacklists;
             this.anonymous = user.anonymous;
-            let server = await Server.findOne({ serverID: message.guild.id }).exec();
+            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
                     settings: { danger: false },
@@ -88,167 +57,102 @@ export default class extends Command {
             this.warning = false;
         } catch (err) {
             this.client.logger.error(err);
-            return message.channel.send(this.client.embeds.internalError(err));
+            throw new Error(`Database error: ${err.message}`);
         }
     }
 
     async exec(
-        message: Message,
-        {
-            text,
-            more,
-            auto,
-            page,
-            dontLogErr,
-        }: { text: string; more?: boolean; auto?: boolean; page?: string; dontLogErr?: boolean }
+        interaction: CommandInteraction,
+        { internal, message }: { internal?: boolean; message?: Message } = {}
     ) {
-        try {
-            if (!text) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(
-                    new Error('Invalid Query'),
-                    message,
-                    this
-                );
-            }
+        await this.before(interaction);
+        const code = interaction.options.get('query').value as number;
+        const more = interaction.options.get('more')?.value as boolean;
+        const page = (interaction.options.get('page')?.value as number) ?? 1;
+        const data = await this.client.nhentai
+            .g(code, more)
+            .catch(err => this.client.logger.error(err.message));
+        if (!data || !data.gallery) {
+            throw new UserError('NO_RESULT', String(code));
+        }
+        const { gallery } = data;
+        if (page < 1 || page > gallery.num_pages) {
+            throw new UserError('INVALID_PAGE_INDEX', page, gallery.num_pages);
+        }
 
-            const codeNum = parseInt(text, 10);
-            if (!codeNum || isNaN(codeNum)) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(
-                    new Error('Invalid Query'),
-                    message,
-                    this
-                );
-            }
+        const { displayGallery, rip } = this.client.embeds.displayFullGallery(
+            gallery,
+            page - 1,
+            this.danger,
+            this.blacklists
+        );
+        if (rip) this.warning = true;
+        message = await displayGallery.run(
+            interaction,
+            `> **Searching for** **\`${code}\`**`,
+            message
+        );
 
-            const result = await this.client.nhentai
-                .g(codeNum, more)
-                .catch(err => this.client.logger.error(err.message));
+        if (more) {
+            const { related, comments } = data;
 
-            if (!result || !result.gallery) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(new Error('No Result'), message, this);
-            }
-
-            // points increase
-            const min = 30,
-                max = 50;
-            const inc = Math.floor(Math.random() * (max - min)) + min;
-
-            const pageNum = parseInt(page, 10);
-            if (!pageNum || isNaN(pageNum) || pageNum < 1 || pageNum > result.gallery.num_pages) {
-                if (dontLogErr) return;
-                return this.client.commandHandler.emitError(
-                    new Error('Invalid Page Index'),
-                    message,
-                    this
-                );
-            }
-
-            const history = {
-                id: result.gallery.id.toString(),
-                type: 'g',
-                name: he.decode(result.gallery.title.english),
-                author: message.author.id,
-                guild: message.guild.id,
-                date: Date.now(),
-            };
-
-            if (message.guild && !this.anonymous) {
-                await this.client.db.Server.history(message, history);
-                await this.client.db.User.history(message.author, history);
-                const leveledUp = await this.client.db.XP.save('add', 'exp', message, inc);
-                if (leveledUp) {
-                    message.channel
-                        .send(
-                            this.client.embeds
-                                .info('Congratulations! You have leveled up!')
-                                .setFooter(message.author.tag, message.author.displayAvatarURL())
-                        )
-                        .then(message => message.delete({ timeout: 10000 }));
-                }
-            }
-
-            const { displayGallery, rip } = this.client.embeds.displayFullGallery(
-                result.gallery,
-                this.danger,
-                auto,
-                this.blacklists,
-                'g'
+            const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(
+                related,
+                this.danger
             );
             if (rip) this.warning = true;
-            if (this.danger || !rip) {
-                await displayGallery.run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...'),
-                    `> **Searching for gallery • [** ${message.author.tag} **]**`,
-                    {
-                        startPage: pageNum - 1,
-                        collectorTimeout: 300000,
-                    }
-                );
-            } else {
-                await displayGallery.run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...')
-                    `> **Searching for gallery • [** ${message.author.tag} **]**`,
-                    {
-                        collectorTimeout: 300000,
-                    }
-                );
-            }
+            await displayRelated.run(interaction, '> **More Like This**');
 
-            if (more) {
-                const { related, comments } = result;
+            if (!comments.length) return;
+            const displayComments = this.client.embeds.displayCommentList(comments);
+            await displayComments.run(interaction, '> `💬` **Comments**');
+        }
 
-                const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(
-                    related,
-                    this.danger
-                );
-                if (rip) this.warning = true;
-                await displayRelated.run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...'),
-                    '> **More Like This**',
-                    {
-                        collectorTimeout: 300000,
-                    }
-                );
+        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+            this.client.warned.add(interaction.user.id);
+            internal
+                ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
+                      setTimeout(() => {
+                          if (msg.deletable) msg.delete();
+                      }, 180000)
+                  )
+                : await interaction.followUp(this.client.util.communityGuidelines());
+        }
 
-                if (!comments.length) return;
-                const displayComments = this.client.embeds.displayCommentList(comments);
-                await displayComments.run(
-                    this.client,
-                    message,
-                    message, // await message.channel.send('Searching ...'),
-                    '> `💬` **Comments**',
-                    {
-                        collectorTimeout: 300000,
-                    }
-                );
-            }
+        const min = 30,
+            max = 50;
+        const inc = Math.floor(Math.random() * (max - min)) + min;
+        const history = {
+            id: gallery.id.toString(),
+            type: 'g',
+            name: decode(gallery.title.english),
+            author: interaction.user.id,
+            guild: interaction.guild.id,
+            date: Date.now(),
+        };
 
-            if (!this.danger && this.warning) {
-                return this.client.embeds
-                    .richDisplay({ removeOnly: true, removeRequest: false })
-                    .addPage(this.client.embeds.clientError(BLOCKED_MESSAGE))
-                    .useCustomFooters()
-                    .run(
-                        this.client,
-                        message,
-                        message, // await message.channel.send('Loading ...')
-                        '',
-                        {
-                            collectorTimeout: 300000,
-                        }
-                    );
-            }
-        } catch (err) {
-            return this.client.logger.error(err.message);
+        if (interaction.guild && !this.anonymous) {
+            await this.client.db.server.history(interaction.guild.id, history);
+            await this.client.db.user.history(interaction.user.id, history);
+            const leveledUp = await this.client.db.xp.save(
+                'add',
+                'exp',
+                interaction.user.id,
+                interaction.guild.id,
+                inc
+            );
+            if (leveledUp)
+                message
+                    ? await message.reply('Congratulations! You have leveled up!').then(msg =>
+                          setTimeout(() => {
+                              if (msg.deletable) msg.delete();
+                          }, 180000)
+                      )
+                    : await interaction.followUp({
+                          content: 'Congratulations! You have leveled up!',
+                          ephemeral:
+                              (interaction.options.get('private')?.value as boolean) ?? false,
+                      });
         }
     }
 }

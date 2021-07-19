@@ -1,196 +1,139 @@
-import { Command } from '@structures';
-import { Argument, Category } from 'discord-akairo';
-import { Message } from 'discord.js';
+import { Client, Command } from '@structures';
+import {
+    Collection,
+    CommandInteraction,
+    Message,
+    MessageActionRow,
+    MessageEmbed,
+    MessageSelectMenu,
+} from 'discord.js';
+import { SUPPORT_SERVER } from '@constants';
 
-const TITLE_LIST = {
-    general: 'General',
-    misc: 'Misc',
-    info: 'Info',
-    asmr: 'ASMR',
-    images: 'Images',
-    owner: 'Owner',
-    settings: 'Settings',
+const CATEGORIES = {
+    qna: ['❔', 'QNA'],
+    asmr: ['👂', 'ASMR'],
+    general: ['🧻', 'General'],
+    images: ['🖼️', 'Images'],
+    info: ['📄', 'Info'],
+    misc: ['🛠️', 'Misc'],
+    owner: ['🔒', 'Owner'],
 };
 
 export default class extends Command {
-    constructor() {
-        super('help', {
-            aliases: ['help', 'halp', 'h'],
-            description: {
-                content: 'Shows a list of commands or information about a command.',
-                usage: '[command]',
-                examples: [
-                    '\nShows a list of commands (after the first page).',
-                    ' home\nShows information about `home` command.',
-                ],
-            },
-            args: [
-                {
-                    id: 'commandAlias',
-                    type: Argument.product('commandAlias', 'lowercase'),
-                },
-            ],
+    constructor(client: Client) {
+        super(client, {
+            name: 'help',
+            description: 'Shows command list and FAQ (that nobody asks)',
+            cooldown: 10000,
         });
     }
 
-    exec(message: Message, { commandAlias }: { commandAlias: [Command, string] }) {
-        if (!commandAlias) return this.execCommandList(message);
-
-        const command = commandAlias[0],
-            alias = commandAlias[1].replace(/nsfw_/, '');
-
-        const prefix =
-            command.nsfw || !('nsfw' in command)
-                ? this.client.config.settings.prefix.nsfw[0]
-                : this.client.config.settings.prefix.sfw[0];
-
-        let {
-            id,
-            aliases,
-            description: { content, examples, additionalInfo },
-            cooldown,
-        } = command;
-        if (command.areMultipleCommands) {
-            id = Object.keys(command.subAliases).find(
-                key => key === alias || command.subAliases[key].aliases?.includes(alias)
-            );
-            aliases = command.subAliases[id].aliases ?? [alias];
-            content = command.subAliases[id].description;
-            examples = command.subAliases[id].examples;
-            additionalInfo = command.subAliases[id].additionalInfo;
+    update(category: string, owner: boolean) {
+        const menu = new MessageSelectMenu().setCustomId('select');
+        for (const c of Object.keys(CATEGORIES).reverse()) {
+            if (c === 'owner' && owner) continue;
+            menu.spliceOptions(0, 0, {
+                label: CATEGORIES[c][1],
+                value: c,
+                emoji: CATEGORIES[c][0],
+                default: c === category,
+            });
         }
-
-        const clientPermissions = command.clientPermissions as string[];
-        const userPermissions = command.userPermissions as string[];
-
-        const embed = this.client.embeds
-            .default()
-            .setTitle(`${prefix}${id}`)
-            .setDescription(`\`\`\`${content ?? 'No description specified.'}\`\`\``);
-
-        embed.addField('Usage', `${prefix}${id} ${command.description.usage ?? ''}`);
-
-        if (examples)
-            embed.addField(
-                'Examples',
-                examples
-                    .map((e: string) => {
-                        const [example = '', description = ''] = e
-                            .replace('\n', '\x01')
-                            .split('\x01');
-                        return `• \`${prefix}${id}${example}\`\n${description}`;
-                    })
-                    .join('\n')
-            );
-
-        if (clientPermissions)
-            embed.addField(
-                'Required Bot Permissions',
-                clientPermissions.map(p => this.client.util.toTitleCase(p)).join(', '),
-                true
-            );
-
-        if (userPermissions)
-            embed.addField(
-                'Required User Permissions',
-                userPermissions.map(p => this.client.util.toTitleCase(p)).join(', '),
-                true
-            );
-
-        if (aliases && aliases.length > 1)
-            embed.addField('Aliases', aliases.slice(1).join(', '), true);
-
-        if (cooldown) embed.addField('Cooldown', `${cooldown / 1000} seconds`, true);
-
-        if (additionalInfo) embed.addField('More', additionalInfo);
-
-        return message.channel.send({ embed });
+        return menu;
     }
 
-    async execCommandList(message: Message) {
-        const prefix = this.client.config.settings.prefix.nsfw[0];
-        const prefixList = this.client.commandHandler.splitPrefix.get(message.guild.id);
-        const display = this.client.embeds.richDisplay({ love: false }).setInfoPage(
-            this.client.embeds
+    async exec(interaction: CommandInteraction) {
+        const embeds = new Collection<string, MessageEmbed>();
+        const qna = this.client.embeds
+            .default()
+            .setTitle('❔\u2000Questions Nobody Asked')
+            .setDescription(
+                `If you still have questions, [join the support server](${SUPPORT_SERVER}) and ask at #help`
+            )
+            .addField('Where are the n! commands?', 'Gone. Completely migrated to slash commands.')
+            .addField(
+                'How to view other pages or sort by popularity?',
+                'After typing the query, press TAB once to input page number, press TAB one more time to input sort method. You can delete the page prompt if you only need to check out the first page. Page number is `1` and sort method is `recent` by default.'
+            )
+            .addField(
+                'What do these buttons/select menus do?',
+                '• `<<` / `>>` : Jumps to first/last page\n' +
+                    '• `<` / `>` : Jumps to previous/next page⁽¹⁾\n' +
+                    '• `x of y` : Jumps to specified page⁽¹⁾\n' +
+                    '• `Sauce?` : Searches for image source using SauceNAO\n' +
+                    '• `❤️` : Adds/Removes a doujin to/from favorites\n' +
+                    '• `🔖` : Follows/Unfollows a tag/artist/parody/etc.\n' +
+                    '• `🏴` : Blacklists a tag/artist/parody/etc.\n' +
+                    '• `📥` : Downloads current doujin\n' +
+                    "• `🗑` : Deletes bot message (and sometimes the user's message)⁽¹⁾\n" +
+                    '• `Info View` / `Thumbnail View` / `Preview`: Toggles between text mode (with tags, artists, etc.)/big images mode/start reading the doujin. For `g` and `random` commands, `Thumbnail View` actually means start reading.⁽¹⁾\n' +
+                    '(1) **Only the person who used the command can use these buttons/select menus** (in the case of messages generated by clicking `Sauce?`, only the person mentioned in the message can use these buttons)'
+            )
+            .addField(
+                'What does following a tag/artist/parody/etc. mean?',
+                "It's a feature that notifies you through DM when a new doujin with a tag you followed was released. You have to allow DM for it to work (obviously)."
+            )
+            .addField(
+                'Why sometimes images are not showing?',
+                'There are many possible reasons:\n' +
+                    '• The media you are viewing contains a banned tag. The bot decided to omit the images to protect the server and itself. You can still unlock them by using the `danger` command. The bot owner will not take any responsibilities if this caused your server to get banned.\nRead [Discord Community Guidelines](https://discord.com/guidelines) for more info. TL;DR: loli, shota, guro.\n' +
+                    '• You blacklisted one of the tags.\n' +
+                    '• Discord AI deems this media unfit to display on Discord.\n' +
+                    '• Image link is dead.\n' +
+                    '• Your internet sucks.\n' +
+                    'Note: It is obviously impossible to `Preview` a doujin with banned tags.'
+            )
+            .addField(
+                'Why sometimes the bot just stopped working?',
+                'Again, there are many possible reasons:\n' +
+                    "• If it's only the buttons that didn't work, it could be that no buttons were clicked in that message for more than 3-5 minutes, so the bot just stopped listening.\n" +
+                    '• The bot is hosted on Heroku, which restarts roughly every 24-hour.\n' +
+                    '• A new update just came out and the bot needed to restart to apply new changes.'
+            );
+        embeds.set('qna', qna);
+        for (const [category, commandNames] of this.client.categories.entries()) {
+            if (category === 'owner' && interaction.user.id !== this.client.ownerID) continue;
+            const commands = commandNames.map(c => this.client.commands.get(c).data);
+            const embed = this.client.embeds
                 .default()
-                .setTitle('Command List')
+                .setTitle(CATEGORIES[category].join('\u2000'))
                 .setDescription(
-                    `Use \`${prefix}help [command]\` for more help. E.g: \`${prefix}help g\`.\nCommands with the \`🔞\` icon are NSFW commands and can only be used in NSFW channels with NSFW prefix(es) [${prefixList.nsfw
-                        .map(p => `\`${p}\``)
-                        .join(
-                            ', '
-                        )}].\nCommands in the Images category that isn't NSFW can only be used SFW prefix(es) [${prefixList.sfw
-                        .map(p => `\`${p}\``)
-                        .join(', ')}].\nOther commands can be used with both types of prefix.`
+                    'Note: All commands are slash commands, a feature Discord [introduced](https://blog.discord.com/slash-commands-are-here-8db0a385d9e6) not long ago. Commands with the `🔞` icon are NSFW commands and can only be used in NSFW channels.'
                 )
-                .addField('Command Guide', [
-                    'While searching for command help, you might come across theses symbols `<>`, `[]` or `()` in the help message. They mean:',
-                    '• <> : Required',
-                    '• [] : Optional',
-                    '• () : Choose 1',
-                    `However, you don't need to type \`<>\` when you use the command. E.g   : \`${prefix}g <code> [--more] [--auto] [--page=pagenum]\` can be used like \`${prefix}g 177013\`, \`${prefix}g 177013 --more\`, \`${prefix}g 177013 --more --auto\`, etc.`,
-                ])
-                .addField('Emote Guide', [
-                    'Use these reactions to navigate between pages:',
-                    '• ⏪ ⏩ : Jumps to first/last page⁽¹⁾',
-                    '• ◀ ▶ : Jumps to previous/next page⁽¹⁾',
-                    '• ↗️ : Jumps to specified page⁽¹⁾',
-                    '• ℹ️ : Jumps to info page/Views info of a doujin in doujin list view/Searches for image source using SauceNAO⁽¹⁾',
-                    `• 🇦 ⏹ : Turns on/off auto browsing mode (automatically browse pages) (add --auto to use this feature in ${prefix}g and ${prefix}random command)⁽¹⁾`,
-                    '• ❤️ : Adds/Removes a doujin to/from favorites',
-                    '• 🔖 : Follows/Unfollows a tag/artist/parody/etc.',
-                    '• 🏴 : Blacklists a tag/artist/parody/etc.',
-                    '• 📥 : Downloads current doujin',
-                    "• 🗑 : Deletes bot message (and sometimes the user's message)⁽¹⁾",
-                    '(1) **Only the person who used the command can use these emotes.**',
-                ])
-                .setFooter('Turn to next page for the actual command list.')
-        );
-        for (const [category, commands] of this.client.commandHandler.categories) {
-            const title = TITLE_LIST[category as keyof typeof TITLE_LIST];
-            if (title === 'Owner' && message.author.id !== this.client.ownerID) continue;
-            const publicCommands =
-                message.author.id === this.client.ownerID
-                    ? commands.filter((c: Command) => !c.isConditionalorRegexCommand)
-                    : (commands.filter(
-                          (c: Command) => !c.ownerOnly && !c.isConditionalorRegexCommand
-                      ) as Category<string, Command>);
-            const embed = this.client.embeds.default().setTitle(title);
-            let cmds: string[] = [];
-            publicCommands
-                .sort((a: Command, b: Command) =>
-                    a.areMultipleCommands === b.areMultipleCommands
-                        ? 0
-                        : a.areMultipleCommands
-                        ? 1
-                        : -1
+                .addField(
+                    'Commands',
+                    commands.map(c => `${c.nsfw ? '`🔞`' : ''}__\`${c.name}\`__`).join(' ')
                 )
-                .forEach((c: Command) => {
-                    if (c.areMultipleCommands) {
-                        const subCmds = c.areMultipleCommands
-                            ? Object.keys(c.subAliases)
-                            : c.aliases;
-                        cmds = cmds.concat(
-                            subCmds.map(
-                                sc => `${c.nsfw ? '`🔞`' : ''}__\`${sc.replace(/nsfw_/, '')}\`__`
-                            )
-                        );
-                        cmds.push(cmds.pop() + '\n\n');
-                    } else {
-                        cmds.push(`${c.nsfw ? '`🔞`' : ''}__\`${c.id}\`__`);
-                    }
-                });
-            embed.setDescription(cmds.join(' '));
-            display.addPage(embed);
+                .addField(
+                    'Confused?',
+                    `Check out the QNA page!\nIf you still have questions, [join the support server](${SUPPORT_SERVER})`
+                );
+            embeds.set(category, embed);
         }
-        return display.run(
-            this.client,
-            message,
-            message, // await message.channel.send('Loading command list...'),
-            '',
-            {
-                collectorTimeout: 180000,
-            }
-        );
+        const message = (await interaction.editReply({
+            embeds: [embeds.get('general')],
+            components: [
+                new MessageActionRow().addComponents(
+                    this.update('general', interaction.user.id === this.client.ownerID)
+                ),
+            ],
+        })) as Message;
+        const collector = message.createMessageComponentCollector({
+            filter: i => i.user.id === interaction.user.id,
+            time: 300000,
+        });
+        collector.on('collect', async i => {
+            if (!i.isSelectMenu()) return;
+            await i.deferUpdate();
+            const category = i.values[0];
+            await interaction.editReply({
+                embeds: [embeds.get(category)],
+                components: [
+                    new MessageActionRow().addComponents(
+                        this.update(category, interaction.user.id === this.client.ownerID)
+                    ),
+                ],
+            });
+        });
     }
 }

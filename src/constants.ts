@@ -1,5 +1,3 @@
-import config from '@config';
-
 export const PERMISSIONS = <const>[
     'CONNECT',
     'SPEAK',
@@ -14,6 +12,8 @@ export const PERMISSIONS = <const>[
 ];
 
 export const ICON = 'https://i.imgur.com/cGT4RMd.png';
+
+export const SUPPORT_SERVER = 'https://discord.gg/8PX6QZb';
 
 export const FLAG_EMOJIS = {
     chinese: ':flag_cn:',
@@ -39,7 +39,7 @@ export const BANNED_TAGS_TEXT = [
     'ryona',
 ]; // this should be enough
 
-export const BLOCKED_MESSAGE = `This command call contains contents violating [Discord's Community Guidelines](https://discord.com/guidelines), therefore, for your own safety, I have decided to omit the violating images.\nIf you wish to continue viewing the images, contact someone in your server with the Manage Server permission to unlock them using \`${config.settings.prefix.nsfw[0]}danger\`.`;
+export const BLOCKED_MESSAGE = `This command call contains contents violating Discord's Community Guidelines, therefore, for your own safety, I have decided to omit the violating images.\nIf you wish to continue viewing the images, contact someone in your server with the Manage Server permission to unlock them using the \`danger\` command.`;
 
 export const TAGS = <const>[
     'g',

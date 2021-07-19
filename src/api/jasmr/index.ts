@@ -1,11 +1,11 @@
 import axios, { AxiosResponse } from 'axios';
 import { load } from 'cheerio';
 type Root = ReturnType<typeof load>;
-import qs from 'qs';
 
 interface SearchResult {
     title: string;
     url: string;
+    image: string;
 }
 
 export class Client {
@@ -16,9 +16,12 @@ export class Client {
     }
 
     private async fetch<T>(url: string): Promise<AxiosResponse<T>> {
-        const res = await axios.get(url);
-        if (res.data.error) throw new Error(res.data.error);
-        return res;
+        try {
+            const res = await axios.get(url);
+            return res;
+        } catch (err) {
+            throw err;
+        }
     }
 
     private getURL($: Root): SearchResult {
@@ -29,6 +32,7 @@ export class Client {
                     return {
                         title: $(e).find('.vidtext').text(),
                         url: `${this.baseURL}/${$(e).find('a').attr('href')}`,
+                        image: `${this.baseURL}/${$(e).find('img').attr('src')}`
                     };
                 })
         );
