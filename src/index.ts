@@ -6,12 +6,44 @@ import { Client } from './structures/Client';
 const client = new Client();
 client.start();
 
+let cur = 0;
+
+async function getRandomCode() {
+    const data = await client.nhentai.random();
+    return data?.gallery?.id?.toString() ?? '177013';
+}
+
+async function changePresence() {
+    client.user.setPresence({
+        activities: [
+            [
+                {
+                    name: [
+                        'Abandon all hope, ye who enter here',
+                        'ここから入らんとする者は一切の希望を放棄せよ',
+                    ][Math.round(Math.random())],
+                },
+            ],
+            [{ name: await getRandomCode(), type: <const>'WATCHING' }],
+            [
+                {
+                    name: 'your commands',
+                    type: <const>'LISTENING',
+                },
+            ],
+        ][cur],
+    });
+    cur = (cur + 1) % 3;
+    setTimeout(changePresence, 300000);
+}
+
 client.once('ready', async () => {
     if (!client.application?.owner) await client.application?.fetch();
     const owner = client.application.owner.id;
     client.ownerID = owner;
     client.logger.info(`[READY] Fetched application profile. Setting owner ID to ${owner}.`);
     client.logger.info(`[READY] Logged in as ${client.user.tag}! ID: ${client.user.id}.`);
+    await changePresence();
     await client.commandHandler.loadCommands();
 });
 
