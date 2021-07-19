@@ -2,7 +2,7 @@ FROM node:14.15.0-alpine3.11 as build
 
 WORKDIR /app
 
-RUN apk update && apk add autoconf automake make g++ libtool python3
+RUN apk --no-cache add --virtual .build-deps build-base ca-certificates
 
 COPY package.json .
 RUN yarn install
