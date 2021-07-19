@@ -12,7 +12,8 @@ import {
     MessageEmbed,
     MessageSelectMenu,
     MessageSelectOptionData,
-    TextChannel,
+    Snowflake,
+    SnowflakeUtil,
     User,
 } from 'discord.js';
 import { URL } from 'url';
@@ -57,20 +58,21 @@ export interface PaginatorOptions extends InteractionCollectorOptions<MessageCom
     prompt?: string;
     jumpTimeout?: number;
     collectorTimeout?: number;
-    priorityUser?: User['id'];
+    priorityUser?: User;
 }
 
 const TAGS = ['tag', 'artist', 'character', 'category', 'group', 'parody', 'language'];
 
 export class Paginator {
     readonly client: Client;
+    private readonly id: Snowflake;
     interaction: CommandInteraction;
     collector: InteractionCollector<MessageComponentInteraction>;
     pages: Record<Views, Page[]>;
     private followedUp: boolean;
     private goBack: { previousView: 'info' | 'thumbnail'; previousPage: number; pages: Page[] };
     private readonly methodMap: Collection<Interactions, MessageButton | MessageSelectMenu>;
-    private readonly priorityUser: User['id'] | null;
+    private readonly priorityUser: User | null;
     private readonly info: Info;
     private readonly filter: CollectorFilter<[MessageComponentInteraction]>;
     private image: string | null;
@@ -85,6 +87,8 @@ export class Paginator {
 
     constructor(client: Client, options: PaginatorOptions) {
         this.client = client;
+        this.id = SnowflakeUtil.generate();
+        this.client.paginators.set(this.id, this);
         this.pages = { info: [], thumbnail: [] };
         this.followedUp = false;
         this.methodMap = new Collection<Interactions, MessageButton | MessageSelectMenu>();
@@ -240,7 +244,7 @@ export class Paginator {
                   ]
                 : [this.methodMap.get(Interactions.Remove)]
         );
-        if (this.image) {
+        if (this.image && this.interaction.commandName !== 'sauce' && !this.priorityUser) {
             return [
                 new MessageActionRow().addComponents([
                     this.methodMap.get(Interactions.Info),
@@ -248,13 +252,8 @@ export class Paginator {
                 ]),
             ];
         }
-        if (this.interaction.commandName === 'sauce') {
-            const url = new URL(
-                this.pages[this.#currentView][this.#currentPage]?.embed.description?.match(
-                    /\((.+)\)/
-                )[1] ?? 'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg'
-            );
-            const imageURL = url.origin + url.pathname;
+        if (this.interaction.commandName === 'sauce' || (this.image && this.priorityUser)) {
+            const imageURL = this.image;
             const googleURL = `https://www.google.com/searchbyimage?image_url=${imageURL}&safe=off`,
                 tineyeURL = `https://tineye.com/search/?url=${imageURL}`,
                 ascii2dURL = `https://ascii2d.net/search/url/${imageURL}`,
@@ -344,6 +343,9 @@ export class Paginator {
             const rip = await this.methods.get(method)?.call(this, interaction);
             if (rip) this.collector.stop();
         });
+        this.collector.on('end', () => {
+            this.client.paginators.delete(this.id);
+        });
         return message;
     }
 
@@ -359,7 +361,7 @@ export class Paginator {
             ): Promise<boolean> {
                 if (
                     this.priorityUser
-                        ? this.priorityUser === interaction.user.id
+                        ? this.priorityUser.id !== interaction.user.id
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
@@ -397,7 +399,7 @@ export class Paginator {
             ): Promise<boolean> {
                 if (
                     this.priorityUser
-                        ? this.priorityUser === interaction.user.id
+                        ? this.priorityUser.id !== interaction.user.id
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
@@ -435,7 +437,7 @@ export class Paginator {
             ): Promise<boolean> {
                 if (
                     this.priorityUser
-                        ? this.priorityUser === interaction.user.id
+                        ? this.priorityUser.id !== interaction.user.id
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
@@ -480,7 +482,7 @@ export class Paginator {
             ): Promise<boolean> {
                 if (
                     this.priorityUser
-                        ? this.priorityUser === interaction.user.id
+                        ? this.priorityUser.id !== interaction.user.id
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
@@ -525,7 +527,7 @@ export class Paginator {
             ): Promise<boolean> {
                 if (
                     this.priorityUser
-                        ? this.priorityUser === interaction.user.id
+                        ? this.priorityUser.id !== interaction.user.id
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
@@ -604,6 +606,12 @@ export class Paginator {
                 this: Paginator,
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
+                if (
+                    this.client.paginators.some(
+                        p => p.image === this.image && p.priorityUser?.id === interaction.user.id
+                    )
+                )
+                    return Promise.resolve(false);
                 this.interaction.options.set('query', {
                     name: 'query',
                     type: 'STRING',
@@ -611,7 +619,7 @@ export class Paginator {
                 });
                 await this.client.commands
                     .get('sauce')
-                    .exec(this.interaction, { internal: true, user: interaction.user.id });
+                    .exec(this.interaction, { internal: true, user: interaction.user });
                 return Promise.resolve(false);
             }
         )
@@ -715,7 +723,7 @@ export class Paginator {
             ): Promise<boolean> {
                 if (
                     this.priorityUser
-                        ? this.priorityUser === interaction.user.id
+                        ? this.priorityUser.id === interaction.user.id
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);

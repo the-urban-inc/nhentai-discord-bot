@@ -21,7 +21,10 @@ export default class extends Command {
         });
     }
 
-    async exec(interaction: CommandInteraction, { internal, user }: { internal?: boolean; user?: User['id'] }) {
+    async exec(
+        interaction: CommandInteraction,
+        { internal, user }: { internal?: boolean; user?: User } = {}
+    ) {
         const imageURL = interaction.options.get('query')!.value as string;
         if (!this.client.util.isUrl(imageURL)) {
             throw new UserError('INVALID_IMAGE', imageURL);
@@ -33,7 +36,8 @@ export default class extends Command {
         const display = this.client.embeds.paginator(this.client, {
             startView: 'thumbnail',
             collectorTimeout: 300000,
-            priorityUser: user
+            priorityUser: user,
+            image: imageURL
         });
         for (const {
             url,
@@ -129,7 +133,7 @@ export default class extends Command {
         }
         return await display.run(
             interaction,
-            `> **SauceNAO Search Result**`,
+            `> **SauceNAO Search Result**${user ? `** • [** ${user.tag} **]**` : ''}`,
             internal ? 'followUp' : 'editReply'
         );
     }

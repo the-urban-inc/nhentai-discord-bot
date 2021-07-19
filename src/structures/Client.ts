@@ -1,4 +1,4 @@
-import { Command, CommandHandler, Embeds, Notifier, MusicSubscription, Util, Logger } from './index';
+import { Command, CommandHandler, Embeds, Notifier, MusicSubscription, Paginator, Util, Logger } from './index';
 import { Client as C, ClientOptions, Collection, Snowflake, User } from 'discord.js';
 import { Database } from '@database/index';
 import { Client as JASMRAPI } from '@api/jasmr';
@@ -12,6 +12,7 @@ export class Client extends C {
     commands: Collection<string, Command>;
     categories: Collection<string, string[]>;
     cooldowns: Collection<string, Collection<User['id'], number>>;
+    paginators: Collection<string, Paginator>;
     warned: Set<User['id']>;
     commandHandler: CommandHandler;
     db: Database;
@@ -37,6 +38,7 @@ export class Client extends C {
         this.commands = new Collection<string, Command>();
         this.categories = new Collection<string, string[]>();
         this.cooldowns = new Collection<string, Collection<User['id'], number>>();
+        this.paginators = new Collection<string, Paginator>(); 
         this.warned = new Set<User['id']>();
         this.commandHandler = new CommandHandler(this);
         this.db = new Database(this);
