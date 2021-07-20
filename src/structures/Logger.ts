@@ -7,8 +7,6 @@ import { Client } from './Client';
 import chalk from 'chalk';
 import moment from 'moment';
 import util from 'util';
-import type { ColorResolvable, Snowflake } from 'discord.js';
-import { TextChannel } from 'discord.js';
 
 enum Color {
     RED = 'red',
@@ -23,14 +21,10 @@ enum Color {
  */
 export class Logger {
     constructor(client?: Client) {
-        this.channels = (process.env.LOGGING_CHANNELS ?? '').split(',').filter(Boolean);
         this.client = client;
-        this.discord = false;
     }
 
     client: Client;
-    channels: string[] = [];
-    discord: boolean;
 
     log(...args: any) {
         const text = this.prepareText(args);
@@ -87,21 +81,6 @@ export class Logger {
         const text = chalk[color](content);
         const std = error ? process.stderr : process.stdout;
         std.write(`${timestamp} ${levelTag} ${text}\n`);
-
-        if (this.discord)
-            for (let channel_id of this.channels) {
-                let channel = this?.client.channels.fetch(channel_id as Snowflake);
-                if (channel instanceof TextChannel)
-                    channel.send({
-                        embeds: [
-                            this.client.embeds.default()
-                                .setDescription('```\n' + content + '\n```')
-                                .setColor(color.toUpperCase() as ColorResolvable)
-                                .setFooter(tag)
-                                .setTimestamp(),
-                        ],
-                    });
-            }
     }
 
     clean(item: any) {

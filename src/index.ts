@@ -2,7 +2,8 @@ import { config } from 'dotenv';
 config();
 import { createServer } from 'http';
 createServer().listen(process.env.PORT || 8080);
-const { ENVIRONMENT } = process.env;
+import { Snowflake, TextChannel } from 'discord.js';
+const { ENVIRONMENT, LOGGING_CHANNEL } = process.env;
 import { Client } from './structures/Client';
 const client = new Client();
 client.start();
@@ -51,11 +52,24 @@ client.once('ready', async () => {
 });
 
 client.on('guildCreate', async guild => {
-    client.logger.discord = true;
     client.logger.info(
         `Joined guild "${guild.name}" (ID: ${guild.id}) (Total: ${client.guilds.cache.size} guilds)`
     );
-    client.logger.discord = false;
+    const channel = client.channels.fetch(LOGGING_CHANNEL as Snowflake);
+    if (channel instanceof TextChannel) {
+        channel.send({
+            embeds: [
+                client.embeds
+                    .default()
+                    .setDescription(
+                        '```\n' +
+                            `Joined guild "${guild.name}" (ID: ${guild.id}) (Total: ${client.guilds.cache.size} guilds)` +
+                            '\n```'
+                    )
+                    .setTimestamp(),
+            ],
+        });
+    }
 });
 
 client.on('error', err => client.logger.error(err));
