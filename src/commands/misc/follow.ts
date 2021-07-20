@@ -22,7 +22,6 @@ export default class extends Command {
                         .default()
                         .setTitle('🔖\u2000Follow List')
                         .setDescription("You haven't followed anything!")
-                        .setFooter(member.tag, member.displayAvatarURL()),
                 ],
             });
         }
@@ -33,7 +32,6 @@ export default class extends Command {
                         .default()
                         .setTitle('🔖\u2000Follow List')
                         .setDescription("You haven't followed anything!")
-                        .setFooter(member.tag, member.displayAvatarURL()),
                 ],
             });
         }

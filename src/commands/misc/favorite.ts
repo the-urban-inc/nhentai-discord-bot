@@ -73,7 +73,11 @@ export default class extends Command {
                     this.client.embeds
                         .default()
                         .setTitle('❤️\u2000Favorites List')
-                        .setDescription(`You have no favorite gallery!`),
+                        .setDescription(
+                            `${
+                                member.id === interaction.user.id ? 'You have' : 'This person has'
+                            } no favorite gallery!`
+                        ),
                 ],
             });
         }
@@ -83,7 +87,11 @@ export default class extends Command {
                     this.client.embeds
                         .default()
                         .setTitle('❤️\u2000Favorites List')
-                        .setDescription('You have no favorite gallery!'),
+                        .setDescription(
+                            `${
+                                member.id === interaction.user.id ? 'You have' : 'This person has'
+                            } no favorite gallery!`
+                        ),
                 ],
             });
         }
