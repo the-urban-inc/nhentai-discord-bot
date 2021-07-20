@@ -28,12 +28,13 @@ export class Database {
                 keepAliveInitialDelay: 300000,
                 serverSelectionTimeoutMS: 5000,
             })
-            .catch(err => log.error(`[DATABASE] Connection error : ${err}`));
-        mongoose.connection
-            .on('connected', async () => {
+            .then(async () => {
                 log.info(`[DATABASE] Connected to MongoDB successfully!`);
                 if (!this.client.notifier.current) await this.client.notifier.start();
             })
+            .catch(err => log.error(`[DATABASE] Connection error : ${err}`));
+        mongoose.connection
+            .on('reconnected', () => log.warn(`[DATABASE] Reconnected.`))
             .on('disconnected', () => log.warn(`[DATABASE] Disconnected.`))
             .on('error', err => log.error(`[DATABASE] Connection error : ${err}`));
     }
