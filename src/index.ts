@@ -55,7 +55,7 @@ client.on('guildCreate', async guild => {
     client.logger.info(
         `Joined guild "${guild.name}" (ID: ${guild.id}) (Total: ${client.guilds.cache.size} guilds)`
     );
-    const channel = client.channels.fetch(LOGGING_CHANNEL as Snowflake);
+    const channel = await client.channels.fetch(LOGGING_CHANNEL as Snowflake);
     if (channel instanceof TextChannel) {
         channel.send({
             embeds: [
