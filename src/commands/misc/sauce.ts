@@ -133,7 +133,7 @@ export default class extends Command {
         }
         return await display.run(
             interaction,
-            `> **SauceNAO Search Result**${user ? `** • [** ${user.tag} **]**` : ''}`,
+            `> **SauceNAO Search Result${user ? ` • [** ${user.tag} **]**` : '**'}`,
             internal ? 'followUp' : 'editReply'
         );
     }
