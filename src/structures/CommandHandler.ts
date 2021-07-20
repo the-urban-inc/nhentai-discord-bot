@@ -14,7 +14,7 @@ import {
 import { URL } from 'url';
 import { Server } from '@database/models';
 import { readdirSync } from 'fs';
-const { ENVIRONMENT } = process.env;
+const { ENVIRONMENT, DEVELOPMENT_GUILD } = process.env;
 
 let startCooldown: () => void;
 
@@ -105,7 +105,7 @@ export class CommandHandler extends ApplicationCommandManager {
                 const id =
                     ENVIRONMENT === 'development'
                         ? (
-                              await this.client.guilds.fetch('576000465444012044')
+                              await this.client.guilds.fetch(DEVELOPMENT_GUILD as Snowflake)
                           ).commands.cache.findKey(c => c.name === cmd)
                         : this.client.application?.commands.cache.findKey(c => c.name === cmd);
                 const interaction = new CommandInteraction(this.client, {
@@ -290,23 +290,29 @@ export class CommandHandler extends ApplicationCommandManager {
                 );
                 allCommands = allCommands.concat(...commands);
             }
-            const commands =
+            const existingCommands =
                 ENVIRONMENT === 'development'
-                    ? (await this.client.guilds.fetch('576000465444012044')).commands
-                    : this.client.application?.commands;
-            const existingCommands = commands.cache;
+                    ? await (
+                          await this.client.guilds.fetch(DEVELOPMENT_GUILD as Snowflake)
+                      ).commands.fetch()
+                    : await this.client.application?.commands.fetch();
             let updatedCommands = new Collection<Snowflake, ApplicationCommand>();
             if (!existingCommands.size) {
                 updatedCommands = await this.client.application?.commands.set(
                     allCommands.map(c => c.data),
-                    '576000465444012044'
+                    DEVELOPMENT_GUILD as Snowflake
                 );
             } else {
                 updatedCommands = existingCommands;
                 allCommands.forEach(async cmd => {
                     const cmddb = existingCommands.find(c => c.name === cmd.data.name);
                     if (!cmddb) {
-                        const nw = await commands.create(cmd.data);
+                        const nw = await (ENVIRONMENT === 'development'
+                            ? (
+                                  await this.client.guilds.fetch(DEVELOPMENT_GUILD as Snowflake)
+                              ).commands
+                            : this.client.application?.commands
+                        ).create(cmd.data);
                         updatedCommands.set(nw.id, nw);
                     } else {
                         const common = Object.keys(cmd.data).filter(k => k in cmddb);
@@ -317,7 +323,12 @@ export class CommandHandler extends ApplicationCommandManager {
                             o2[k] = cmddb[k];
                         });
                         if (!this.compareCommandData(o1, o2)) {
-                            const up = await commands.edit(cmddb, cmd.data);
+                            const up = await (ENVIRONMENT === 'development'
+                                ? (
+                                      await this.client.guilds.fetch(DEVELOPMENT_GUILD as Snowflake)
+                                  ).commands
+                                : this.client.application?.commands
+                            ).edit(cmddb, cmd.data);
                             updatedCommands.set(up.id, up);
                         }
                     }
