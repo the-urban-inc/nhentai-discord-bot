@@ -298,10 +298,10 @@ export class CommandHandler extends ApplicationCommandManager {
                     : await this.client.application?.commands.fetch();
             let updatedCommands = new Collection<Snowflake, ApplicationCommand>();
             if (!existingCommands.size) {
-                updatedCommands = await this.client.application?.commands.set(
-                    allCommands.map(c => c.data),
-                    DEVELOPMENT_GUILD as Snowflake
-                );
+                updatedCommands =
+                    ENVIRONMENT === 'development'
+                        ? await this.client.application?.commands.set(allCommands.map(c => c.data), DEVELOPMENT_GUILD as Snowflake)
+                        : await this.client.application?.commands.set(allCommands.map(c => c.data));
             } else {
                 updatedCommands = existingCommands;
                 allCommands.forEach(async cmd => {
