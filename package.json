@@ -44,18 +44,18 @@
         "eslint": "^7.29.0",
         "rimraf": "^3.0.2",
         "ts-node": "^10.0.0",
-        "tsconfig-paths": "^3.9.0",
+        "tsconfig-paths": "^3.10.1",
+        "ttypescript": "^1.5.12",
         "typescript": "^4.3.4"
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "rimraf build/ && tsc",
+        "build": "rimraf build/ && ttsc",
         "lint": "eslint src/**/* --ext .ts",
-        "start": "node -r ts-node/register/transpile-only -r tsconfig-paths/register --trace-warnings --trace-deprecation build/src/index.js",
-        "start:web": "node -r ts-node/register/transpile-only -r tsconfig-paths/register --trace-warnings --trace-deprecation build/src/web/index.js",
-        "dev": "ts-node -r tsconfig-paths/register src/index.ts",
-        "dev:web": "ts-node -r tsconfig-paths/register src/web/index.ts",
-        "wipe": "ts-node -r tsconfig-paths/register scripts/wipe.ts"
+        "start": "node --trace-warnings --trace-deprecation build/src/index.js",
+        "start:web": "node --trace-warnings --trace-deprecation build/src/web/index.js",
+        "dev": "ts-node --compiler ttypescript src/index.ts",
+        "dev:web": "ts-node --compiler ttypescript src/web/index.ts"
     },
     "engines": {
         "node": ">=14.x"

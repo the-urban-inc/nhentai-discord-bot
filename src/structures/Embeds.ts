@@ -4,7 +4,7 @@ import { Paginator, PaginatorOptions } from './Paginator';
 import { decode } from 'he';
 import moment from 'moment';
 import { Gallery, Comment, Language } from '@api/nhentai';
-import { ICON, BANNED_TAGS, FLAG_EMOJIS } from '@constants';
+import { BANNED_TAGS, FLAG_EMOJIS } from '@constants';
 import { Blacklist } from '@database/models';
 
 export class Embeds {
