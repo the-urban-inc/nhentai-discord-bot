@@ -51,8 +51,8 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "rimraf build/ && tsc",
         "lint": "eslint src/**/* --ext .ts",
-        "start": "node -r tsconfig-paths/register --trace-warnings --trace-deprecation build/src/index.js",
-        "start:web": "node -r tsconfig-paths/register --trace-warnings --trace-deprecation build/src/web/index.js",
+        "start": "node -r ts-node/register/transpile-only -r tsconfig-paths/register --trace-warnings --trace-deprecation build/src/index.js",
+        "start:web": "node -r ts-node/register/transpile-only -r tsconfig-paths/register --trace-warnings --trace-deprecation build/src/web/index.js",
         "dev": "ts-node -r tsconfig-paths/register src/index.ts",
         "dev:web": "ts-node -r tsconfig-paths/register src/web/index.ts",
         "wipe": "ts-node -r tsconfig-paths/register scripts/wipe.ts"
