@@ -267,7 +267,7 @@ export class CommandHandler extends ApplicationCommandManager {
             const commandFolders = readdirSync(`${__dirname}/../commands/`);
             for (const folder of commandFolders) {
                 const commandFiles = readdirSync(`${__dirname}/../commands/${folder}`).filter(
-                    file => file.endsWith('.ts')
+                    file => file.endsWith('.js') || file.endsWith('.ts')
                 );
                 const commands = await Promise.all(
                     commandFiles.map(async file => {

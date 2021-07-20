@@ -2,6 +2,7 @@ import { config } from 'dotenv';
 config();
 import { createServer } from 'http';
 createServer().listen(process.env.PORT || 8080);
+const { ENVIRONMENT } = process.env;
 import { Client } from './structures/Client';
 const client = new Client();
 client.start();
@@ -44,7 +45,9 @@ client.once('ready', async () => {
     client.logger.info(`[READY] Fetched application profile. Setting owner ID to ${owner}.`);
     client.logger.info(`[READY] Logged in as ${client.user.tag}! ID: ${client.user.id}.`);
     await changePresence();
+    await client.db.init();
     await client.commandHandler.loadCommands();
+    if (ENVIRONMENT !== 'development') await client.fakku.setup();
 });
 
 client.on('guildCreate', async guild => {

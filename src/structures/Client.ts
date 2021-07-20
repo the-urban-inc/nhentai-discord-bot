@@ -5,7 +5,7 @@ import { Client as JASMRAPI } from '@api/jasmr';
 import { Client as NhentaiAPI } from '@api/nhentai';
 import { Client as FakkuAPI } from '@api/fakku';
 import { Client as ImageAPI } from '@api/images';
-const { DISCORD_TOKEN } = process.env;
+const { DISCORD_TOKEN, ENVIRONMENT } = process.env;
 
 export class Client extends C {
     ownerID: string;
@@ -54,8 +54,6 @@ export class Client extends C {
     }
 
     async start(): Promise<void> {
-        await this.db.init();
-        // await this.fakku.setup(); // Comment this line out if you don't want to scrape Fakku magazine page everytime the bot starts up
         await super.login(DISCORD_TOKEN);
     }
 }
