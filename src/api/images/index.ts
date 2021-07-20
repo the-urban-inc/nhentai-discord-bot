@@ -29,39 +29,50 @@ export class Client {
         return false;
     }
 
-    public async fetch(query: Endpoint): Promise<string> {
+    public async fetch(type: 'actions' | 'sfw' | 'nsfw', query: Endpoint): Promise<string> {
         const urls: string[] = [];
-        for await (const method of [ACTIONS, SFW_METHODS, NSFW_METHODS]) {
-            if (method[query]?.nekoslife) {
-                const q = this.random(method[query].nekoslife) as keyof typeof NekosClient;
-                try {
-                    const url = (await this.NekosAPI[query in NSFW_METHODS ? 'nsfw' : 'sfw'][q]())
-                        ?.url;
-                    if (this.isURL(url)) urls.push(url);
-                } catch (err) {
+        let method: typeof ACTIONS | typeof SFW_METHODS | typeof NSFW_METHODS;
+        switch (type) {
+            case 'actions':
+                method = ACTIONS;
+                break;
+            case 'sfw':
+                method = SFW_METHODS;
+                break;
+            case 'nsfw':
+                method = NSFW_METHODS;
+            default:
+                break;
+        }
+        if (method[query]?.nekoslife) {
+            const q = this.random(method[query].nekoslife) as keyof typeof NekosClient;
+            try {
+                const url = (await this.NekosAPI[type][q]())
+                    ?.url;
+                if (this.isURL(url)) urls.push(url);
+            } catch (err) {
+                /* ignore */
+            }
+        }
+        if (method[query]?.nekobot) {
+            const q = this.random(method[query].nekobot);
+            const url = await axios
+                .get(this.nekobotAPI + q)
+                .then(res => res.data.message)
+                .catch(err => {
                     /* ignore */
-                }
-            }
-            if (method[query]?.nekobot) {
-                const q = this.random(method[query].nekobot);
-                const url = await axios
-                    .get(this.nekobotAPI + q)
-                    .then(res => res.data.message)
-                    .catch(err => {
-                        /* ignore */
-                    });
-                if (this.isURL(url)) urls.push(url);
-            }
-            if (method[query]?.hmtai) {
-                const q = this.random(method[query].hmtai);
-                const url = await axios
-                    .get(this.hmtaiAPI + q)
-                    .then(res => res.data.url)
-                    .catch(err => {
-                        /* ignore */
-                    });
-                if (this.isURL(url)) urls.push(url);
-            }
+                });
+            if (this.isURL(url)) urls.push(url);
+        }
+        if (method[query]?.hmtai) {
+            const q = this.random(method[query].hmtai);
+            const url = await axios
+                .get(this.hmtaiAPI + q)
+                .then(res => res.data.url)
+                .catch(err => {
+                    /* ignore */
+                });
+            if (this.isURL(url)) urls.push(url);
         }
         return this.random(urls);
     }

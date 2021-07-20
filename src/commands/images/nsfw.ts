@@ -32,7 +32,7 @@ export default class extends Command {
         if (!(tag in NSFW_METHODS)) {
             throw new UserError('UNKNOWN_TAG', tag);
         }
-        const image = await this.client.images.fetch(tag as keyof typeof NSFW_METHODS);
+        const image = await this.client.images.fetch('nsfw', tag as keyof typeof NSFW_METHODS);
         if (!this.client.util.isUrl(image)) {
             throw new UserError('NO_RESULT', tag);
         }

@@ -34,7 +34,7 @@ export class Database {
             })
             .catch(err => log.error(`[DATABASE] Connection error : ${err}`));
         mongoose.connection
-            .on('reconnected', () => log.warn(`[DATABASE] Reconnected.`))
+            .on('reconnected', () => log.info(`[DATABASE] Reconnected.`))
             .on('disconnected', () => log.warn(`[DATABASE] Disconnected.`))
             .on('error', err => log.error(`[DATABASE] Connection error : ${err}`));
     }

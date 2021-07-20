@@ -44,7 +44,7 @@ export default class extends Command {
     async exec(interaction: CommandInteraction) {
         const action = interaction.options.get('action').value as keyof typeof ACTIONS;
         const user = (interaction.options.get('user')?.user as User) ?? interaction.user;
-        const image = await this.client.images.fetch(action);
+        const image = await this.client.images.fetch('actions', action);
         if (!this.client.util.isUrl(image)) {
             throw new UserError('NO_RESULT');
         }
