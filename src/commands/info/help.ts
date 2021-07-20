@@ -56,6 +56,10 @@ export default class extends Command {
                 "They're all merged into action, sfw-image and nsfw-image commands due to Discord's commands limit."
             )
             .addField(
+                'What is the private option and why is it in every commands?',
+                "It basically works like DM. No one can see the message the bot sends to you if it's set to True."
+            )
+            .addField(
                 'How to view other pages or sort by popularity?',
                 'After typing the query, press TAB once to input page number, press TAB one more time to input sort method. You can delete the page prompt if you only need to check out the first page. Page number is `1` and sort method is `recent` by default.'
             )
