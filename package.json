@@ -14,7 +14,7 @@
         "booru": "^2.4.0",
         "chalk": "^4.1.1",
         "cheerio": "1.0.0-rc.5",
-        "discord.js": "13.0.0-dev.1dcad05.1626134620",
+        "discord.js": "13.0.0-dev.02f55f0.1626742085",
         "dotenv": "^10.0.0",
         "express": "^4.17.1",
         "ffmpeg-static": "^4.4.0",

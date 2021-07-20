@@ -57,9 +57,9 @@ export default class extends Command {
             )
             .addField(
                 'What do these buttons/select menus do?',
-                '• `<<` / `>>` : Jumps to first/last page\n' +
-                    '• `<` / `>` : Jumps to previous/next page⁽¹⁾\n' +
-                    '• `x of y` : Jumps to specified page⁽¹⁾\n' +
+                '• `<<` / `>>` : Jumps to first/last embed | Jumps to previous/next page on nhentai (only works for home, search, tag, artist, etc. commands)\n' +
+                    '• `<` / `>` : Jumps to previous/next embed | Jumps to previous/next page on nhentai (only works for home, search, tag, artist, etc. commands)⁽¹⁾\n' +
+                    '• `x of y` : Jumps to specified embed⁽¹⁾\n' +
                     '• `Sauce?` : Searches for image source using SauceNAO\n' +
                     '• `❤️` : Adds/Removes a doujin to/from favorites\n' +
                     '• `🔖` : Follows/Unfollows a tag/artist/parody/etc.\n' +

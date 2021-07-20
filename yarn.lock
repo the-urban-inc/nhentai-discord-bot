@@ -78,7 +78,7 @@
     "@discordjs/node-pre-gyp" "^0.4.0"
     node-addon-api "^3.2.1"
 
-"@discordjs/voice@^0.5.3":
+"@discordjs/voice@0.5.3":
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/@discordjs/voice/-/voice-0.5.3.tgz#fbb1821b64d3dff1d379ec3821d632f1e11b95bb"
   integrity sha512-We7rumaR6prv/nHavWQzo/4Qk8enROWJ0Y8Zpe5GwI8vRXxas0Tn+oiD7PE+VTmIAx3QyMuB3l26mHv7zydTdQ==
@@ -1123,15 +1123,15 @@ discord-api-types@^0.18.1:
   resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.18.1.tgz#5d08ed1263236be9c21a22065d0e6b51f790f492"
   integrity sha512-hNC38R9ZF4uaujaZQtQfm5CdQO58uhdkoHQAVvMfIL0LgOSZeW575W8H6upngQOuoxWd8tiRII3LLJm9zuQKYg==
 
-discord-api-types@^0.19.0-next.f393ba520d7d6d2aacaca7b3ca5d355fab614f6e:
-  version "0.19.0-next.f393ba520d7d6d2aacaca7b3ca5d355fab614f6e"
-  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.19.0-next.f393ba520d7d6d2aacaca7b3ca5d355fab614f6e.tgz#d5f36f5712ec8fe2fe928b5c37618c94a3969d6a"
-  integrity sha512-ttRA/8e/WKHDbGFfED5WlS7gID+kalmNr6iMiWBCvkphQ7kFHiTOVbnj/zX9ksaRaYXp/I38SCQ+qZvLu8DJZg==
+discord-api-types@^0.19.0:
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.19.0.tgz#86ba8021b29190cf860e90a2bc3e29b1d7aab3ba"
+  integrity sha512-t2HKLd43Lbe+rf+ffYfKVv9Kk5f6p7sFqvO6CMV55ZB0PgZv8WigCkt9FoJciYo5S3Q6CGYK+WnE/ZG+6vkBDQ==
 
-discord.js@^13.0.0-dev.1dcad05.1626134620:
-  version "13.0.0-dev.1dcad05.1626134620"
-  resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-13.0.0-dev.1dcad05.1626134620.tgz#28cb9526298af69d1f412e4699a54ad94b65702d"
-  integrity sha512-2pbZRe77sgk4wYBANEAhzIIXFCIeNlezP/nApBjkxV2ffX5pKSxhSmDQ7rOtFKkIDyOEawOJcNA5SJsMYCi9HQ==
+discord.js@^13.0.0-dev.02f55f0.1626742085:
+  version "13.0.0-dev.02f55f0.1626742085"
+  resolved "https://registry.yarnpkg.com/discord.js/-/discord.js-13.0.0-dev.02f55f0.1626742085.tgz#8cbb0e5773e8a500e3ff5540046e1e08599ed4b5"
+  integrity sha512-hvHQDkiDy/3GxUoyP/sOyPi5dAyJQONfpTJQPIYumfU2xKFTzCB4UbN7P+5Ky87yBwoiOu0Lt5n7uDGkk3ayiA==
   dependencies:
     "@discordjs/builders" "^0.2.0"
     "@discordjs/collection" "^0.1.6"
@@ -1139,7 +1139,7 @@ discord.js@^13.0.0-dev.1dcad05.1626134620:
     "@sapphire/async-queue" "^1.1.4"
     "@types/ws" "^7.4.5"
     abort-controller "^3.0.0"
-    discord-api-types "^0.19.0-next.f393ba520d7d6d2aacaca7b3ca5d355fab614f6e"
+    discord-api-types "^0.19.0"
     node-fetch "^2.6.1"
     ws "^7.5.1"
 

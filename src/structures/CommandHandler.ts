@@ -6,6 +6,7 @@ import {
     ApplicationCommandManager,
     Collection,
     CommandInteraction,
+    CommandInteractionOptionResolver,
     DMChannel,
     Snowflake,
     TextChannel,
@@ -13,6 +14,7 @@ import {
 import { URL } from 'url';
 import { Server } from '@database/models';
 import { readdirSync } from 'fs';
+const { ENVIRONMENT } = process.env;
 
 let startCooldown: () => void;
 
@@ -100,9 +102,12 @@ export class CommandHandler extends ApplicationCommandManager {
                 const cmd = path[0],
                     page = pageNum.toString();
                 const command = this.client.commands.get(cmd);
-                const id = (
-                    await this.client.guilds.fetch('576000465444012044')
-                ).commands.cache.findKey(c => c.name === cmd); // this.client.application?.commands.cache.findKey(c => c.name === cmd);
+                const id =
+                    ENVIRONMENT === 'development'
+                        ? (
+                              await this.client.guilds.fetch('576000465444012044')
+                          ).commands.cache.findKey(c => c.name === cmd)
+                        : this.client.application?.commands.cache.findKey(c => c.name === cmd);
                 const interaction = new CommandInteraction(this.client, {
                     id: message.id,
                     type: 2,
@@ -114,21 +119,23 @@ export class CommandHandler extends ApplicationCommandManager {
                     member: message.member,
                     version: 1,
                 });
-                interaction.options.set('query', {
-                    name: 'query',
-                    type: 'STRING',
-                    value: cmd === 'search' ? q : path[1],
-                });
-                interaction.options.set('page', {
-                    name: 'query',
-                    type: 'INTEGER',
-                    value: page,
-                });
-                interaction.options.set('sort', {
-                    name: 'sort',
-                    type: 'STRING',
-                    value: sort,
-                });
+                interaction.options = new CommandInteractionOptionResolver(this.client, [
+                    {
+                        name: 'query',
+                        type: 'STRING',
+                        value: cmd === 'search' ? q : path[1],
+                    },
+                    {
+                        name: 'page',
+                        type: 'INTEGER',
+                        value: page,
+                    },
+                    {
+                        name: 'sort',
+                        type: 'STRING',
+                        value: sort,
+                    },
+                ]);
                 await command.exec(interaction, { internal: true, message });
             } catch (err) {
                 this.client.logger.error(err);
@@ -283,8 +290,11 @@ export class CommandHandler extends ApplicationCommandManager {
                 );
                 allCommands = allCommands.concat(...commands);
             }
-            const commands = (await this.client.guilds.fetch('576000465444012044')).commands; // this.client.application?.commands;
-            const existingCommands = await commands.fetch();
+            const commands =
+                ENVIRONMENT === 'development'
+                    ? (await this.client.guilds.fetch('576000465444012044')).commands
+                    : this.client.application?.commands;
+            const existingCommands = commands.cache;
             let updatedCommands = new Collection<Snowflake, ApplicationCommand>();
             if (!existingCommands.size) {
                 updatedCommands = await this.client.application?.commands.set(

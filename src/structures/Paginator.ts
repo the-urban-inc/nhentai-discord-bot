@@ -3,6 +3,7 @@ import {
     Collection,
     CollectorFilter,
     CommandInteraction,
+    CommandInteractionOptionResolver,
     InteractionCollector,
     InteractionCollectorOptions,
     Message,
@@ -369,12 +370,37 @@ export class Paginator {
                     if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
                         if (
                             (this.interaction.commandName === 'home' &&
-                                (this.interaction.options.get('page')?.value ?? 1) === 1) ||
-                            !this.interaction.options.get('page')
-                        )
-                            return Promise.resolve(false);
-                        this.interaction.options.get('page')!.value =
-                            (this.interaction.options.get('page')!.value as number) - 1;
+                                (this.interaction.options.getInteger('page') ?? 1) === 1) ||
+                            !this.interaction.options.getInteger('page')
+                        ) {
+                            if (!this.followedUp) return Promise.resolve(false);
+                            else await (interaction.message as Message).delete();
+                        }
+                        this.interaction.options = new CommandInteractionOptionResolver(
+                            this.client,
+                            [
+                                {
+                                    name: 'query',
+                                    type: 'STRING',
+                                    value: this.interaction.options.getString('query') ?? '',
+                                },
+                                {
+                                    name: 'page',
+                                    type: 'INTEGER',
+                                    value: this.interaction.options.getInteger('page') - 1,
+                                },
+                                {
+                                    name: 'sort',
+                                    type: 'STRING',
+                                    value: this.interaction.options.getString('sort') ?? 'recent',
+                                },
+                                {
+                                    name: 'private',
+                                    type: 'BOOLEAN',
+                                    value: this.interaction.options.getBoolean('private') ?? false
+                                }
+                            ]
+                        );
                         await this.turnPage(interaction);
                         try {
                             await this.client.commands
@@ -407,12 +433,37 @@ export class Paginator {
                     if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
                         if (
                             (this.interaction.commandName === 'home' &&
-                                (this.interaction.options.get('page')?.value ?? 1) === 1) ||
-                            !this.interaction.options.get('page')
-                        )
-                            return Promise.resolve(false);
-                        this.interaction.options.get('page')!.value =
-                            (this.interaction.options.get('page')!.value as number) - 1;
+                                (this.interaction.options.getInteger('page') ?? 1) === 1) ||
+                            !this.interaction.options.getInteger('page')
+                        ) {
+                            if (!this.followedUp) return Promise.resolve(false);
+                            else await (interaction.message as Message).delete();
+                        }
+                        this.interaction.options = new CommandInteractionOptionResolver(
+                            this.client,
+                            [
+                                {
+                                    name: 'query',
+                                    type: 'STRING',
+                                    value: this.interaction.options.getString('query') ?? '',
+                                },
+                                {
+                                    name: 'page',
+                                    type: 'INTEGER',
+                                    value: this.interaction.options.getInteger('page') - 1,
+                                },
+                                {
+                                    name: 'sort',
+                                    type: 'STRING',
+                                    value: this.interaction.options.getString('sort') ?? 'recent',
+                                },
+                                {
+                                    name: 'private',
+                                    type: 'BOOLEAN',
+                                    value: this.interaction.options.getBoolean('private') ?? false
+                                }
+                            ]
+                        );
                         await this.turnPage(interaction);
                         try {
                             await this.client.commands
@@ -445,19 +496,36 @@ export class Paginator {
                     if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
                         if (
                             this.interaction.commandName === 'home' &&
-                            (this.interaction.options.get('page')?.value ?? 1) === 1
+                            (this.interaction.options.getInteger('page') ?? 1) === 1
                         ) {
                             if (!this.followedUp) return Promise.resolve(false);
                             else await (interaction.message as Message).delete();
                         }
-                        if (!this.interaction.options.get('page'))
-                            this.interaction.options.set('page', {
-                                name: 'page',
-                                type: 'INTEGER',
-                                value: 1,
-                            });
-                        this.interaction.options.get('page')!.value =
-                            (this.interaction.options.get('page')!.value as number) + 1;
+                        this.interaction.options = new CommandInteractionOptionResolver(
+                            this.client,
+                            [
+                                {
+                                    name: 'query',
+                                    type: 'STRING',
+                                    value: this.interaction.options.getString('query') ?? '',
+                                },
+                                {
+                                    name: 'page',
+                                    type: 'INTEGER',
+                                    value: (this.interaction.options.getInteger('page') ?? 1) + 1,
+                                },
+                                {
+                                    name: 'sort',
+                                    type: 'STRING',
+                                    value: this.interaction.options.getString('sort') ?? 'recent',
+                                },
+                                {
+                                    name: 'private',
+                                    type: 'BOOLEAN',
+                                    value: this.interaction.options.getBoolean('private') ?? false
+                                }
+                            ]
+                        );
                         await this.turnPage(interaction);
                         try {
                             await this.client.commands
@@ -490,19 +558,36 @@ export class Paginator {
                     if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
                         if (
                             this.interaction.commandName === 'home' &&
-                            (this.interaction.options.get('page')?.value ?? 1) === 1
+                            (this.interaction.options.getInteger('page') ?? 1) === 1
                         ) {
                             if (!this.followedUp) return Promise.resolve(false);
                             else await (interaction.message as Message).delete();
                         }
-                        if (!this.interaction.options.get('page'))
-                            this.interaction.options.set('page', {
-                                name: 'page',
-                                type: 'INTEGER',
-                                value: 1,
-                            });
-                        this.interaction.options.get('page')!.value =
-                            (this.interaction.options.get('page')!.value as number) + 1;
+                        this.interaction.options = new CommandInteractionOptionResolver(
+                            this.client,
+                            [
+                                {
+                                    name: 'query',
+                                    type: 'STRING',
+                                    value: this.interaction.options.getString('query') ?? '',
+                                },
+                                {
+                                    name: 'page',
+                                    type: 'INTEGER',
+                                    value: (this.interaction.options.getInteger('page') ?? 1) + 1,
+                                },
+                                {
+                                    name: 'sort',
+                                    type: 'STRING',
+                                    value: this.interaction.options.getString('sort') ?? 'recent',
+                                },
+                                {
+                                    name: 'private',
+                                    type: 'BOOLEAN',
+                                    value: this.interaction.options.getBoolean('private') ?? false
+                                }
+                            ]
+                        );
                         await this.turnPage(interaction);
                         try {
                             await this.client.commands
@@ -612,11 +697,21 @@ export class Paginator {
                     )
                 )
                     return Promise.resolve(false);
-                this.interaction.options.set('query', {
-                    name: 'query',
-                    type: 'STRING',
-                    value: this.image,
-                });
+                    this.interaction.options = new CommandInteractionOptionResolver(
+                        this.client,
+                        [
+                            {
+                                name: 'query',
+                                type: 'STRING',
+                                value: this.image,
+                            },
+                            {
+                                name: 'private',
+                                type: 'BOOLEAN',
+                                value: this.interaction.options.getBoolean('private') ?? false
+                            }
+                        ]
+                    );
                 await this.client.commands
                     .get('sauce')
                     .exec(this.interaction, { internal: true, user: interaction.user });

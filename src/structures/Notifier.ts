@@ -98,7 +98,7 @@ export class Notifier {
         if (watches.size === 0) {
             this.client.logger.warn(`[NOTIFIER] No tags to be watched for. I will not start.`);
         } else {
-            this.current = this.client.setInterval(async () => {
+            this.current = setInterval(async () => {
                 let _ = await this.getCode();
                 if (this.last < _) {
                     this.client.logger.info(
