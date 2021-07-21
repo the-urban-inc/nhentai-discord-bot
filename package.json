@@ -1,11 +1,11 @@
 {
     "name": "nhentai-discord-bot",
-    "version": "4.0.0",
+    "version": "4.1.0",
     "description": "A Discord bot specializes in nhentai, (but it also does other things)",
     "main": "/build/src/index.js",
     "repository": "git@github.com:the-urban-inc/nsfw-discord-bot.git",
     "author": "t41y0u <vuthaiduong0607@gmail.com>",
-    "license": "MIT",
+    "license": "AGPL-3.0",
     "dependencies": {
         "@discordjs/opus": "^0.5.3",
         "@discordjs/voice": "0.5.3",
