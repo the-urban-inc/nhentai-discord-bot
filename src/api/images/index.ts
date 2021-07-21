@@ -47,7 +47,7 @@ export class Client {
         if (method[query]?.nekoslife) {
             const q = this.random(method[query].nekoslife) as keyof typeof NekosClient;
             try {
-                const url = (await this.NekosAPI[type][q]())
+                const url = (await this.NekosAPI[type === 'nsfw' ? 'nsfw' : 'sfw'][q]())
                     ?.url;
                 if (this.isURL(url)) urls.push(url);
             } catch (err) {
