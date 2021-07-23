@@ -50,7 +50,10 @@ export default class extends Command {
             .setDescription(
                 `If you still have questions, [join the support server](${SUPPORT_SERVER}) and ask at #help`
             )
-            .addField('Where are the n! commands?', 'Gone. Completely migrated to slash commands.')
+            .addField(
+                'Where are the n! commands?',
+                "~~Gone. Completely migrated to slash commands.~~ They're back."
+            )
             .addField(
                 'Where is the thigh command? (And other images commands?)',
                 "They're all merged into action, sfw-image and nsfw-image commands due to Discord's commands limit."

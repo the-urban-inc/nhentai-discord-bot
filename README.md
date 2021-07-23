@@ -14,7 +14,7 @@
 ---
 
 # About
-nhentai is an open source nhentai Discord bot powered by [TypeScript](https://www.typescriptlang.org/) with [discord.js](https://discord.js.org/#/) using the [Akairo](https://discord-akairo.github.io/#/) framework. nhentai uses slash commands, a feature Discord [introduced](https://blog.discord.com/slash-commands-are-here-8db0a385d9e6) not long ago.
+nhentai is an open source nhentai Discord bot powered by [TypeScript](https://www.typescriptlang.org/) with [discord.js](https://discord.js.org/#/) using the [Akairo](https://discord-akairo.github.io/#/) framework. nhentai uses the prefix `n!`, but you can customize your own too. nhentai also uses slash commands, a feature Discord [introduced](https://blog.discord.com/slash-commands-are-here-8db0a385d9e6) not long ago.
 
 # Features
 - Almost every basic features of the **[nhentai](https://nhentai.net/)** website.
