@@ -5,143 +5,17 @@ import {
     ApplicationCommand,
     ApplicationCommandManager,
     Collection,
-    CommandInteraction,
-    CommandInteractionOptionResolver,
-    DMChannel,
     Snowflake,
     TextChannel,
 } from 'discord.js';
-import { URL } from 'url';
-import { Server } from '@database/models';
 import { readdirSync } from 'fs';
 const { ENVIRONMENT, DEVELOPMENT_GUILD } = process.env;
 
 let startCooldown: () => void;
-
-function checkURL(content: string) {
-    try {
-        if (!content || content.startsWith('random') || content.startsWith('info')) {
-            return false;
-        }
-
-        // cover case where the protocol is not specified
-        // for /g/_number_ URLs, this should leave it intact
-        let inferredPath = `${content.startsWith('nhentai.net') ? 'https://' : ''}${content}`;
-        const url = new URL(inferredPath, 'https://nhentai.net');
-
-        // catching rogue hostnames
-        if (url.host !== 'nhentai.net') return false;
-        // catching message with simply / as path
-        // those are relative URLs and will throw if passed to the URL constructor
-        if (url.pathname === '/') {
-            try {
-                new URL(inferredPath);
-            } catch (e) {
-                return false;
-            }
-        }
-
-        return (
-            ['/g/', '/tag/', '/artist/', '/character/', '/group/', '/parody/', '/language/'].some(
-                path => url.pathname.startsWith(path)
-            ) ||
-            ['/random/', '/random', '/search/', '/info/', '/info'].some(
-                path => url.pathname === path
-            )
-        );
-    } catch (err) {
-        return false;
-    }
-}
 export class CommandHandler extends ApplicationCommandManager {
     client: Client;
     constructor(client: Client) {
         super(client);
-        this.client.on('messageCreate', async message => {
-            if (message.channel instanceof DMChannel) return;
-            if (message.content.startsWith('n!')) {
-                await message.reply({
-                    content: "The bot now uses slash commands, completely removing any support for `n!` commands. If you don't see it appearing in your server, wait for a few hours/days for Discord to update its cache.",
-                    allowedMentions: { repliedUser: false },
-                });
-                return;
-            }
-            try {
-                let server = await Server.findOne({ serverID: message.guild.id }).exec();
-                if (!server) {
-                    server = await new Server({
-                        settings: { url: false },
-                    }).save();
-                }
-                if (!server.settings.url) return;
-                if (!checkURL(message.content)) return;
-                const url = new URL(
-                    `${message.content.startsWith('nhentai.net') ? 'https://' : ''}${
-                        message.content
-                    }`,
-                    'https://nhentai.net'
-                );
-                const path = url.pathname.split('/').filter(p => p.length > 0);
-                let pageNum = 1;
-                if (url.searchParams.has('page'))
-                    pageNum = parseInt(url.searchParams.get('page'), 10);
-                if (!isNaN(parseInt(path[path.length - 1], 10)) && path.length > 2) {
-                    pageNum = parseInt(path.splice(path.length - 1)[0], 10);
-                }
-                let sort = 'recent';
-                if (url.searchParams.has('sort')) sort = url.searchParams.get('sort');
-                if (
-                    ['recent', 'popular', 'popular-today', 'popular-week'].includes(
-                        path[path.length - 1]
-                    )
-                ) {
-                    sort = path.splice(path.length - 1)[0];
-                }
-                let q = '';
-                if (url.searchParams.has('q')) q = url.searchParams.get('q').split('+').join(' ');
-                if (q !== '') path.push(q);
-                const cmd = path[0],
-                    page = pageNum.toString();
-                const command = this.client.commands.get(cmd);
-                const id =
-                    ENVIRONMENT === 'development'
-                        ? (
-                              await this.client.guilds.fetch(DEVELOPMENT_GUILD as Snowflake)
-                          ).commands.cache.findKey(c => c.name === cmd)
-                        : this.client.application?.commands.cache.findKey(c => c.name === cmd);
-                const interaction = new CommandInteraction(this.client, {
-                    id: message.id,
-                    type: 2,
-                    data: { id, ...command.data },
-                    application_id: this.client.application?.id,
-                    channel_id: message.channel.id,
-                    guild_id: message.guild.id,
-                    user: message.author,
-                    member: message.member,
-                    version: 1,
-                });
-                interaction.options = new CommandInteractionOptionResolver(this.client, [
-                    {
-                        name: 'query',
-                        type: 'STRING',
-                        value: cmd === 'search' ? q : path[1],
-                    },
-                    {
-                        name: 'page',
-                        type: 'INTEGER',
-                        value: page,
-                    },
-                    {
-                        name: 'sort',
-                        type: 'STRING',
-                        value: sort,
-                    },
-                ]);
-                await command.exec(interaction, { internal: true, message });
-            } catch (err) {
-                this.client.logger.error(err);
-            }
-        });
         this.client.on('interactionCreate', async interaction => {
             if (!interaction.isCommand()) return;
             if (!(interaction.channel instanceof TextChannel)) return;
