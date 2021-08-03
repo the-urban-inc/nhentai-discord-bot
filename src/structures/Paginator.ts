@@ -818,7 +818,7 @@ export class Paginator {
             ): Promise<boolean> {
                 if (
                     this.priorityUser
-                        ? this.priorityUser.id === interaction.user.id
+                        ? this.priorityUser.id !== interaction.user.id
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
