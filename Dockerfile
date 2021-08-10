@@ -1,4 +1,4 @@
-FROM node:14.15.0-alpine3.11 as build
+FROM node:16.6-alpine3.14 as build
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY tsconfig.json .
 COPY src/ src/
 RUN yarn build
 
-FROM node:14.15.0-alpine3.11 as run
+FROM node:16.6-alpine3.14 as run
 WORKDIR /app
 COPY --from=build /app/package.json .
 COPY --from=build /app/build/ build/
