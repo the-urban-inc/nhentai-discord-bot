@@ -21,7 +21,7 @@ export class CommandHandler extends ApplicationCommandManager {
             if (!(interaction.channel instanceof TextChannel)) return;
             if (this.client.commands.has(interaction.commandName)) {
                 try {
-                    await interaction.defer({
+                    await interaction.deferReply({
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
                     const { commands, cooldowns } = this.client;
