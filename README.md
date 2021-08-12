@@ -3,7 +3,7 @@
 
    <img alt="nhentai" src="https://i.imgur.com/my4t1Hb.png"><br>
 
-[![Invite nhentai](https://img.shields.io/badge/invite-me-7289da.svg?style=flat-square&logo=discord)](https://discord.com/api/oauth2/authorize?client_id=663743798722953258&permissions=37087296&scope=bot)
+[![Invite nhentai](https://img.shields.io/badge/invite-me-7289da.svg?style=flat-square&logo=discord)](https://discord.com/api/oauth2/authorize?client_id=663743798722953258&permissions=103115991040&scope=bot%20applications.commands)
 [![Join the support server](https://img.shields.io/badge/join-the%20support%20server-7289da.svg?style=flat-square&logo=discord)](https://discord.gg/8PX6QZb)
 [![Library](https://img.shields.io/badge/library-discord.js-blue.svg?style=flat-square)](https://discord.js.org/#/)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
