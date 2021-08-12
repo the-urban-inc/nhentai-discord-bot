@@ -6,6 +6,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'support',
+            type: 'CHAT_INPUT',
             description: 'Join the support server',
         });
     }

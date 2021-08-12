@@ -7,6 +7,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'search',
+            type: 'CHAT_INPUT',
             description: 'Searches nhentai for specified query',
             cooldown: 20000,
             nsfw: true,
@@ -72,7 +73,7 @@ export default class extends Command {
         const sort = (interaction.options.get('sort')?.value as string) ?? 'recent';
 
         if (/^\d+$/.test(query.replace('#', ''))) {
-            const command = this.client.commands.get('g');
+            const command = this.client.commands.get('g') as Command;
             interaction.commandName = 'g';
             interaction.options.get('query')!.value = +query.replace('#', '');
             return command.exec(interaction);

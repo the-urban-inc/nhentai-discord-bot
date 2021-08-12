@@ -7,6 +7,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'recent',
+            type: 'CHAT_INPUT',
             description: 'Shows recent nhentai-related command calls in this server',
             cooldown: 10000,
             nsfw: true,

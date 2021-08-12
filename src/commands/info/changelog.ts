@@ -11,6 +11,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'changelog',
+            type: 'CHAT_INPUT',
             description: "Shows the bot's latest 5 commits",
         });
     }

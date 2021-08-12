@@ -1,15 +1,15 @@
-import { Command, CommandHandler, Embeds, Notifier, MusicSubscription, Paginator, Util, Logger } from './index';
+import { Command, CommandHandler, ContextMenuCommand, Embeds, Notifier, MusicSubscription, Paginator, Util, Logger } from './index';
 import { Client as C, ClientOptions, Collection, Snowflake, User } from 'discord.js';
 import { Database } from '@database/index';
 import { Client as JASMRAPI } from '@api/jasmr';
 import { Client as NhentaiAPI } from '@api/nhentai';
 import { Client as FakkuAPI } from '@api/fakku';
 import { Client as ImageAPI } from '@api/images';
-const { DISCORD_TOKEN, ENVIRONMENT } = process.env;
+const { DISCORD_TOKEN } = process.env;
 
 export class Client extends C {
     ownerID: string;
-    commands: Collection<string, Command>;
+    commands: Collection<string, Command | ContextMenuCommand>;
     categories: Collection<string, string[]>;
     cooldowns: Collection<string, Collection<User['id'], number>>;
     paginators: Collection<string, Paginator>;
@@ -35,7 +35,7 @@ export class Client extends C {
                 'GUILD_VOICE_STATES',
             ],
         });
-        this.commands = new Collection<string, Command>();
+        this.commands = new Collection<string, Command | ContextMenuCommand>();
         this.categories = new Collection<string, string[]>();
         this.cooldowns = new Collection<string, Collection<User['id'], number>>();
         this.paginators = new Collection<string, Paginator>(); 

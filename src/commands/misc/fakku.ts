@@ -11,6 +11,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'fakku',
+            type: 'CHAT_INPUT',
             description: 'Searches for doujins on Fakku',
             cooldown: 10000,
             nsfw: true,

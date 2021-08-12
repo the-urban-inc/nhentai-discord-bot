@@ -5,10 +5,13 @@ import {
     ApplicationCommand,
     ApplicationCommandManager,
     Collection,
+    CommandInteraction,
+    ContextMenuInteraction,
     Snowflake,
     TextChannel,
 } from 'discord.js';
 import { readdirSync } from 'fs';
+import { ContextMenuCommand } from '@structures';
 const { ENVIRONMENT, DEVELOPMENT_GUILD } = process.env;
 
 let startCooldown: () => void;
@@ -17,7 +20,7 @@ export class CommandHandler extends ApplicationCommandManager {
     constructor(client: Client) {
         super(client);
         this.client.on('interactionCreate', async interaction => {
-            if (!interaction.isCommand()) return;
+            if (!interaction.isCommand() && !interaction.isContextMenu()) return;
             if (!(interaction.channel instanceof TextChannel)) return;
             if (this.client.commands.has(interaction.commandName)) {
                 try {
@@ -82,23 +85,25 @@ export class CommandHandler extends ApplicationCommandManager {
                         `${interaction.user.tag} (ID: ${interaction.user.id}) => ${name}`
                     );
 
-                    await command.exec(interaction);
+                    interaction.isCommand()
+                        ? await (command as Command).exec(interaction as CommandInteraction)
+                        : await (command as ContextMenuCommand).exec(
+                              interaction as ContextMenuInteraction
+                          );
 
                     startCooldown();
                 } catch (err) {
                     this.client.logger.error(err instanceof UserError ? err.code : err);
+                    const type =
+                        interaction.deferred || interaction.replied ? 'editReply' : 'reply';
                     if (err instanceof UserError) {
                         if (['NO_RESULT', 'INVALID_PAGE_INDEX', 'UNKNOWN_TAG'].includes(err.code)) {
                             startCooldown();
                         }
-                        interaction[
-                            interaction.deferred || interaction.replied ? 'editReply' : 'reply'
-                        ](err.message);
+                        interaction[type](err.message);
                         return;
                     }
-                    interaction[
-                        interaction.deferred || interaction.replied ? 'editReply' : 'reply'
-                    ](
+                    interaction[type](
                         `An unexpected error occurred while executing the command \`${interaction.commandName}\`: \`\`\`${err.message}\`\`\``
                     );
                 }
@@ -149,8 +154,8 @@ export class CommandHandler extends ApplicationCommandManager {
                         const commandData = await import(
                             `${__dirname}/../commands/${folder}/${file.slice(0, -3)}`
                         );
-                        const c = new commandData.default(this.client) as Command;
-                        if (c.data.clone) {
+                        const c = new commandData.default(this.client);
+                        if ((c as Command).data.clone) {
                             const cloned = c.data.clone.clones.map(clone =>
                                 this.cloneCommandData(c, clone)
                             );
@@ -165,49 +170,43 @@ export class CommandHandler extends ApplicationCommandManager {
                 );
                 allCommands = allCommands.concat(...commands);
             }
-            const existingCommands =
-                ENVIRONMENT === 'development'
-                    ? await (
-                          await this.client.guilds.fetch(DEVELOPMENT_GUILD as Snowflake)
-                      ).commands.fetch()
-                    : await this.client.application?.commands.fetch();
             let updatedCommands = new Collection<Snowflake, ApplicationCommand>();
-            if (!existingCommands.size) {
-                updatedCommands =
-                    ENVIRONMENT === 'development'
-                        ? await this.client.application?.commands.set(allCommands.map(c => c.data), DEVELOPMENT_GUILD as Snowflake)
-                        : await this.client.application?.commands.set(allCommands.map(c => c.data));
+            if (ENVIRONMENT == 'development') {
+                updatedCommands = await this.client.application?.commands.set(
+                    allCommands.map(c => c.data),
+                    DEVELOPMENT_GUILD as Snowflake
+                );
             } else {
-                updatedCommands = existingCommands;
-                allCommands.forEach(async cmd => {
-                    const cmddb = existingCommands.find(c => c.name === cmd.data.name);
-                    if (!cmddb) {
-                        const nw = await (ENVIRONMENT === 'development'
-                            ? (
-                                  await this.client.guilds.fetch(DEVELOPMENT_GUILD as Snowflake)
-                              ).commands
-                            : this.client.application?.commands
-                        ).create(cmd.data);
-                        updatedCommands.set(nw.id, nw);
-                    } else {
-                        const common = Object.keys(cmd.data).filter(k => k in cmddb);
-                        const o1: Record<string, any> = {},
-                            o2: Record<string, any> = {};
-                        common.forEach(k => {
-                            o1[k] = cmd.data[k];
-                            o2[k] = cmddb[k];
-                        });
-                        if (!this.compareCommandData(o1, o2)) {
-                            const up = await (ENVIRONMENT === 'development'
-                                ? (
-                                      await this.client.guilds.fetch(DEVELOPMENT_GUILD as Snowflake)
-                                  ).commands
-                                : this.client.application?.commands
-                            ).edit(cmddb, cmd.data);
-                            updatedCommands.set(up.id, up);
+                const existingCommands = await this.client.application?.commands.fetch();
+                if (!existingCommands.size) {
+                    updatedCommands = await this.client.application?.commands.set(
+                        allCommands.map(c => c.data)
+                    );
+                } else {
+                    updatedCommands = existingCommands;
+                    allCommands.forEach(async cmd => {
+                        const cmddb = existingCommands.find(c => c.name === cmd.data.name);
+                        if (!cmddb) {
+                            const nw = await this.client.application?.commands.create(cmd.data);
+                            updatedCommands.set(nw.id, nw);
+                        } else {
+                            const common = Object.keys(cmd.data).filter(k => k in cmddb);
+                            const o1: Record<string, any> = {},
+                                o2: Record<string, any> = {};
+                            common.forEach(k => {
+                                o1[k] = cmd.data[k];
+                                o2[k] = cmddb[k];
+                            });
+                            if (!this.compareCommandData(o1, o2)) {
+                                const up = await this.client.application?.commands.edit(
+                                    cmddb,
+                                    cmd.data
+                                );
+                                updatedCommands.set(up.id, up);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
             allCommands.forEach(cc => {
                 const cmd = updatedCommands.find(dc => dc.name === cc.data.name);

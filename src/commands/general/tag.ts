@@ -7,6 +7,7 @@ export default class C extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'tag',
+            type: 'CHAT_INPUT',
             description: 'Searches nhentai for specified tag',
             cooldown: 20000,
             nsfw: true,

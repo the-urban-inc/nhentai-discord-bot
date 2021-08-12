@@ -23,6 +23,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'help',
+            type: 'CHAT_INPUT',
             description: 'Shows command list and FAQ (that nobody asks)',
             cooldown: 10000,
         });

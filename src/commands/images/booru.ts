@@ -26,6 +26,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'booru',
+            type: 'CHAT_INPUT',
             description: 'Shows random posts with specified tag on specified booru site',
             cooldown: 5000,
             nsfw: true,

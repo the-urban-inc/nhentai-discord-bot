@@ -5,6 +5,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'info',
+            type: 'CHAT_INPUT',
             description: 'Shows nhentai info page',
             nsfw: true,
         });

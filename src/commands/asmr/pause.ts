@@ -5,6 +5,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'pause',
+            type: 'CHAT_INPUT',
             description: 'Pauses the ASMR file that is playing',
             cooldown: 10000,
             nsfw: true,

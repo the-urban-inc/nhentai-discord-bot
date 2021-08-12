@@ -6,6 +6,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'eval',
+            type: 'CHAT_INPUT',
             description: 'Evaluates a code block',
             owner: true,
             options: [

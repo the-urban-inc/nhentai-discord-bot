@@ -9,6 +9,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'quiz',
+            type: 'CHAT_INPUT',
             description:
                 'Starts a quiz session: try to guess the title of the displayed doujin page.',
             cooldown: 30000,

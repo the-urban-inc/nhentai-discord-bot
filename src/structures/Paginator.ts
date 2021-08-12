@@ -1,9 +1,10 @@
-import { Client } from '@structures';
+import { Client, Command } from '@structures';
 import {
     Collection,
     CollectorFilter,
     CommandInteraction,
     CommandInteractionOptionResolver,
+    ContextMenuInteraction,
     InteractionCollector,
     InteractionCollectorOptions,
     Message,
@@ -17,7 +18,6 @@ import {
     SnowflakeUtil,
     User,
 } from 'discord.js';
-import { URL } from 'url';
 import { Gallery } from '@api/nhentai';
 
 export enum Interactions {
@@ -67,7 +67,7 @@ const TAGS = ['tag', 'artist', 'character', 'category', 'group', 'parody', 'lang
 export class Paginator {
     readonly client: Client;
     private readonly id: Snowflake;
-    interaction: CommandInteraction;
+    interaction: CommandInteraction | ContextMenuInteraction;
     collector: InteractionCollector<MessageComponentInteraction>;
     pages: Record<Views, Page[]>;
     private followedUp: boolean;
@@ -245,7 +245,12 @@ export class Paginator {
                   ]
                 : [this.methodMap.get(Interactions.Remove)]
         );
-        if (this.image && this.interaction.commandName !== 'sauce' && !this.priorityUser) {
+        if (
+            this.image &&
+            this.interaction.commandName !== 'sauce' &&
+            this.interaction.commandName !== 'saucenao' &&
+            !this.priorityUser
+        ) {
             return [
                 new MessageActionRow().addComponents([
                     this.methodMap.get(Interactions.Info),
@@ -253,7 +258,11 @@ export class Paginator {
                 ]),
             ];
         }
-        if (this.interaction.commandName === 'sauce' || (this.image && this.priorityUser)) {
+        if (
+            this.interaction.commandName === 'sauce' ||
+            this.interaction.commandName === 'saucenao' ||
+            (this.image && this.priorityUser)
+        ) {
             const imageURL = this.image;
             const googleURL = `https://www.google.com/searchbyimage?image_url=${imageURL}&safe=off`,
                 tineyeURL = `https://tineye.com/search/?url=${imageURL}`,
@@ -305,7 +314,7 @@ export class Paginator {
     }
 
     async run(
-        interaction: CommandInteraction,
+        interaction: CommandInteraction | ContextMenuInteraction,
         content = '',
         type: 'followUp' | 'reply' | 'editReply' = 'editReply'
     ) {
@@ -396,9 +405,9 @@ export class Paginator {
                         );
                         await this.turnPage(interaction);
                         try {
-                            await this.client.commands
-                                .get(this.interaction.commandName)
-                                .exec(this.interaction);
+                            await (
+                                this.client.commands.get(this.interaction.commandName) as Command
+                            ).exec(this.interaction);
                         } catch (err) {
                         } finally {
                             return Promise.resolve(false);
@@ -459,9 +468,9 @@ export class Paginator {
                         );
                         await this.turnPage(interaction);
                         try {
-                            await this.client.commands
-                                .get(this.interaction.commandName)
-                                .exec(this.interaction);
+                            await (
+                                this.client.commands.get(this.interaction.commandName) as Command
+                            ).exec(this.interaction);
                         } catch (err) {
                         } finally {
                             return Promise.resolve(false);
@@ -521,9 +530,9 @@ export class Paginator {
                         );
                         await this.turnPage(interaction);
                         try {
-                            await this.client.commands
-                                .get(this.interaction.commandName)
-                                .exec(this.interaction);
+                            await (
+                                this.client.commands.get(this.interaction.commandName) as Command
+                            ).exec(this.interaction);
                         } catch (err) {
                         } finally {
                             return Promise.resolve(false);
@@ -583,9 +592,9 @@ export class Paginator {
                         );
                         await this.turnPage(interaction);
                         try {
-                            await this.client.commands
-                                .get(this.interaction.commandName)
-                                .exec(this.interaction);
+                            await (
+                                this.client.commands.get(this.interaction.commandName) as Command
+                            ).exec(this.interaction);
                         } catch (err) {
                         } finally {
                             return Promise.resolve(false);
@@ -702,9 +711,10 @@ export class Paginator {
                         value: this.interaction.options.getBoolean('private') ?? false,
                     },
                 ]);
-                await this.client.commands
-                    .get('sauce')
-                    .exec(this.interaction, { internal: true, user: interaction.user });
+                await (this.client.commands.get('sauce') as Command).exec(this.interaction, {
+                    internal: true,
+                    user: interaction.user,
+                });
                 return Promise.resolve(false);
             }
         )

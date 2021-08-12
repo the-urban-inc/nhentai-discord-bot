@@ -37,6 +37,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'play',
+            type: 'CHAT_INPUT',
             description: 'Plays a random ASMR file with specified tag',
             cooldown: 10000,
             nsfw: true,

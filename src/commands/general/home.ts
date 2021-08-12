@@ -6,6 +6,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'home',
+            type: 'CHAT_INPUT',
             description:
                 "Shows nhentai homepage. Includes 'Popular Now' section for the first page.",
             cooldown: 20000,

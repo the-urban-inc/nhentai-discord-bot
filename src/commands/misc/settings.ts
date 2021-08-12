@@ -12,6 +12,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'settings',
+            type: 'CHAT_INPUT',
             description: 'Configure user (and server) settings',
             cooldown: 10000,
             nsfw: true,

@@ -6,6 +6,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'random',
+            type: 'CHAT_INPUT',
             description: 'Shows a random gallery',
             cooldown: 20000,
             nsfw: true,

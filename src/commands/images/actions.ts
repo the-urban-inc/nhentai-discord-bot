@@ -17,6 +17,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'action',
+            type: 'CHAT_INPUT',
             description: 'Perform an action on someone',
             cooldown: 5000,
             options: [

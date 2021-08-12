@@ -6,6 +6,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'favorite',
+            type: 'CHAT_INPUT',
             description: "Shows your (or your friend's) favorite",
             cooldown: 10000,
             nsfw: true,

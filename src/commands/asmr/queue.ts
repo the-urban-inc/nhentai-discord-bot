@@ -6,6 +6,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'queue',
+            type: 'CHAT_INPUT',
             description: 'Shows the current queue',
             cooldown: 10000,
             nsfw: true,

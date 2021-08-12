@@ -6,6 +6,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'follow',
+            type: 'CHAT_INPUT',
             description: 'Shows your follow list',
             cooldown: 10000,
             nsfw: true,

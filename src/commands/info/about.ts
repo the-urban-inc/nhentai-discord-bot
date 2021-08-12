@@ -8,6 +8,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'about',
+            type: 'CHAT_INPUT',
             description: 'Shows detailed bot information',
         });
     }

@@ -5,6 +5,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'ping',
+            type: 'CHAT_INPUT',
             description: 'Shows RTT and heartbeat of the bot',
         });
     }

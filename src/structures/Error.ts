@@ -7,6 +7,7 @@ const Messages = {
     MISSING_PERMISSIONS: (missing: string[]) =>
         `User is missing permissions: ${missing.map(x => `\`${x}\``).join(', ')}`,
     COOLDOWN: (timeLeft: number) => `User on cooldown. ${timeLeft} second(s) left.`,
+    NO_IMAGE: 'No image or image URL found within the message',
     NO_RESULT: (result?: string) =>
         result ? `No result found with keyword: \`${result}\`` : 'No result found',
     INVALID_PAGE_INDEX: (page: number, max: number) =>

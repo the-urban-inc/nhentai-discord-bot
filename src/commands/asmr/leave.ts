@@ -5,6 +5,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'leave',
+            type: 'CHAT_INPUT',
             description: 'Leaves the voice channel',
             cooldown: 10000,
             nsfw: true,

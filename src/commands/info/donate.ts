@@ -5,6 +5,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'donate',
+            type: 'CHAT_INPUT',
             description: "Show support to the bot's creator",
         });
     }

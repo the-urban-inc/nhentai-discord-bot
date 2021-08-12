@@ -9,6 +9,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'reddit',
+            type: 'CHAT_INPUT',
             description: 'Random post on r/nhentai',
             cooldown: 5000,
             nsfw: true,

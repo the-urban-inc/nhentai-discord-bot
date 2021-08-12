@@ -6,6 +6,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'leaderboard',
+            type: 'CHAT_INPUT',
             description: "Shows server's leaderboard.",
             cooldown: 10000,
         });

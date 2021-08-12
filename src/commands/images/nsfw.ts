@@ -6,6 +6,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'nsfw-image',
+            type: 'CHAT_INPUT',
             description: 'Searches for a NSFW image',
             cooldown: 5000,
             nsfw: true,

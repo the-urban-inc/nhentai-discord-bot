@@ -6,6 +6,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'blacklist',
+            type: 'CHAT_INPUT',
             description: 'Shows your blacklist',
             cooldown: 10000,
             nsfw: true,

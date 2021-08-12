@@ -9,6 +9,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'magazine',
+            type: 'CHAT_INPUT',
             description: 'Searches for magazine on Fakku',
             cooldown: 10000,
             nsfw: true,

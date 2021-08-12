@@ -8,6 +8,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'profile',
+            type: 'CHAT_INPUT',
             description: "Shows your (or your friend's) profile",
             cooldown: 10000,
             nsfw: true,

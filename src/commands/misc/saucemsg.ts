@@ -1,32 +1,32 @@
-import { Client, Command, UserError } from '@structures';
-import { CommandInteraction, User } from 'discord.js';
+import { Client, ContextMenuCommand, UserError } from '@structures';
+import { ContextMenuInteraction, Message } from 'discord.js';
 import sagiri from 'sagiri';
 const sauceNAO = sagiri(process.env.SAUCENAO_TOKEN);
 
-export default class extends Command {
+export default class extends ContextMenuCommand {
     constructor(client: Client) {
         super(client, {
-            name: 'sauce',
-            type: 'CHAT_INPUT',
-            description: 'Searches for image sauce with SauceNAO.',
+            name: 'saucenao',
+            type: 'MESSAGE',
             cooldown: 10000,
             nsfw: true,
-            options: [
-                {
-                    name: 'query',
-                    type: 'STRING',
-                    description: 'The image URL to search for',
-                    required: true,
-                },
-            ],
         });
     }
 
-    async exec(
-        interaction: CommandInteraction,
-        { internal, user }: { internal?: boolean; user?: User } = {}
-    ) {
-        const imageURL = interaction.options.get('query')!.value as string;
+    checkforImage(message: Message) {
+        return Array.from(message.attachments.values()).filter(a =>
+            ['png', 'gif', 'jpg', 'jpeg', 'webp'].includes(a.url.split('.').reverse()[0])
+        );
+    }
+
+    async exec(interaction: ContextMenuInteraction) {
+        const message = interaction.options.getMessage('message') as Message;
+        if (!message.content && !message.attachments.size) {
+            throw new UserError('NO_IMAGE');
+        }
+        const imageURL = message.content.length
+            ? message.content
+            : this.checkforImage(message)[0]?.url;
         if (!this.client.util.isUrl(imageURL)) {
             throw new UserError('INVALID_IMAGE', imageURL);
         }
@@ -37,8 +37,7 @@ export default class extends Command {
         const display = this.client.embeds.paginator(this.client, {
             startView: 'thumbnail',
             collectorTimeout: 300000,
-            priorityUser: user,
-            image: imageURL
+            image: imageURL,
         });
         for (const {
             url,
@@ -134,8 +133,7 @@ export default class extends Command {
         }
         return await display.run(
             interaction,
-            `> **SauceNAO Search Result${user ? ` • [** ${user.tag} **]**` : '**'}`,
-            internal ? 'followUp' : 'editReply'
+            `> **SauceNAO Search Result • [** ${message.author.tag} **]**`
         );
     }
 }
