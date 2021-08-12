@@ -52,10 +52,7 @@ export default class extends Command {
         }
     }
 
-    async exec(
-        interaction: CommandInteraction,
-        { internal, message }: { internal?: boolean; message?: Message } = {}
-    ) {
+    async exec(interaction: CommandInteraction) {
         await this.before(interaction);
         const more = interaction.options.get('more')?.value as boolean;
         const page = (interaction.options.get('page')?.value as number) ?? 1;
@@ -77,11 +74,7 @@ export default class extends Command {
             this.blacklists
         );
         if (rip) this.warning = true;
-        message = await displayGallery.run(
-            interaction,
-            `> **Searching for random gallery**`,
-            message
-        );
+        await displayGallery.run(interaction, `> **Searching for random gallery**`);
 
         if (more) {
             const { related, comments } = data;
@@ -100,13 +93,7 @@ export default class extends Command {
 
         if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
-            internal
-                ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
-                      setTimeout(() => {
-                          if (msg.deletable) msg.delete();
-                      }, 180000)
-                  )
-                : await interaction.followUp(this.client.util.communityGuidelines());
+            await interaction.followUp(this.client.util.communityGuidelines());
         }
     }
 }

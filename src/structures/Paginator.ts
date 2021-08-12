@@ -307,10 +307,7 @@ export class Paginator {
     async run(
         interaction: CommandInteraction,
         content = '',
-        message: 'followUp' | 'reply' | 'editReply' | Message = interaction.deferred ||
-        interaction.replied
-            ? 'editReply'
-            : 'reply'
+        type: 'followUp' | 'reply' | 'editReply' = 'editReply'
     ) {
         if (!interaction.guild) {
             throw new Error(
@@ -318,7 +315,7 @@ export class Paginator {
             );
         }
         this.interaction = interaction;
-        this.followedUp = message === 'followUp';
+        this.followedUp = type === 'followUp';
         const c = {
             content: content.length ? content : null,
             embeds: [this.pages[this.#currentView][this.#currentPage].embed],
@@ -326,11 +323,7 @@ export class Paginator {
             ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
             allowedMentions: { repliedUser: false },
         };
-        if (message instanceof Message) {
-            message = await message.reply(c);
-        } else {
-            message = (await this.interaction[message](c)) as Message;
-        }
+        const message = (await this.interaction[type](c)) as Message;
         this.collector = message.createMessageComponentCollector({
             filter: this.filter,
             idle: this.collectorTimeout,
@@ -397,8 +390,8 @@ export class Paginator {
                                 {
                                     name: 'private',
                                     type: 'BOOLEAN',
-                                    value: this.interaction.options.getBoolean('private') ?? false
-                                }
+                                    value: this.interaction.options.getBoolean('private') ?? false,
+                                },
                             ]
                         );
                         await this.turnPage(interaction);
@@ -460,8 +453,8 @@ export class Paginator {
                                 {
                                     name: 'private',
                                     type: 'BOOLEAN',
-                                    value: this.interaction.options.getBoolean('private') ?? false
-                                }
+                                    value: this.interaction.options.getBoolean('private') ?? false,
+                                },
                             ]
                         );
                         await this.turnPage(interaction);
@@ -522,8 +515,8 @@ export class Paginator {
                                 {
                                     name: 'private',
                                     type: 'BOOLEAN',
-                                    value: this.interaction.options.getBoolean('private') ?? false
-                                }
+                                    value: this.interaction.options.getBoolean('private') ?? false,
+                                },
                             ]
                         );
                         await this.turnPage(interaction);
@@ -584,8 +577,8 @@ export class Paginator {
                                 {
                                     name: 'private',
                                     type: 'BOOLEAN',
-                                    value: this.interaction.options.getBoolean('private') ?? false
-                                }
+                                    value: this.interaction.options.getBoolean('private') ?? false,
+                                },
                             ]
                         );
                         await this.turnPage(interaction);
@@ -697,21 +690,18 @@ export class Paginator {
                     )
                 )
                     return Promise.resolve(false);
-                    this.interaction.options = new CommandInteractionOptionResolver(
-                        this.client,
-                        [
-                            {
-                                name: 'query',
-                                type: 'STRING',
-                                value: this.image,
-                            },
-                            {
-                                name: 'private',
-                                type: 'BOOLEAN',
-                                value: this.interaction.options.getBoolean('private') ?? false
-                            }
-                        ]
-                    );
+                this.interaction.options = new CommandInteractionOptionResolver(this.client, [
+                    {
+                        name: 'query',
+                        type: 'STRING',
+                        value: this.image,
+                    },
+                    {
+                        name: 'private',
+                        type: 'BOOLEAN',
+                        value: this.interaction.options.getBoolean('private') ?? false,
+                    },
+                ]);
                 await this.client.commands
                     .get('sauce')
                     .exec(this.interaction, { internal: true, user: interaction.user });

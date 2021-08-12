@@ -10,10 +10,7 @@ export default class extends Command {
         });
     }
 
-    async exec(
-        interaction: CommandInteraction,
-        { internal, message }: { internal?: boolean; message?: Message } = {}
-    ) {
+    async exec(interaction: CommandInteraction) {
         const content = {
             embeds: [
                 this.client.embeds
@@ -53,12 +50,6 @@ export default class extends Command {
             ],
             allowedMentions: { repliedUser: false },
         };
-        internal
-            ? await message.reply(content).then(msg =>
-                  setTimeout(() => {
-                      if (msg.deletable) msg.delete();
-                  }, 180000)
-              )
-            : await interaction.editReply(content);
+        await interaction.editReply(content);
     }
 }

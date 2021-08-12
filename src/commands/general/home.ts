@@ -48,10 +48,7 @@ export default class extends Command {
         }
     }
 
-    async exec(
-        interaction: CommandInteraction,
-        { internal, message }: { internal?: boolean; message?: Message } = {}
-    ) {
+    async exec(interaction: CommandInteraction) {
         await this.before(interaction);
         const page = (interaction.options.get('page')?.value as number) ?? 1;
         const data = await this.client.nhentai
@@ -77,7 +74,7 @@ export default class extends Command {
                 }
             );
             if (rip) this.warning = true;
-            message = await displayPopular.run(interaction, '> `🔥` **Popular Now**', message);
+            await displayPopular.run(interaction, '> `🔥` **Popular Now**');
         }
 
         const newUploads = result;
@@ -95,24 +92,12 @@ export default class extends Command {
         await displayNew.run(
             interaction,
             page === 1 ? '> `🧻` **New Uploads**' : '',
-            internal === true
-                ? message
-                    ? message
-                    : 'editReply'
-                : page === 1
-                ? 'followUp'
-                : 'editReply'
+            page === 1 ? 'followUp' : 'editReply'
         );
 
         if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
-            internal
-                ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
-                      setTimeout(() => {
-                          if (msg.deletable) msg.delete();
-                      }, 180000)
-                  )
-                : await interaction.followUp(this.client.util.communityGuidelines());
+            await interaction.followUp(this.client.util.communityGuidelines());
         }
     }
 }

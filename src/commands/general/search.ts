@@ -65,10 +65,7 @@ export default class extends Command {
         }
     }
 
-    async exec(
-        interaction: CommandInteraction,
-        { internal, message }: { internal?: boolean; message?: Message } = {}
-    ) {
+    async exec(interaction: CommandInteraction) {
         await this.before(interaction);
         const query = interaction.options.get('query').value as string;
         const page = (interaction.options.get('page')?.value as number) ?? 1;
@@ -76,6 +73,7 @@ export default class extends Command {
 
         if (/^\d+$/.test(query.replace('#', ''))) {
             const command = this.client.commands.get('g');
+            interaction.commandName = 'g';
             interaction.options.get('query')!.value = +query.replace('#', '');
             return command.exec(interaction);
         }
@@ -107,21 +105,11 @@ export default class extends Command {
             }
         );
         if (rip) this.warning = true;
-        message = await displayList.run(
-            interaction,
-            `> **Searching for** **\`${query}\`**`,
-            message ?? 'editReply'
-        );
+        await displayList.run(interaction, `> **Searching for** **\`${query}\`**`);
 
         if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
-            internal
-                ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
-                      setTimeout(() => {
-                          if (msg.deletable) msg.delete();
-                      }, 180000)
-                  )
-                : await interaction.followUp(this.client.util.communityGuidelines());
+            await interaction.followUp(this.client.util.communityGuidelines());
         }
     }
 }

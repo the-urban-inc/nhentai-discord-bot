@@ -75,10 +75,7 @@ export default class C extends Command {
         }
     }
 
-    async exec(
-        interaction: CommandInteraction,
-        { internal, message }: { internal?: boolean; message?: Message } = {}
-    ) {
+    async exec(interaction: CommandInteraction) {
         await this.before(interaction);
         const type = interaction.commandName;
         const tag = interaction.options.get('query').value as string;
@@ -131,21 +128,11 @@ export default class C extends Command {
         );
 
         if (rip) this.warning = true;
-        message = await displayList.run(
-            interaction,
-            `> **Searching for ${type}** **\`${tag}\`**`,
-            message ?? 'editReply'
-        );
+        await displayList.run(interaction, `> **Searching for ${type}** **\`${tag}\`**`);
 
         if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
-            internal
-                ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
-                      setTimeout(() => {
-                          if (msg.deletable) msg.delete();
-                      }, 180000)
-                  )
-                : await interaction.followUp(this.client.util.communityGuidelines());
+            await interaction.followUp(this.client.util.communityGuidelines());
         }
     }
 }

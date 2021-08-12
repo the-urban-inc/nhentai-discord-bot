@@ -61,10 +61,7 @@ export default class extends Command {
         }
     }
 
-    async exec(
-        interaction: CommandInteraction,
-        { internal, message }: { internal?: boolean; message?: Message } = {}
-    ) {
+    async exec(interaction: CommandInteraction) {
         await this.before(interaction);
         const code = interaction.options.get('query').value as number;
         const more = interaction.options.get('more')?.value as boolean;
@@ -87,11 +84,7 @@ export default class extends Command {
             this.blacklists
         );
         if (rip) this.warning = true;
-        message = await displayGallery.run(
-            interaction,
-            `> **Searching for** **\`${code}\`**`,
-            message
-        );
+        await displayGallery.run(interaction, `> **Searching for** **\`${code}\`**`);
 
         if (more) {
             const { related, comments } = data;
@@ -110,13 +103,7 @@ export default class extends Command {
 
         if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
-            internal
-                ? await message.reply(this.client.util.communityGuidelines()).then(msg =>
-                      setTimeout(() => {
-                          if (msg.deletable) msg.delete();
-                      }, 180000)
-                  )
-                : await interaction.followUp(this.client.util.communityGuidelines());
+            await interaction.followUp(this.client.util.communityGuidelines());
         }
 
         const min = 30,
@@ -142,17 +129,10 @@ export default class extends Command {
                 inc
             );
             if (leveledUp)
-                message
-                    ? await message.reply('Congratulations! You have leveled up!').then(msg =>
-                          setTimeout(() => {
-                              if (msg.deletable) msg.delete();
-                          }, 180000)
-                      )
-                    : await interaction.followUp({
-                          content: 'Congratulations! You have leveled up!',
-                          ephemeral:
-                              (interaction.options.get('private')?.value as boolean) ?? false,
-                      });
+                await interaction.followUp({
+                    content: 'Congratulations! You have leveled up!',
+                    ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                });
         }
     }
 }
