@@ -5,10 +5,9 @@ export const PERMISSIONS = <const>[
     'MANAGE_MESSAGES',
     'SEND_MESSAGES',
     'EMBED_LINKS',
-    'ATTACH_FILES',
-    'ADD_REACTIONS',
     'READ_MESSAGE_HISTORY',
-    'USE_EXTERNAL_EMOJIS',
+    'USE_PUBLIC_THREADS',
+    'USE_PRIVATE_THREADS'
 ];
 
 export const ICON = 'https://i.imgur.com/cGT4RMd.png';
