@@ -292,7 +292,6 @@ export class Paginator {
     private async turnPage(interaction: MessageComponentInteraction): Promise<void> {
         this.methodMap.forEach((v, k) => this.methodMap.get(k).setDisabled(!v.disabled));
         await this.update(interaction);
-        this.collector.stop('Aborted');
     }
 
     private async update(interaction: MessageComponentInteraction): Promise<boolean> {
@@ -408,7 +407,9 @@ export class Paginator {
                             await (
                                 this.client.commands.get(this.interaction.commandName) as Command
                             ).exec(this.interaction);
+                            this.collector.stop('Aborted');
                         } catch (err) {
+                            await this.turnPage(interaction);
                         } finally {
                             return Promise.resolve(false);
                         }
@@ -471,7 +472,9 @@ export class Paginator {
                             await (
                                 this.client.commands.get(this.interaction.commandName) as Command
                             ).exec(this.interaction);
+                            this.collector.stop('Aborted');
                         } catch (err) {
+                            await this.turnPage(interaction);
                         } finally {
                             return Promise.resolve(false);
                         }
@@ -533,7 +536,9 @@ export class Paginator {
                             await (
                                 this.client.commands.get(this.interaction.commandName) as Command
                             ).exec(this.interaction);
+                            this.collector.stop('Aborted');
                         } catch (err) {
+                            await this.turnPage(interaction);
                         } finally {
                             return Promise.resolve(false);
                         }
@@ -595,7 +600,9 @@ export class Paginator {
                             await (
                                 this.client.commands.get(this.interaction.commandName) as Command
                             ).exec(this.interaction);
+                            this.collector.stop('Aborted');
                         } catch (err) {
+                            await this.turnPage(interaction);
                         } finally {
                             return Promise.resolve(false);
                         }
