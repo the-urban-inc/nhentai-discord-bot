@@ -19,17 +19,18 @@ export default class extends ContextMenuCommand {
         );
     }
 
+    checkforEmbedImage(message: Message) {
+        return message.embeds.filter(e => e.image || e.thumbnail).map(e => e.image ?? e.thumbnail);
+    }
+
     async exec(interaction: ContextMenuInteraction) {
         const message = interaction.options.getMessage('message') as Message;
         if (!message.content && !message.attachments.size) {
             throw new UserError('NO_IMAGE');
         }
-        const imageURL = message.content.length
-            ? message.content
-            : this.checkforImage(message)[0]?.url;
-        if (!this.client.util.isUrl(imageURL)) {
-            throw new UserError('INVALID_IMAGE', imageURL);
-        }
+        const images = [message.content, this.checkforImage(message)[0]?.url, this.checkforEmbedImage(message)[0]?.url].filter(url => this.client.util.isUrl(url))
+        if (!images.length) throw new UserError('INVALID_IMAGE', '');
+        const imageURL = images[0];
         const results = await sauceNAO(imageURL, { results: 8, db: 999 });
         if (!results || !results.length) {
             throw new UserError('NO_RESULT', imageURL);

@@ -53,7 +53,7 @@ export default class extends Command {
             )
             .addField(
                 'Where are the n! commands?',
-                "~~Gone. Completely migrated to slash commands.~~ They're back."
+                "~~Gone. Completely migrated to slash commands.~~ They're still there (until April 2022)."
             )
             .addField(
                 'Where is the thigh command? (And other images commands?)',
@@ -65,7 +65,7 @@ export default class extends Command {
             )
             .addField(
                 'How to view other pages or sort by popularity?',
-                'After typing the query, press TAB once to input page number, press TAB one more time to input sort method. You can delete the page prompt if you only need to check out the first page. Page number is `1` and sort method is `recent` by default.'
+                'After typing the query, press TAB to input page number or sort method. Page number is `1` and sort method is `recent` by default.'
             )
             .addField(
                 'What do these buttons do?',
@@ -85,6 +85,10 @@ export default class extends Command {
                 '`Info View` / `Thumbnail View` / `Preview`: Toggles between text mode (with tags infos, artists infos, etc.)/big images mode/start reading the doujin.\n' +
                     'For `g` and `random` commands, `Thumbnail View` actually means start reading.\n' +
                     'Note: **Only the person who used the command can use these select menus**'
+            )
+            .addField(
+                "What's the saucenao thing I see when clicking on Apps in messages?",
+                "You can search for the message's image sauce there. It's basically an easy way to call sauce command.\nThe navigation rules still apply normally.\nThe bot will prioritize the link inside the message, then the first message attachment, then the first image in embeds."
             )
             .addField(
                 'What does following a tag/artist/parody/etc. mean?',
