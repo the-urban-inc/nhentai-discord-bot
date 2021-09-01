@@ -1,5 +1,5 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction, Message } from 'discord.js';
+import { CommandInteraction } from 'discord.js';
 import { decode } from 'he';
 import { User, Server, Blacklist } from '@database/models';
 
@@ -42,6 +42,7 @@ export default class extends Command {
             let user = await User.findOne({ userID: interaction.user.id }).exec();
             if (!user) {
                 user = await new User({
+                    userID: interaction.user.id,
                     blacklists: [],
                     anonymous: true,
                 }).save();
@@ -51,6 +52,7 @@ export default class extends Command {
             let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
+                    serverID: interaction.guild.id,
                     settings: { danger: false },
                 }).save();
             }

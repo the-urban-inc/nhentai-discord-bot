@@ -12,3 +12,12 @@ export interface Blacklist {
     type: string;
     name: string;
 }
+
+export interface Language {
+    preferred: {
+        id: string;
+        name: string;
+    }[];
+    query: boolean;
+    follow: boolean;
+}

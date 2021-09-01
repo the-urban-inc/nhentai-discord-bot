@@ -1,6 +1,7 @@
 import { Client } from './Client';
 import { User, WatchModel } from '@database/models';
 import { Client as NHClient, Gallery } from '@api/nhentai';
+import follow from 'src/commands/misc/follow';
 const nh = new NHClient();
 
 export class Notifier {
@@ -54,9 +55,22 @@ export class Notifier {
                     let user = await User.findOne({ userID: userId }).exec();
                     if (!user) {
                         user = await new User({
+                            userID: userId,
                             blacklists: [],
+                            language: {
+                                preferred: [],
+                                query: false,
+                                follow: false,
+                            },
                         }).save();
                     }
+                    if (
+                        user.language.follow === true &&
+                        !doujin.tags.some(tag =>
+                            user.language.preferred.map(x => x.id).includes(String(tag.id))
+                        )
+                    )
+                        return;
                     const tags = await WatchModel.find({ user: userId }).exec();
                     const info = this.client.embeds.displayGalleryInfo(
                         doujin,
@@ -77,7 +91,7 @@ export class Notifier {
                         )
                         .catch(err =>
                             this.client.logger.warn(
-                                `[NOTIFIER] Couldn't notifier user ${duser.username} (ID: ${duser.id})`
+                                `[NOTIFIER] Couldn't notify user ${duser.username} (ID: ${duser.id})`
                             )
                         );
                 });

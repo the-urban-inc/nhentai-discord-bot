@@ -1,5 +1,5 @@
 import { model, Document, Schema } from 'mongoose';
-import { History, Blacklist } from './tag';
+import { History, Blacklist, Language } from './tag';
 
 export interface IUser extends Document {
     userID: string;
@@ -9,6 +9,7 @@ export interface IUser extends Document {
     history: History[];
     blacklists: Blacklist[];
     anonymous: boolean;
+    language: Language;
 }
 
 const userSchema = new Schema(
@@ -35,6 +36,14 @@ const userSchema = new Schema(
             },
         ],
         anonymous: { $type: Boolean, default: true },
+        language: { 
+            preferred: [{
+                id: String,
+                name: String,
+            }],
+            query: Boolean,
+            follow: Boolean,
+        }
     },
     { typeKey: '$type' }
 );

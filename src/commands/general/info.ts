@@ -1,5 +1,5 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction, Message } from 'discord.js';
+import { CommandInteraction } from 'discord.js';
 
 export default class extends Command {
     constructor(client: Client) {

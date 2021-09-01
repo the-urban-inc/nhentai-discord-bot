@@ -3,6 +3,7 @@ import { Server } from './settings/server';
 import { User } from './settings/user';
 import { XP } from './settings/xp';
 import { Client, Logger } from '@structures';
+import { User as UserModel } from './models/user';
 const log = new Logger();
 
 export class Database {

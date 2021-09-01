@@ -5,7 +5,7 @@ import { decode } from 'he';
 import moment from 'moment';
 import { Gallery, Comment, Language } from '@api/nhentai';
 import { BANNED_TAGS, FLAG_EMOJIS } from '@constants';
-import { Blacklist } from '@database/models';
+import { Blacklist, Language as LanguageModel } from '@database/models';
 
 export class Embeds {
     public client: Client;
@@ -143,6 +143,7 @@ export class Embeds {
         galleries: Gallery[],
         danger = false,
         blacklists: Blacklist[] = [],
+        preferred: LanguageModel['preferred'] = [],
         options?: {
             page?: number;
             num_pages?: number;
@@ -156,6 +157,9 @@ export class Embeds {
             startView: 'thumbnail',
             collectorTimeout: 300000,
             ...additional_options,
+            filterIDs: galleries
+                .filter(g => !g.tags.some(tag => preferred.map(x => x.id).includes(String(tag.id))))
+                .map(g => +g.id),
         });
         for (const gallery of galleries) {
             const { id, title, tags, upload_date } = gallery;

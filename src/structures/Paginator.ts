@@ -33,6 +33,7 @@ export enum Interactions {
     Love = 'love',
     Follow = 'follow',
     Blacklist = 'blacklist',
+    Filter = 'filter',
     Download = 'download',
     Remove = 'remove',
 }
@@ -60,6 +61,7 @@ export interface PaginatorOptions extends InteractionCollectorOptions<MessageCom
     jumpTimeout?: number;
     collectorTimeout?: number;
     priorityUser?: User;
+    filterIDs?: number[];
 }
 
 const TAGS = ['tag', 'artist', 'character', 'category', 'group', 'parody', 'language'];
@@ -70,10 +72,12 @@ export class Paginator {
     interaction: CommandInteraction | ContextMenuInteraction;
     collector: InteractionCollector<MessageComponentInteraction>;
     pages: Record<Views, Page[]>;
+    filteredPages: Record<Views, Page[]>;
     private followedUp: boolean;
     private goBack: { previousView: 'info' | 'thumbnail'; previousPage: number; pages: Page[] };
     private readonly methodMap: Collection<Interactions, MessageButton | MessageSelectMenu>;
     private readonly priorityUser: User | null;
+    private filterIDs: number[];
     private readonly info: Info;
     private readonly filter: CollectorFilter<[MessageComponentInteraction]>;
     private image: string | null;
@@ -91,9 +95,11 @@ export class Paginator {
         this.id = SnowflakeUtil.generate();
         this.client.paginators.set(this.id, this);
         this.pages = { info: [], thumbnail: [] };
+        this.filteredPages = { info: [], thumbnail: [] };
         this.followedUp = false;
         this.methodMap = new Collection<Interactions, MessageButton | MessageSelectMenu>();
         this.priorityUser = options.priorityUser;
+        this.filterIDs = options.filterIDs ?? [];
         this.info = options.info ?? { id: '', name: '' };
         this.filter = options.filter ?? (() => true);
         this.image = options.image;
@@ -169,6 +175,14 @@ export class Paginator {
             .set(
                 Interactions.Blacklist,
                 new MessageButton().setCustomId('blacklist').setLabel('🏴').setStyle('SECONDARY')
+            )
+            .set(
+                Interactions.Filter,
+                new MessageButton()
+                    .setCustomId('filter')
+                    .setLabel(`Click here to see ${this.filterIDs.length} filtered galleries`)
+                    .setEmoji('👁️')
+                    .setStyle('SECONDARY')
             )
             .set(
                 Interactions.Download,
@@ -282,6 +296,10 @@ export class Paginator {
         const rows = [];
         if (this.pages[this.#currentView].length > 1) rows.push(naviRow);
         rows.push(optionsRow);
+        if (this.filterIDs.length && !this.#previewing)
+            rows.push(
+                new MessageActionRow().addComponents(this.methodMap.get(Interactions.Filter))
+            );
         if (this.pages.thumbnail.length && this.pages.info.length)
             rows.push(
                 new MessageActionRow().addComponents(this.methodMap.get(Interactions.Select))
@@ -298,10 +316,10 @@ export class Paginator {
         const content = interaction.message.content;
         await interaction[interaction.deferred || interaction.replied ? 'editReply' : 'update']({
             content: content.length ? content : null,
-            embeds: [
+            embeds: this.pages[this.#currentView].length ? [
                 this.pages[this.#currentView][this.#currentPage]?.embed ??
                     this.pages[this.#currentView][0]?.embed,
-            ],
+            ] : [],
             components: this.getButtons(),
         });
         return false;
@@ -324,9 +342,18 @@ export class Paginator {
         }
         this.interaction = interaction;
         this.followedUp = type === 'followUp';
+        if (this.filterIDs.length) {
+            this.filteredPages = Object.assign({}, this.pages);
+            this.pages = {
+                info: this.pages.info.filter(page => !this.filterIDs.includes(+page.galleryID)),
+                thumbnail: this.pages.thumbnail.filter(page =>
+                    !this.filterIDs.includes(+page.galleryID)
+                ),
+            };
+        }
         const c = {
             content: content.length ? content : null,
-            embeds: [this.pages[this.#currentView][this.#currentPage].embed],
+            embeds: this.pages[this.#currentView].length ? [this.pages[this.#currentView][this.#currentPage].embed] : [],
             components: this.getButtons(),
             ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
             allowedMentions: { repliedUser: false },
@@ -815,6 +842,17 @@ export class Paginator {
                     });
                     return true;
                 }
+            }
+        )
+        .set(
+            Interactions.Filter,
+            async function (
+                this: Paginator,
+                interaction: MessageComponentInteraction
+            ): Promise<boolean> {
+                this.pages = this.filteredPages;
+                this.filterIDs = [];
+                return this.update(interaction);
             }
         )
         .set(

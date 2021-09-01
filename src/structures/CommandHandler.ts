@@ -177,36 +177,9 @@ export class CommandHandler extends ApplicationCommandManager {
                     DEVELOPMENT_GUILD as Snowflake
                 );
             } else {
-                const existingCommands = await this.client.application?.commands.fetch();
-                if (!existingCommands.size) {
-                    updatedCommands = await this.client.application?.commands.set(
-                        allCommands.map(c => c.data)
-                    );
-                } else {
-                    updatedCommands = existingCommands;
-                    allCommands.forEach(async cmd => {
-                        const cmddb = existingCommands.find(c => c.name === cmd.data.name);
-                        if (!cmddb) {
-                            const nw = await this.client.application?.commands.create(cmd.data);
-                            updatedCommands.set(nw.id, nw);
-                        } else {
-                            const common = Object.keys(cmd.data).filter(k => k in cmddb);
-                            const o1: Record<string, any> = {},
-                                o2: Record<string, any> = {};
-                            common.forEach(k => {
-                                o1[k] = cmd.data[k];
-                                o2[k] = cmddb[k];
-                            });
-                            if (!this.compareCommandData(o1, o2)) {
-                                const up = await this.client.application?.commands.edit(
-                                    cmddb,
-                                    cmd.data
-                                );
-                                updatedCommands.set(up.id, up);
-                            }
-                        }
-                    });
-                }
+                updatedCommands = await this.client.application?.commands.set(
+                    allCommands.map(c => c.data)
+                );
             }
             allCommands.forEach(cc => {
                 const cmd = updatedCommands.find(dc => dc.name === cc.data.name);

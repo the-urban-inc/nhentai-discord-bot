@@ -32,6 +32,7 @@ export default class extends Command {
             let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
+                    serverID: interaction.guild.id,
                     settings: { danger: false },
                 }).save();
             }

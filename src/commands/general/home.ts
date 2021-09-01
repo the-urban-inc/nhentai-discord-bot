@@ -1,6 +1,6 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction, Message } from 'discord.js';
-import { User, Server, Blacklist } from '@database/models';
+import { CommandInteraction} from 'discord.js';
+import { User, Server, Blacklist, Language } from '@database/models';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -24,20 +24,29 @@ export default class extends Command {
     danger = false;
     warning = false;
     blacklists: Blacklist[] = [];
+    language: Language = { preferred: [], query: false, follow: false };
 
     async before(interaction: CommandInteraction) {
         try {
             let user = await User.findOne({ userID: interaction.user.id }).exec();
             if (!user) {
                 user = await new User({
+                    userID: interaction.user.id,
                     blacklists: [],
                     anonymous: true,
+                    language: {
+                        preferred: [],
+                        query: false,
+                        follow: false,
+                    },
                 }).save();
             }
             this.blacklists = user.blacklists;
+            this.language = user.language;
             let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
+                    userID: interaction.user.id,
                     settings: { danger: false },
                 }).save();
             }
@@ -69,6 +78,7 @@ export default class extends Command {
                 popularNow,
                 this.danger,
                 this.blacklists,
+                this.language.query ? this.language.preferred : [],
                 {
                     page,
                     num_pages,
@@ -83,6 +93,7 @@ export default class extends Command {
             newUploads,
             this.danger,
             this.blacklists,
+            this.language.query ? this.language.preferred : [],
             {
                 page,
                 num_pages,

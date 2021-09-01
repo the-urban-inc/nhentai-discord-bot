@@ -3,7 +3,6 @@ import {
     CommandInteraction,
     Message,
     MessageActionRow,
-    MessageButton,
     MessageSelectMenu,
 } from 'discord.js';
 import { User, Server } from '@database/models';
@@ -11,7 +10,7 @@ import { User, Server } from '@database/models';
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
-            name: 'settings',
+            name: 'general-settings',
             type: 'CHAT_INPUT',
             description: 'Configure user (and server) settings',
             cooldown: 10000,
@@ -24,7 +23,7 @@ export default class extends Command {
             n = '❌';
         const settings = this.client.embeds
             .default()
-            .setTitle('⚙️\u2000Settings')
+            .setTitle('⚙️\u2000General Settings')
             .addField(
                 'User Settings',
                 `${
@@ -74,6 +73,7 @@ export default class extends Command {
         let user = await User.findOne({ userID: member.id }).exec();
         if (!user) {
             user = await new User({
+                userID: member.id,
                 blacklists: [],
                 anonymous: true,
             }).save();
@@ -85,6 +85,7 @@ export default class extends Command {
             let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
+                    serverID: interaction.guild.id,
                     settings: { danger: false, url: false },
                 }).save();
             }

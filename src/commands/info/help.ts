@@ -92,7 +92,7 @@ export default class extends Command {
             )
             .addField(
                 'What does following a tag/artist/parody/etc. mean?',
-                "It's a feature that notifies you through DM when a new doujin with a tag you followed was released. You have to allow DM for it to work (obviously)."
+                "It's a feature that notifies you through DM when a new doujin with a tag you followed was released. You have to allow DMs for it to work (obviously)."
             )
             .addField(
                 'Why sometimes images are not showing?',

@@ -37,6 +37,7 @@ export default class extends Command {
             let user = await User.findOne({ userID: interaction.user.id }).exec();
             if (!user) {
                 user = await new User({
+                    userID: interaction.user.id,
                     blacklists: [],
                     anonymous: true,
                 }).save();
@@ -46,6 +47,7 @@ export default class extends Command {
             let server = await Server.findOne({ serverID: interaction.user.id }).exec();
             if (!server) {
                 server = await new Server({
+                    serverID: interaction.user.id,
                     settings: { danger: false },
                 }).save();
             }

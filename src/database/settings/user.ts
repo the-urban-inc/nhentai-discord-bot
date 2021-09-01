@@ -82,6 +82,35 @@ export class User {
         }
     }
 
+    async language(
+        userID: DiscordUser['id'],
+        preferredUpdate: { id: string; name: string }[] = [],
+        queryUpdate: boolean = false,
+        followUpdate: boolean = false
+    ) {
+        const user = await U.findOne({ userID });
+        if (!user) {
+            await new U({
+                userID,
+                language: {
+                    preferred: [],
+                    query: false,
+                    follow: false,
+                },
+            }).save();
+            return user.language;
+        } else {
+            const { preferred, query, follow } = user.language;
+            user.language = {
+                preferred: preferredUpdate.length ? preferredUpdate : preferred,
+                query: queryUpdate ? !query : query,
+                follow: followUpdate ? !follow : follow,
+            };
+            await user.save();
+            return user.language;
+        }
+    }
+
     async follow(userID: DiscordUser['id'], type: string, tag: number, name: string) {
         let subscriberRecord = await WatchModel.findOne({ id: tag }).exec();
         if (!subscriberRecord) {
