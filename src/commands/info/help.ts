@@ -16,6 +16,7 @@ const CATEGORIES = {
     images: ['🖼️', 'Images'],
     info: ['📄', 'Info'],
     misc: ['🛠️', 'Misc'],
+    settings: ['⚙️', 'Settings'],
     owner: ['🔒', 'Owner'],
 };
 
