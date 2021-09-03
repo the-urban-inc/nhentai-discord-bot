@@ -143,7 +143,7 @@ export class Embeds {
         galleries: Gallery[],
         danger = false,
         blacklists: Blacklist[] = [],
-        preferred: LanguageModel['preferred'] = [],
+        language: LanguageModel = { preferred: [], query: false, follow: false },
         options?: {
             page?: number;
             num_pages?: number;
@@ -157,9 +157,9 @@ export class Embeds {
             startView: 'thumbnail',
             collectorTimeout: 300000,
             ...additional_options,
-            filterIDs: galleries
-                .filter(g => !g.tags.some(tag => preferred.map(x => x.id).includes(String(tag.id))))
-                .map(g => +g.id),
+            filterIDs: language.query ? galleries
+                .filter(g => !g.tags.some(tag => language.preferred.map(x => x.id).includes(String(tag.id))))
+                .map(g => +g.id) : [],
         });
         for (const gallery of galleries) {
             const { id, title, tags, upload_date } = gallery;
