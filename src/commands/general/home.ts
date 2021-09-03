@@ -93,7 +93,7 @@ export default class extends Command {
             newUploads,
             this.danger,
             this.blacklists,
-            this.language.query ? this.language.preferred : [],
+            this.language.query ? this.language : null,
             {
                 page,
                 num_pages,
