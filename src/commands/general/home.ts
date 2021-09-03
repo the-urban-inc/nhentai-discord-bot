@@ -78,7 +78,7 @@ export default class extends Command {
                 popularNow,
                 this.danger,
                 this.blacklists,
-                this.language.query ? this.language.preferred : [],
+                this.language,
                 {
                     page,
                     num_pages,
