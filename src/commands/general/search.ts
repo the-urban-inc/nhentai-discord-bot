@@ -108,7 +108,7 @@ export default class extends Command {
             result,
             this.danger,
             this.blacklists,
-            this.language.query ? this.language.preferred : [],
+            this.language,
             {
                 page,
                 num_pages,
