@@ -850,6 +850,8 @@ export class Paginator {
                 this: Paginator,
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
+                if (interaction.user !== this.interaction.user)
+                    return Promise.resolve(false);
                 this.pages = this.filteredPages;
                 this.filterIDs = [];
                 return this.update(interaction);
