@@ -134,7 +134,7 @@ export default class extends ContextMenuCommand {
         }
         return await display.run(
             interaction,
-            `> **SauceNAO Search Result • [** ${message.author.tag} **]**`
+            `> **SauceNAO Search Result • [** ${interaction.user.tag} **]**`
         );
     }
 }
