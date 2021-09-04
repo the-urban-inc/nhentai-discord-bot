@@ -190,6 +190,21 @@ export class Client {
         return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
     }
 
+    public async category(query: string, page?: number, sort?: Sort): Promise<TagResult> {
+        const { id, num_results } = await this.fetch(`/category/${query.replace(/ /g, '-')}`).then(async res => {
+            const $ = load(<string>res.data, {
+                decodeEntities: false,
+                xmlMode: false,
+            });
+            return {
+                id: await this.tagID($),
+                num_results: await this.numResults($),
+            };
+        });
+        if (!id || isNaN(id)) throw new Error('Invalid ID');
+        return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
+    }
+
     public async character(query: string, page?: number, sort?: Sort): Promise<TagResult> {
         const { id, num_results } = await this.fetch(`/character/${query.replace(/ /g, '-')}`).then(async res => {
             const $ = load(<string>res.data, {
