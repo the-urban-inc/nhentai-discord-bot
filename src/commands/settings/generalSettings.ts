@@ -47,7 +47,7 @@ export default class extends Command {
                     danger ? y : n
                 }\u2000**Danger**\n• Start showing images relating to banned content stated in [Discord Community Guidelines](https://discord.com/guidelines). The bot owner will not take responsibilities if this caused your server to get banned.\n${
                     url ? y : n
-                }\u2000**URL**\n• Allow members to call nhentai-related commands with URL. E.g: Posting https://nhentai.net/177013 will call command \`g\` with code \`177013\`.`
+                }\u2000**URL**\n• Allow members to call nhentai-related commands with URL. E.g: Posting https://nhentai.net/g/177013 will call command \`g\` with code \`177013\`.`
             );
             menu.spliceOptions(1, 0, [
                 {
