@@ -9,10 +9,9 @@ import {
     VoiceConnectionStatus,
 } from '@discordjs/voice';
 import { Track } from './Track';
+import { promisify } from 'util';
 
-function wait(time: number) {
-    return new Promise(resolve => setTimeout(resolve, time).unref());
-}
+const wait = promisify(setTimeout);
 
 export class MusicSubscription {
     public readonly voiceConnection: VoiceConnection;
@@ -112,7 +111,7 @@ export class MusicSubscription {
             this.audioPlayer.play(resource);
             this.queueLock = false;
         } catch (error) {
-            nextTrack.onError(error);
+            nextTrack.onError(error as Error);
             this.queueLock = false;
             return this.processQueue();
         }
