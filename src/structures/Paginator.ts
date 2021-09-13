@@ -873,11 +873,10 @@ export class Paginator {
                 if ((interaction.message as Message).deletable) {
                     await (interaction.message as Message).delete();
                 }
-                if ((interaction.message as Message).reference) {
-                    const { messageId } = (interaction.message as Message).reference;
-                    const message = await interaction.channel.messages.fetch(messageId);
+                /* if ((interaction.message as Message).reference) {
+                    const message = await (interaction.message as Message).fetchReference();
                     if (message?.deletable) await message.delete();
-                }
+                } */ // delete reference message
                 return true;
             }
         );
