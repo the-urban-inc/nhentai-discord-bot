@@ -81,6 +81,7 @@ export class Paginator {
     private readonly info: Info;
     private readonly filter: CollectorFilter<[MessageComponentInteraction]>;
     private image: string | null;
+    private ephemeral: boolean;
     private readonly prompt: string;
     private readonly dispose: boolean;
     private readonly jumpTimeout: number;
@@ -103,6 +104,7 @@ export class Paginator {
         this.info = options.info ?? { id: '', name: '' };
         this.filter = options.filter ?? (() => true);
         this.image = options.image;
+        this.ephemeral = false;
         this.prompt = options.prompt ?? 'Which page would you like to jump to?';
         this.jumpTimeout = options.jumpTimeout ?? 30000;
         this.collectorTimeout = options.collectorTimeout ?? 900000;
@@ -259,6 +261,7 @@ export class Paginator {
                   ]
                 : [this.methodMap.get(Interactions.Remove)]
         );
+        if (this.ephemeral) optionsRow.spliceComponents(-1, 1);
         if (
             this.image &&
             this.interaction.commandName !== 'sauce' &&
@@ -266,10 +269,14 @@ export class Paginator {
             !this.priorityUser
         ) {
             return [
-                new MessageActionRow().addComponents([
-                    this.methodMap.get(Interactions.Info),
-                    this.methodMap.get(Interactions.Remove),
-                ]),
+                new MessageActionRow().addComponents(
+                    this.ephemeral
+                        ? [this.methodMap.get(Interactions.Info)]
+                        : [
+                              this.methodMap.get(Interactions.Info),
+                              this.methodMap.get(Interactions.Remove),
+                          ]
+                ),
             ];
         }
         if (
@@ -282,20 +289,23 @@ export class Paginator {
                 tineyeURL = `https://tineye.com/search/?url=${imageURL}`,
                 ascii2dURL = `https://ascii2d.net/search/url/${imageURL}`,
                 yandexURL = `https://yandex.com/images/search?url=${imageURL}&rpt=imageview`;
+            const others = [
+                new MessageButton().setLabel('Google Image').setStyle('LINK').setURL(googleURL),
+                new MessageButton().setLabel('TinEye').setStyle('LINK').setURL(tineyeURL),
+                new MessageButton().setLabel('ascii2d').setStyle('LINK').setURL(ascii2dURL),
+                new MessageButton().setLabel('Yandex').setStyle('LINK').setURL(yandexURL),
+                this.methodMap.get(Interactions.Remove),
+            ];
             return [
                 naviRow,
-                new MessageActionRow().addComponents([
-                    new MessageButton().setLabel('Google Image').setStyle('LINK').setURL(googleURL),
-                    new MessageButton().setLabel('TinEye').setStyle('LINK').setURL(tineyeURL),
-                    new MessageButton().setLabel('ascii2d').setStyle('LINK').setURL(ascii2dURL),
-                    new MessageButton().setLabel('Yandex').setStyle('LINK').setURL(yandexURL),
-                    this.methodMap.get(Interactions.Remove),
-                ]),
+                new MessageActionRow().addComponents(
+                    this.ephemeral ? others.splice(0, others.length - 1) : others
+                ),
             ];
         }
         const rows = [];
         if (this.pages[this.#currentView].length > 1) rows.push(naviRow);
-        rows.push(optionsRow);
+        if (optionsRow.components.length) rows.push(optionsRow);
         if (this.filterIDs.length && !this.#previewing)
             rows.push(
                 new MessageActionRow().addComponents(this.methodMap.get(Interactions.Filter))
@@ -316,10 +326,12 @@ export class Paginator {
         const content = interaction.message.content;
         await interaction[interaction.deferred || interaction.replied ? 'editReply' : 'update']({
             content: content.length ? content : null,
-            embeds: this.pages[this.#currentView].length ? [
-                this.pages[this.#currentView][this.#currentPage]?.embed ??
-                    this.pages[this.#currentView][0]?.embed,
-            ] : [],
+            embeds: this.pages[this.#currentView].length
+                ? [
+                      this.pages[this.#currentView][this.#currentPage]?.embed ??
+                          this.pages[this.#currentView][0]?.embed,
+                  ]
+                : [],
             components: this.getButtons(),
         });
         return false;
@@ -346,16 +358,19 @@ export class Paginator {
             this.filteredPages = Object.assign({}, this.pages);
             this.pages = {
                 info: this.pages.info.filter(page => !this.filterIDs.includes(+page.galleryID)),
-                thumbnail: this.pages.thumbnail.filter(page =>
-                    !this.filterIDs.includes(+page.galleryID)
+                thumbnail: this.pages.thumbnail.filter(
+                    page => !this.filterIDs.includes(+page.galleryID)
                 ),
             };
         }
+        this.ephemeral = interaction.options.getBoolean('private') ?? false;
         const c = {
             content: content.length ? content : null,
-            embeds: this.pages[this.#currentView].length ? [this.pages[this.#currentView][this.#currentPage].embed] : [],
+            embeds: this.pages[this.#currentView].length
+                ? [this.pages[this.#currentView][this.#currentPage].embed]
+                : [],
             components: this.getButtons(),
-            ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+            ephemeral: this.ephemeral,
             allowedMentions: { repliedUser: false },
         };
         const message = (await this.interaction[type](c)) as Message;
@@ -699,6 +714,7 @@ export class Paginator {
                         pages: this.pages.thumbnail,
                     };
                     this.pages.thumbnail = this.pages[this.#currentView][this.#currentPage].pages;
+                    this.#currentView = 'thumbnail';
                     this.#currentPage = 0;
                     this.#previewing = true;
                     return this.update(interaction);
@@ -850,8 +866,7 @@ export class Paginator {
                 this: Paginator,
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
-                if (interaction.user !== this.interaction.user)
-                    return Promise.resolve(false);
+                if (interaction.user !== this.interaction.user) return Promise.resolve(false);
                 this.pages = this.filteredPages;
                 this.filterIDs = [];
                 return this.update(interaction);
