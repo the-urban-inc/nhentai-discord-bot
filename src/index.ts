@@ -3,7 +3,8 @@ config();
 import { createServer } from 'http';
 createServer().listen(process.env.PORT || 8080);
 import { Snowflake, TextChannel } from 'discord.js';
-const { ENVIRONMENT, LOGGING_CHANNEL } = process.env;
+const { LOGGING_CHANNEL } = process.env;
+import axios from 'axios';
 import { Client } from './structures/Client';
 const client = new Client();
 client.start();
@@ -48,7 +49,6 @@ client.once('ready', async () => {
     await changePresence();
     await client.db.init();
     await client.commandHandler.loadCommands();
-    if (ENVIRONMENT !== 'development') await client.fakku.setup();
 });
 
 client.on('guildCreate', async guild => {
@@ -72,7 +72,16 @@ client.on('guildCreate', async guild => {
     }
 });
 
-client.on('error', err => client.logger.error(err));
+client.on('error', err => {
+    if (axios.isAxiosError(err)) client.logger.error(err.message);
+    else client.logger.error(err);
+});
 client.on('disconnect', () => client.logger.warn('[EVENT] Disconnecting...'));
-process.on('uncaughtException', err => client.logger.stackTrace(err));
-process.on('unhandledRejection', err => client.logger.stackTrace(err));
+process.on('uncaughtException', err => {
+    if (axios.isAxiosError(err)) client.logger.error(err.message);
+    else client.logger.stackTrace(err)
+});
+process.on('unhandledRejection', err => {
+    if (axios.isAxiosError(err)) client.logger.error(err.message);
+    else client.logger.stackTrace(err)
+});
