@@ -733,7 +733,7 @@ export class Paginator {
                     this.#previewing = false;
                     return this.update(interaction);
                 }
-                this.#currentView = this.#currentView === 'info' ? 'thumbnail' : 'info';
+                this.#currentView = interaction.values.includes('info') ? 'thumbnail' : 'info';
                 return this.update(interaction);
             }
         )
