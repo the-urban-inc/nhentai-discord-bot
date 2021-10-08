@@ -26,6 +26,7 @@ export class CommandHandler extends ApplicationCommandManager {
                 try {
                     await interaction.deferReply({
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        fetchReply: true,
                     });
                     const { commands, cooldowns } = this.client;
                     const command = commands.get(interaction.commandName);
