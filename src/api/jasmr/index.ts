@@ -26,13 +26,13 @@ export class Client {
 
     private getURL($: Root): SearchResult {
         return this.random(
-            $("[class='outside outsidebig']")
+            $("[class='videoitem popunder mainitem']")
                 .toArray()
                 .map(e => {
                     return {
-                        title: $(e).find('.vidtext').text(),
-                        url: `${this.baseURL}/${$(e).find('a').attr('href')}`,
-                        image: `${this.baseURL}/${$(e).find('img').attr('src')}`
+                        title: $(e).find('.videotitlea').text(),
+                        url: `${this.baseURL}/${$(e).find('.videotitlea').attr('href')}`,
+                        image: `${this.baseURL}/${$(e).find('.videoimg').attr('src')}`
                     };
                 })
         );
@@ -43,7 +43,7 @@ export class Client {
     }
 
     public async tag(tag: string): Promise<SearchResult> {
-        const url = `${this.baseURL}/t?t=+${tag.replace(/ /g, '+')}&s=`;
+        const url = `${this.baseURL}/t?q=+${tag.replace(/ /g, '+')}`;
         const result = await this.fetch<string>(url).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,

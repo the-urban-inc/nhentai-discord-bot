@@ -49,12 +49,15 @@ export class Track implements TrackData {
                         .on('error', err => {
                             throw err;
                         })
+                        .audioCodec('opus')
+                        .audioBitrate(100)
+                        .audioFrequency(48000)
                         .audioChannels(2)
                         .format('ogg')
                         .pipe() as PassThrough
                 );
             } catch (error) {
-				// ignore
+                // ignore
                 // reject(error);
             }
         });
@@ -63,22 +66,35 @@ export class Track implements TrackData {
     public createAudioResource(): Promise<AudioResource<Track>> {
         return new Promise(async (resolve, reject) => {
             try {
-                const stream = await this.extractAudio();
+                const response = await axios.get(this.videoURL, {
+                    responseType: 'stream',
+                });
+                const videoStream = new PassThrough();
+                response.data.pipe(videoStream);
+                const process = ffmpeg(videoStream)
+                    .on('error', err => {
+                        throw err;
+                    })
+                    .audioChannels(2)
+                    .format('ogg');
+                const stream = process.pipe() as PassThrough;
                 const onError = (error: Error) => {
+                    process.kill('SIGKILL');
                     stream.resume();
                     reject(error);
                 };
-                stream.on('error', onError);
-                demuxProbe(stream)
-                    .then(probe =>
-                        resolve(
-                            createAudioResource(probe.stream, {
-                                metadata: this,
-                                inputType: probe.type,
-                            })
+                process.once('start', () => {
+                    demuxProbe(stream)
+                        .then(probe =>
+                            resolve(
+                                createAudioResource(probe.stream, {
+                                    metadata: this,
+                                    inputType: probe.type,
+                                })
+                            )
                         )
-                    )
-                    .catch(onError);
+                        .catch(onError);
+                });
             } catch (error) {
                 reject(error);
             }
