@@ -22,7 +22,7 @@ export const FLAG_EMOJIS = {
 
 export const SORT_METHODS = ['recent', 'popular-today', 'popular-week', 'popular'];
 
-export const BANNED_TAGS = ['19440', '32341', '27217', '15425', '1088', '4549', '10542', '14069']; // lolicon, shotacon, guro, vore, bdsm, torture, snuff, ryona
+export const BANNED_TAGS = ['19440', '32341', '27217', '15425', '1088', '4549', '10542', '14069', '30848']; // lolicon, shotacon, guro, vore, bdsm, torture, snuff, ryona, cannibalism
 
 export const BANNED_TAGS_TEXT = [
     'loli',
@@ -36,6 +36,7 @@ export const BANNED_TAGS_TEXT = [
     'torture',
     'snuff',
     'ryona',
+    'cannibalism',
 ]; // this should be enough
 
 export const BLOCKED_MESSAGE = `This command call contains contents violating Discord's Community Guidelines, therefore, for your own safety, I have decided to omit the violating images.\nIf you wish to continue viewing the images, contact someone in your server with the Manage Server permission to unlock them using the \`danger\` command.`;
