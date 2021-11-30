@@ -2,7 +2,9 @@ import { AudioResource, createAudioResource, demuxProbe } from '@discordjs/voice
 import { PassThrough } from 'stream';
 import axios from 'axios';
 import ffmpeg from 'fluent-ffmpeg';
+import ffmpegPath from 'ffmpeg-static';
 import ffprobe from 'ffprobe-static';
+ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobe.path);
 
 export interface TrackData {
@@ -35,34 +37,7 @@ export class Track implements TrackData {
         this.onFinish = onFinish;
         this.onError = onError;
     }
-
-    private async extractAudio(): Promise<PassThrough> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const response = await axios.get(this.videoURL, {
-                    responseType: 'stream',
-                });
-                const stream = new PassThrough();
-                response.data.pipe(stream);
-                resolve(
-                    ffmpeg(stream)
-                        .on('error', err => {
-                            throw err;
-                        })
-                        .audioCodec('opus')
-                        .audioBitrate(100)
-                        .audioFrequency(48000)
-                        .audioChannels(2)
-                        .format('ogg')
-                        .pipe() as PassThrough
-                );
-            } catch (error) {
-                // ignore
-                // reject(error);
-            }
-        });
-    }
-
+    
     public createAudioResource(): Promise<AudioResource<Track>> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -75,6 +50,8 @@ export class Track implements TrackData {
                     .on('error', err => {
                         throw err;
                     })
+                    .audioBitrate(100)
+                    .audioFrequency(48000)
                     .audioChannels(2)
                     .format('ogg');
                 const stream = process.pipe() as PassThrough;

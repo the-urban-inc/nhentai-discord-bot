@@ -8,7 +8,7 @@ import {
 } from '@discordjs/voice';
 
 const TAGS = [
-    'Pure',
+    'ALL AGES',
     'R18',
     'Whisper',
     'Ear Licking',
@@ -89,8 +89,8 @@ export default class extends Command {
                 'Failed to join voice channel within 20 seconds, please try again later!'
             );
         }
-        const { title, url, image } = await this.client.jasmr.tag(tag);
-        if (!title || !url || !image) {
+        const { circle, title, url, image } = await this.client.jasmr.tag(tag);
+        if (!circle || !title || !url || !image) {
             throw new Error(`No result found: ${tag}`);
         }
         const video = await this.client.jasmr.video(encodeURI(url));
@@ -101,15 +101,15 @@ export default class extends Command {
             .default()
             .setTitle('▶️\u2000Now Playing')
             .setDescription(`[${title}](${url})`)
-            .setThumbnail(image);
+            .setThumbnail(image)
+            .setFooter(`Circle: ${circle}`);
         try {
             const track = await Track.from(encodeURI(url), encodeURI(video), image, title, {
                 onStart() {
                     interaction
                         .followUp({
                             embeds: [np],
-                        })
-                        .catch(error => this.client.logger.error(error));
+                        });
                 },
                 onFinish() {},
                 onError(error) {

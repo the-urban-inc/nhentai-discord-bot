@@ -3,6 +3,7 @@ import { load } from 'cheerio';
 type Root = ReturnType<typeof load>;
 
 interface SearchResult {
+    circle: string;
     title: string;
     url: string;
     image: string;
@@ -30,9 +31,10 @@ export class Client {
                 .toArray()
                 .map(e => {
                     return {
+                        circle: $(e).find('.circlename').text(),
                         title: $(e).find('.videotitlea').text(),
                         url: `${this.baseURL}/${$(e).find('.videotitlea').attr('href')}`,
-                        image: `${this.baseURL}/${$(e).find('.videoimg').attr('src')}`
+                        image: `${this.baseURL}/${$(e).find('img').attr('src')}`
                     };
                 })
         );
