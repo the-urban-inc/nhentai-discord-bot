@@ -21,6 +21,12 @@ export default class extends Command {
                         .setURL('https://paypal.me/taiyou67')
                         .setStyle('LINK')
                 ),
+                new MessageActionRow().addComponents(
+                    new MessageButton()
+                        .setLabel('Ko-fi')
+                        .setURL('https://ko-fi.com/taiyou67')
+                        .setStyle('LINK')
+                ),
             ],
         });
     }
