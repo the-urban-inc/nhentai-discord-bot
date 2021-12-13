@@ -10,6 +10,7 @@ import {
 const TAGS = [
     'ALL AGES',
     'R18',
+    'R15',
     'Whisper',
     'Ear Licking',
     'Ear Cleaning',
@@ -89,6 +90,7 @@ export default class extends Command {
                 'Failed to join voice channel within 20 seconds, please try again later!'
             );
         }
+
         const { circle, title, url, image } = await this.client.jasmr.tag(tag);
         if (!circle || !title || !url || !image) {
             throw new Error(`No result found: ${tag}`);
@@ -103,15 +105,24 @@ export default class extends Command {
             .setDescription(`[${title}](${url})`)
             .setThumbnail(image)
             .setFooter(`Circle: ${circle}`);
+        const fp = this.client.embeds
+            .default()
+            .setTitle('⏹️\u2000Finished Playing')
+            .setDescription(`[${title}](${url})`)
+            .setThumbnail(image)
+            .setFooter(`Circle: ${circle}`);
         try {
-            const track = await Track.from(encodeURI(url), encodeURI(video), image, title, {
+            const track = await Track.from(encodeURI(url), encodeURI(video), image, title, circle, {
                 onStart() {
-                    interaction
-                        .followUp({
-                            embeds: [np],
-                        });
+                    interaction.followUp({
+                        embeds: [np],
+                    });
                 },
-                onFinish() {},
+                onFinish() {
+                    interaction.followUp({
+                        embeds: [fp],
+                    });
+                },
                 onError(error) {
                     throw error;
                 },

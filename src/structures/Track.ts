@@ -12,6 +12,7 @@ export interface TrackData {
     videoURL: string;
     imageURL: string;
     title: string;
+    circle: string;
     onStart: () => void;
     onFinish: () => void;
     onError: (error: Error) => void;
@@ -24,20 +25,31 @@ export class Track implements TrackData {
     public readonly videoURL: string;
     public readonly imageURL: string;
     public readonly title: string;
+    public readonly circle: string;
     public readonly onStart: () => void;
     public readonly onFinish: () => void;
     public readonly onError: (error: Error) => void;
 
-    private constructor({ url, videoURL, imageURL, title, onStart, onFinish, onError }: TrackData) {
+    private constructor({
+        url,
+        videoURL,
+        imageURL,
+        title,
+        circle,
+        onStart,
+        onFinish,
+        onError,
+    }: TrackData) {
         this.url = url;
         this.videoURL = videoURL;
         this.imageURL = imageURL;
         this.title = title;
+        this.circle = circle;
         this.onStart = onStart;
         this.onFinish = onFinish;
         this.onError = onError;
     }
-    
+
     public createAudioResource(): Promise<AudioResource<Track>> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -46,32 +58,27 @@ export class Track implements TrackData {
                 });
                 const videoStream = new PassThrough();
                 response.data.pipe(videoStream);
-                const process = ffmpeg(videoStream)
-                    .on('error', err => {
-                        throw err;
-                    })
-                    .audioBitrate(100)
-                    .audioFrequency(48000)
-                    .audioChannels(2)
-                    .format('ogg');
-                const stream = process.pipe() as PassThrough;
-                const onError = (error: Error) => {
-                    process.kill('SIGKILL');
-                    stream.resume();
+                try {
+                    const probe = await demuxProbe(
+                        ffmpeg(videoStream)
+                            .on('error', err => {
+                                throw err;
+                            })
+                            .audioBitrate(100)
+                            .audioFrequency(48000)
+                            .audioChannels(2)
+                            .format('ogg')
+                            .pipe() as PassThrough
+                    );
+                    resolve(
+                        createAudioResource(probe.stream, {
+                            metadata: this,
+                            inputType: probe.type,
+                        })
+                    );
+                } catch (error) {
                     reject(error);
-                };
-                process.once('start', () => {
-                    demuxProbe(stream)
-                        .then(probe =>
-                            resolve(
-                                createAudioResource(probe.stream, {
-                                    metadata: this,
-                                    inputType: probe.type,
-                                })
-                            )
-                        )
-                        .catch(onError);
-                });
+                }
             } catch (error) {
                 reject(error);
             }
@@ -83,6 +90,7 @@ export class Track implements TrackData {
         videoURL: string,
         imageURL: string,
         title: string,
+        circle: string,
         methods: Pick<Track, 'onStart' | 'onFinish' | 'onError'>
     ): Promise<Track> {
         const wrappedMethods = {
@@ -104,6 +112,7 @@ export class Track implements TrackData {
             videoURL,
             imageURL,
             title,
+            circle,
             ...wrappedMethods,
         });
     }
