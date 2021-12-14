@@ -1,7 +1,6 @@
 import { Client } from './Client';
 import { User, WatchModel } from '@database/models';
 import { Client as NHClient, Gallery } from '@api/nhentai';
-import follow from 'src/commands/misc/follow';
 const nh = new NHClient();
 
 export class Notifier {
