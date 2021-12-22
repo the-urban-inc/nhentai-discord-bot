@@ -30,10 +30,11 @@ export default class extends Command {
         if (!this.client.util.isUrl(imageURL)) {
             throw new UserError('INVALID_IMAGE', imageURL);
         }
-        const results = await sauceNAO(imageURL, { results: 8, db: 999 });
+        let results = await sauceNAO(imageURL, { db: 999 });
         if (!results || !results.length) {
             throw new UserError('NO_RESULT', imageURL);
         }
+        results = results.slice(0, 8);
         const display = this.client.embeds.paginator(this.client, {
             startView: 'thumbnail',
             collectorTimeout: 300000,

@@ -15,18 +15,16 @@ export default class extends Command {
             content:
                 "If you really like me and want to support my creator, you can consider donating to my creator's Paypal. Do note that donating will not grant you any kinds of perks in return. Donating shows that the project is useful to you and you believe in the future of the project.",
             components: [
-                new MessageActionRow().addComponents(
+                new MessageActionRow().addComponents([
                     new MessageButton()
                         .setLabel('Paypal')
                         .setURL('https://paypal.me/taiyou67')
-                        .setStyle('LINK')
-                ),
-                new MessageActionRow().addComponents(
+                        .setStyle('LINK'),
                     new MessageButton()
                         .setLabel('Ko-fi')
                         .setURL('https://ko-fi.com/taiyou67')
                         .setStyle('LINK')
-                ),
+                ]),
             ],
         });
     }
