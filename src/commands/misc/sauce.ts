@@ -31,7 +31,7 @@ export default class extends Command {
             throw new UserError('INVALID_IMAGE', imageURL);
         }
         let results = await sauceNAO(imageURL, { db: 999 });
-        if (!results || !results.length) {
+        if (!results || results.length === 0) {
             throw new UserError('NO_RESULT', imageURL);
         }
         results = results.slice(0, 8);

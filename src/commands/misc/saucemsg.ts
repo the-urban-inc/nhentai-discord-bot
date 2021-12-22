@@ -31,10 +31,11 @@ export default class extends ContextMenuCommand {
         const images = [message.content, this.checkforImage(message)[0]?.url, this.checkforEmbedImage(message)[0]?.url].filter(url => this.client.util.isUrl(url))
         if (!images.length) throw new UserError('INVALID_IMAGE', '');
         const imageURL = images[0];
-        const results = await sauceNAO(imageURL, { results: 8, db: 999 });
-        if (!results || !results.length) {
+        let results = await sauceNAO(imageURL, { db: 999 });
+        if (!results || results.length === 0) {
             throw new UserError('NO_RESULT', imageURL);
         }
+        results = results.slice(0, 8);
         const display = this.client.embeds.paginator(this.client, {
             startView: 'thumbnail',
             collectorTimeout: 300000,
