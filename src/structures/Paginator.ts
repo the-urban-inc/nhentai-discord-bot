@@ -354,11 +354,11 @@ export class Paginator {
         }
         this.interaction = interaction;
         this.followedUp = type === 'followUp';
-        this.#currentView =
-            this.#currentPage > 0 &&
-            ['g', 'random', 'favorite'].includes(this.interaction.commandName)
+        this.#currentView = ['g', 'random', 'favorite'].includes(this.interaction.commandName)
+            ? this.#currentPage > 0
                 ? 'thumbnail'
-                : 'info';
+                : 'info'
+            : 'thumbnail';
         if (this.filterIDs.length) {
             this.filteredPages = Object.assign({}, this.pages);
             this.pages = {
