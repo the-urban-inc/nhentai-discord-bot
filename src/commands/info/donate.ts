@@ -18,7 +18,7 @@ export default class extends Command {
                 new MessageActionRow().addComponents([
                     new MessageButton()
                         .setLabel('Paypal')
-                        .setURL('https://paypal.me/taiyou67')
+                        .setURL('https://paypal.me/t41y0u')
                         .setStyle('LINK'),
                     new MessageButton()
                         .setLabel('Ko-fi')
