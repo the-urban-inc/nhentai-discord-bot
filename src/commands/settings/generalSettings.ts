@@ -18,7 +18,7 @@ export default class extends Command {
         });
     }
 
-    update(anonymous: boolean, danger: boolean | null, url: boolean | null) {
+    update(anonymous: boolean, danger: boolean | null) {
         const y = '✅',
             n = '❌';
         const settings = this.client.embeds
@@ -45,20 +45,13 @@ export default class extends Command {
                 'Server Settings',
                 `${
                     danger ? y : n
-                }\u2000**Danger**\n• Start showing images relating to banned content stated in [Discord Community Guidelines](https://discord.com/guidelines). The bot owner will not take responsibilities if this caused your server to get banned.\n${
-                    url ? y : n
-                }\u2000**URL**\n• Allow members to call nhentai-related commands with URL. E.g: Posting https://nhentai.net/g/177013 will call command \`g\` with code \`177013\`.`
+                }\u2000**Danger**\n• Start showing images relating to banned content stated in [Discord Community Guidelines](https://discord.com/guidelines). The bot owner will not take responsibilities if this caused your server to get banned.`
             );
             menu.spliceOptions(1, 0, [
                 {
                     label: 'Danger',
                     value: 'danger',
                     emoji: danger ? n : y,
-                },
-                {
-                    label: 'URL',
-                    value: 'url',
-                    emoji: url ? n : y,
                 },
             ]);
         }
@@ -79,21 +72,19 @@ export default class extends Command {
             }).save();
         }
         let anonymous = user.anonymous,
-            danger = null,
-            url = null;
+            danger = null;
         if (member.permissions.has('MANAGE_GUILD')) {
             let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
                     serverID: interaction.guild.id,
-                    settings: { danger: false, url: false },
+                    settings: { danger: false },
                 }).save();
             }
             danger = server.settings.danger;
-            url = server.settings.url;
         }
         const message = (await interaction.editReply(
-            this.update(anonymous, danger, url)
+            this.update(anonymous, danger)
         )) as Message;
         const collector = message.createMessageComponentCollector({
             filter: i => i.user.id === member.id,
@@ -106,9 +97,7 @@ export default class extends Command {
                 anonymous = await this.client.db.user.anonymous(member.id);
             if (i.values.includes('danger'))
                 danger = await this.client.db.server.danger(interaction.guild.id);
-            if (i.values.includes('url'))
-                url = await this.client.db.server.url(interaction.guild.id);
-            await interaction.editReply(this.update(anonymous, danger, url));
+            await interaction.editReply(this.update(anonymous, danger));
         });
     }
 }

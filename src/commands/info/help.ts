@@ -54,7 +54,7 @@ export default class extends Command {
             )
             .addField(
                 'Where are the n! commands?',
-                "~~Gone. Completely migrated to slash commands.~~ They're still there (until April 2022)."
+                "Gone. Completely migrated to slash commands."
             )
             .addField(
                 'Where is the thigh command? (And other images commands?)',

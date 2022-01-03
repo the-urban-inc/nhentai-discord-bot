@@ -822,8 +822,8 @@ export class Paginator {
                     );
                     await interaction.followUp({
                         content: adding
-                            ? `✅\u2000Started following ${type} ${name}`
-                            : `❌\u2000Stopped following ${type} ${name}`,
+                            ? `✅\u2000Started following ${type} \`${name}\``
+                            : `❌\u2000Stopped following ${type} \`${name}\``,
                         ephemeral: true,
                     });
                     return Promise.resolve(false);
