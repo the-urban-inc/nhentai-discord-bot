@@ -1,6 +1,7 @@
 import { Client, Command } from '@structures';
 import { CommandInteraction, User as DiscordUser } from 'discord.js';
 import { User, Server, Blacklist } from '@database/models';
+import { GalleryResult } from '@api/nhentai';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -99,8 +100,19 @@ export default class extends Command {
             });
         }
         let result = [];
-        for (const code of user.favorites) {
+        const delay = (ms = 500) => new Promise(r => setTimeout(r, ms));
+        for (const [i, code] of user.favorites.entries()) {
+            await delay();
             const { gallery } = await this.client.nhentai.g(parseInt(code, 10));
+            const progress = Math.floor((i / user.favorites.length) * 100);
+            const totalBar = '░░░░░░░░░░░░░░░░';
+            const progressBar = '▒'; // ░░░░░
+            await interaction.editReply(
+                `Fetching favorites list ${'.'.repeat(i % 3 + 1)} It may take a while\n[${
+                    progressBar.repeat((totalBar.length / 100) * progress) +
+                    totalBar.substring((totalBar.length / 100) * progress + 1)
+                }] [${progress}%]`
+            );
             result.push(gallery);
         }
         const { displayList, rip } = this.client.embeds.displayGalleryList(
