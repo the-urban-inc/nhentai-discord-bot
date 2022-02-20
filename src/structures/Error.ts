@@ -14,6 +14,7 @@ const Messages = {
         `Invalid page index: \`${page}\`. Page number must be between 1 and ${max}.`,
     UNKNOWN_TAG: (tag: string) => `Tag \`${tag}\` isn't supported yet`,
     INVALID_IMAGE: (image: string) => `Invalid image URL: ${image}`,
+    TIMED_OUT: 'Request timed out, try again later',
 };
 
 export class UserError extends Error {

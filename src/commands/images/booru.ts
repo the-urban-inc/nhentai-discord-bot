@@ -4,6 +4,7 @@ import { Server } from '@database/models';
 import { search } from 'booru';
 import { decode } from 'he';
 import { BANNED_TAGS_TEXT } from '@constants';
+import SearchResults from 'booru/dist/structures/SearchResults';
 
 const SITES = {
     'e621.net': 'e621',
@@ -77,9 +78,17 @@ export default class extends Command {
         await this.before(interaction);
         const site = interaction.options.get('site').value as keyof typeof SITES;
         const tag = interaction.options.get('tag').value as string;
-        const res = await search(site, tag.replace(/ /g, '_'), { limit: 25, random: true }).catch(
-            err => this.client.logger.error(err)
-        ); // 25 is more than enough for a page
+        let res: void | SearchResults = null;
+        Promise.race([
+            res = await search(site, tag.replace(/ /g, '_'), { limit: 25, random: true }).catch(
+                err => this.client.logger.error(err)
+            ), // 25 is more than enough for a page
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+        ]).catch(function(err) {
+            if (err.message === 'Timeout') {
+                throw new UserError('TIMED_OUT');
+            }
+        })  
         if (
             !res ||
             !res.posts.length ||
