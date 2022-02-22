@@ -80,8 +80,8 @@ export default class extends Command {
         const tag = interaction.options.get('tag').value as string;
         let res: void | SearchResults = null;
         Promise.race([
-            res = await search(site, tag.replace(/ /g, '_'), { limit: 25, random: true }).catch(
-                err => this.client.logger.error(err)
+            res = await search(SITES[site], tag.replace(/ /g, '_'), { limit: 25, random: true }).catch(
+                err => { throw err; }
             ), // 25 is more than enough for a page
             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
         ]).catch(function(err) {
