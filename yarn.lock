@@ -678,12 +678,12 @@ boolbase@^1.0.0:
   resolved "https://registry.yarnpkg.com/boolbase/-/boolbase-1.0.0.tgz#68dff5fbe60c51eb37725ea9e3ed310dcc1e776e"
   integrity sha1-aN/1++YMUes3cl6p4+0xDcwed24=
 
-booru@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/booru/-/booru-2.4.0.tgz#8e239dbd82d9e3056693db351804acfaa6dcebf5"
-  integrity sha512-CYawPyAd4l7JA5tq4HmTbu9xAB146aFyQ2xfhU+lHvg28+fsIP8XD2Al/VY9rgQqdE78EvaR2Lvc1AhbsSdSbA==
+booru@^2.5.3:
+  version "2.5.3"
+  resolved "https://registry.yarnpkg.com/booru/-/booru-2.5.3.tgz#59ad4eb19ecc6ea5d4477ca7b4889e483d6484b0"
+  integrity sha512-eze5/6fH514y/LnBH++yqhkfMlWFLIdDOx2Q6AxGNE8Y0ETrFmgu+G//3zY4jzDolEaioF1hw3purfHr3yCxRQ==
   dependencies:
-    fast-xml-parser "^3.17.4"
+    fast-xml-parser "^3.19.0"
     node-fetch "^2.6.1"
 
 brace-expansion@^1.1.7:
@@ -1613,10 +1613,12 @@ fast-levenshtein@^2.0.6, fast-levenshtein@~2.0.6:
   resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz#3d8a5c66883a16a30ca8643e851f19baa7797917"
   integrity sha1-PYpcZog6FqMMqGQ+hR8Zuqd5eRc=
 
-fast-xml-parser@^3.17.4:
-  version "3.19.0"
-  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-3.19.0.tgz#cb637ec3f3999f51406dd8ff0e6fc4d83e520d01"
-  integrity sha512-4pXwmBplsCPv8FOY1WRakF970TjNGnGnfbOnLqjlYvMiF1SR3yOHyxMR/YCXpPTOspNF5gwudqktIP4VsWkvBg==
+fast-xml-parser@^3.19.0:
+  version "3.21.1"
+  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-3.21.1.tgz#152a1d51d445380f7046b304672dd55d15c9e736"
+  integrity sha512-FTFVjYoBOZTJekiUsawGsSYV9QL0A+zDYCRj7y34IO6Jg+2IMYEtQa+bbictpdpV8dHxXywqU7C0gRDEOFtBFg==
+  dependencies:
+    strnum "^1.0.4"
 
 ffmpeg-static@^4.4.0:
   version "4.4.0"
@@ -3176,6 +3178,11 @@ strip-json-comments@^3.1.0, strip-json-comments@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-3.1.1.tgz#31f1281b3832630434831c310c01cccda8cbe006"
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
+
+strnum@^1.0.4:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/strnum/-/strnum-1.0.5.tgz#5c4e829fe15ad4ff0d20c3db5ac97b73c9b072db"
+  integrity sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==
 
 supports-color@^5.3.0:
   version "5.5.0"
