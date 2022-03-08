@@ -1,5 +1,5 @@
 import { Command, CommandHandler, ContextMenuCommand, Embeds, Notifier, MusicSubscription, Paginator, Util, Logger } from './index';
-import { Client as C, ClientOptions, Collection, Snowflake, User } from 'discord.js';
+import { Client as C, ClientOptions, Collection, Snowflake, User, Options } from 'discord.js';
 import { Database } from '@database/index';
 import { Client as JASMRAPI } from '@api/jasmr';
 import { Client as NhentaiAPI } from '@api/nhentai';
@@ -34,11 +34,20 @@ export class Client extends C {
                 'GUILD_MESSAGES',
                 'GUILD_VOICE_STATES',
             ],
+            makeCache: Options.cacheWithLimits({
+                MessageManager: 0,
+                GuildBanManager: 0,
+                GuildInviteManager: 0,
+                ThreadManager: 0,
+                PresenceManager: 0,
+                ReactionManager: 0,
+                ReactionUserManager: 0
+            })
         });
         this.commands = new Collection<string, Command | ContextMenuCommand>();
         this.categories = new Collection<string, string[]>();
         this.cooldowns = new Collection<string, Collection<User['id'], number>>();
-        this.paginators = new Collection<string, Paginator>(); 
+        this.paginators = new Collection<string, Paginator>();
         this.warned = new Set<User['id']>();
         this.commandHandler = new CommandHandler(this);
         this.db = new Database(this);
