@@ -12,6 +12,7 @@ import {
 } from 'discord.js';
 import { readdirSync } from 'fs';
 import { ContextMenuCommand } from '@structures';
+import axios from 'axios';
 const { ENVIRONMENT, DEVELOPMENT_GUILD } = process.env;
 
 let startCooldown: () => void;
@@ -94,7 +95,8 @@ export class CommandHandler extends ApplicationCommandManager {
 
                     startCooldown();
                 } catch (err) {
-                    this.client.logger.error(err instanceof UserError ? err.code : err);
+                    if (axios.isAxiosError(err)) this.client.logger.error(err.message);
+                    else this.client.logger.error(err instanceof UserError ? err.code : err);
                     const type =
                         interaction.deferred || interaction.replied ? 'editReply' : 'reply';
                     if (err instanceof UserError) {

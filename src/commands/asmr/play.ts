@@ -8,7 +8,7 @@ import {
 } from '@discordjs/voice';
 
 const TAGS = [
-    'ALL AGES',
+    'All ages',
     'R18',
     'R15',
     'Whisper',
@@ -91,8 +91,8 @@ export default class extends Command {
             );
         }
 
-        const { circle = null, title, url, image } = await this.client.jasmr.tag(tag);
-        if (!title || !url || !image) {
+        const { circle, title, url, image } = await this.client.jasmr.tag(tag);
+        if (!title || !url || !image || !circle) {
             throw new Error(`No result found: ${tag}`);
         }
         const video = await this.client.jasmr.video(encodeURI(url));
@@ -104,7 +104,7 @@ export default class extends Command {
             .setTitle('▶️\u2000Now Playing')
             .setDescription(`[${title}](${url})`)
             .setThumbnail(image)
-            .setFooter(`Circle: ${circle ?? 'N/A'}`);
+            .setFooter(`Circle: ${circle}`);
         const fp = this.client.embeds
             .default()
             .setTitle('⏹️\u2000Finished Playing')
