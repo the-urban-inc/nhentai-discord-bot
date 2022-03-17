@@ -6,22 +6,22 @@ import { decode } from 'he';
 import { BANNED_TAGS_TEXT } from '@constants';
 import SearchResults from 'booru/dist/structures/SearchResults';
 
-const SITES = {
-    'e621.net': 'e621',
-    'e926.net': 'e926',
-    'hypnohub.net': 'hypnohub',
-    'danbooru.donmai.us': 'danbooru',
-    'konachan.com': 'konac',
-    'konachan.net': 'konan',
-    'yande.re': 'yandere',
-    'gelbooru.com': 'gelbooru',
-    'rule34.xxx': 'rule34',
-    'safebooru.org': 'safebooru',
-    'tbib.org': 'tbib',
-    'xbooru.com': 'xbooru',
-    'rule34.paheal.net': 'paheal',
-    'derpibooru.org': 'derpibooru',
-} as const;
+const SITES = [
+    'e621.net',
+    'e926.net',
+    'hypnohub.net',
+    'danbooru.donmai.us',
+    'konachan.com',
+    'konachan.net',
+    'yande.re',
+    'gelbooru.com',
+    'rule34.xxx',
+    'safebooru.org',
+    'tbib.org',
+    'xbooru.com',
+    'rule34.paheal.net',
+    'derpibooru.org',
+] as const;
 
 export default class extends Command {
     constructor(client: Client) {
@@ -37,10 +37,10 @@ export default class extends Command {
                     type: 'STRING',
                     description: 'The site to search on',
                     required: true,
-                    choices: Object.keys(SITES).map(k => {
+                    choices: SITES.map(k => {
                         return {
                             name: k,
-                            value: SITES[k],
+                            value: k,
                         };
                     }),
                 },
@@ -76,19 +76,21 @@ export default class extends Command {
 
     async exec(interaction: CommandInteraction) {
         await this.before(interaction);
-        const site = interaction.options.get('site').value as typeof SITES[keyof typeof SITES];
+        const site = interaction.options.get('site').value as typeof SITES[number];
         const tag = interaction.options.get('tag').value as string;
         let res: void | SearchResults = null;
         Promise.race([
-            res = await search(SITES[site], tag.replace(/ /g, '_'), { limit: 25, random: true }).catch(
-                err => { throw err; }
-            ), // 25 is more than enough for a page
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-        ]).catch(function(err) {
+            (res = await search(site, tag.replace(/ /g, '_'), { limit: 25, random: true }).catch(
+                err => {
+                    throw err;
+                }
+            )), // 25 is more than enough for a page
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000)),
+        ]).catch(function (err) {
             if (err.message === 'Timeout') {
                 throw new UserError('TIMED_OUT');
             }
-        })  
+        });
         if (
             !res ||
             !res.posts.length ||
