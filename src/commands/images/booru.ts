@@ -21,7 +21,7 @@ const SITES = {
     'xbooru.com': 'xbooru',
     'rule34.paheal.net': 'paheal',
     'derpibooru.org': 'derpibooru',
-};
+} as const;
 
 export default class extends Command {
     constructor(client: Client) {
@@ -76,7 +76,7 @@ export default class extends Command {
 
     async exec(interaction: CommandInteraction) {
         await this.before(interaction);
-        const site = interaction.options.get('site').value as keyof typeof SITES;
+        const site = interaction.options.get('site').value as typeof SITES[keyof typeof SITES];
         const tag = interaction.options.get('tag').value as string;
         let res: void | SearchResults = null;
         Promise.race([
