@@ -16,6 +16,7 @@ import {
     MessageSelectOptionData,
     Snowflake,
     SnowflakeUtil,
+    TextChannel,
     User,
 } from 'discord.js';
 import { Gallery } from '@api/nhentai';
@@ -261,7 +262,13 @@ export class Paginator {
                   ]
                 : [this.methodMap.get(Interactions.Remove)]
         );
-        if (this.ephemeral) optionsRow.spliceComponents(-1, 1);
+        if (
+            this.ephemeral ||
+            !(this.interaction.channel as TextChannel)
+                .permissionsFor(this.interaction.guild.me)
+                .has('MANAGE_MESSAGES')
+        )
+            optionsRow.spliceComponents(-1, 1);
         if (
             this.image &&
             this.interaction.commandName !== 'sauce' &&
