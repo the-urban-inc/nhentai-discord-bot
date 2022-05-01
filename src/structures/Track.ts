@@ -1,11 +1,6 @@
-import { AudioResource, createAudioResource, demuxProbe } from '@discordjs/voice';
-import { PassThrough } from 'stream';
+import { AudioResource, createAudioResource, StreamType } from '@discordjs/voice';
 import axios from 'axios';
-import ffmpeg from 'fluent-ffmpeg';
-import ffmpegPath from 'ffmpeg-static';
-import ffprobe from 'ffprobe-static';
-ffmpeg.setFfmpegPath(ffmpegPath);
-ffmpeg.setFfprobePath(ffprobe.path);
+import prism from 'prism-media';
 
 export interface TrackData {
     url: string;
@@ -50,38 +45,30 @@ export class Track implements TrackData {
         this.onError = onError;
     }
 
-    public createAudioResource(): Promise<AudioResource<Track>> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const response = await axios.get(this.videoURL, {
-                    responseType: 'stream',
-                });
-                const videoStream = new PassThrough();
-                response.data.pipe(videoStream);
-                try {
-                    const probe = await demuxProbe(
-                        ffmpeg(videoStream)
-                            .on('error', err => {
-                                throw err;
-                            })
-                            .audioBitrate(100)
-                            .audioFrequency(48000)
-                            .audioChannels(2)
-                            .format('ogg')
-                            .pipe() as PassThrough
-                    );
-                    resolve(
-                        createAudioResource(probe.stream, {
-                            metadata: this,
-                            inputType: probe.type,
-                        })
-                    );
-                } catch (error) {
-                    reject(error);
-                }
-            } catch (error) {
-                reject(error);
-            }
+    public async createAudioResource(): Promise<AudioResource<Track>> {
+        const response = await axios.get(this.videoURL, {
+            responseType: 'stream',
+        });
+        const transcoder = new prism.FFmpeg({
+            args: [
+                '-analyzeduration',
+                '0',
+                '-loglevel',
+                '0',
+                '-acodec',
+                'libopus',
+                '-f',
+                'opus',
+                '-ar',
+                '48000',
+                '-ac',
+                '2',
+            ],
+        });
+        const opus = response.data.pipe(transcoder);
+        return createAudioResource(opus, {
+            metadata: this,
+            inputType: StreamType.OggOpus,
         });
     }
 

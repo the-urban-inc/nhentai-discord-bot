@@ -6,6 +6,7 @@ interface SearchResult {
     circle: string;
     title: string;
     url: string;
+    tags: string[];
     image: string;
 }
 
@@ -34,7 +35,8 @@ export class Client {
                         circle: $(e).find('.videoitemcircle').text(),
                         title: $(e).find('.videoitemtitle').text(),
                         url: `${this.baseURL}/${$(e).find('.videoitemtop').parent('a').attr('href')}`,
-                        image: `${this.baseURL}/${$(e).find('img').attr('src')}`
+                        tags: $(e).find('.videoitemtag').toArray().map(e => $(e).text()),
+                        image: `${$(e).find('img').attr('src')}`
                     };
                 })
         );

@@ -91,8 +91,8 @@ export default class extends Command {
             );
         }
 
-        const { circle, title, url, image } = await this.client.jasmr.tag(tag);
-        if (!title || !url || !image || !circle) {
+        const { circle = 'N/A', title, url, tags = [], image } = await this.client.jasmr.tag(tag);
+        if (!title || !url || !image) {
             throw new Error(`No result found: ${tag}`);
         }
         const video = await this.client.jasmr.video(encodeURI(url));
@@ -102,7 +102,7 @@ export default class extends Command {
         const np = this.client.embeds
             .default()
             .setTitle('▶️\u2000Now Playing')
-            .setDescription(`[${title}](${url})`)
+            .setDescription(`[${title}](${url})\nTags: ${tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'}`)
             .setThumbnail(image)
             .setFooter(`Circle: ${circle}`);
         const fp = this.client.embeds
