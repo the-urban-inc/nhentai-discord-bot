@@ -45,6 +45,11 @@ export class Client {
         return res;
     }
 
+    private async galleryID($: Root): Promise<number | null> {
+        const id = parseInt($('#gallery_id').text().slice(1), 10) || null;
+        return id;
+    }
+
     private async tagID($: Root): Promise<number | null> {
         const id =
             parseInt(
@@ -92,33 +97,27 @@ export class Client {
     }
 
     public async g(id: number, more = false): Promise<GalleryResult> {
-        const gallery = await this.fetch<Gallery>(`/api/gallery/${id}`).then(res => res.data);
+        const gallery = (await this.fetch<Gallery>(`/api/gallery/${id}`)).data;
         if (!more) return { gallery };
-        const related = await this.fetch<Related>(`/api/gallery/${id}/related`).then(
-            res => res.data
-        );
-        const comments = await this.fetch<Comment[]>(`/api/gallery/${id}/comments`).then(
-            res => res.data
-        );
+        const related = (await this.fetch<Related>(`/api/gallery/${id}/related`)).data;
+        const comments = (await this.fetch<Comment[]>(`/api/gallery/${id}/comments`)).data;
         return { gallery, related: related.result, comments };
     }
 
     public async random(more = false): Promise<GalleryResult> {
-        const id = await this.fetch(`/random`).then(
-            res =>
-                +res.request.res.responseUrl
-                    .split('/')
-                    .filter(a => a)
-                    .reverse()[0]
-        );
+        const id = await this.fetch(`/random`).then(async res => {
+            const $ = load(<string>res.data, {
+                decodeEntities: false,
+                xmlMode: false,
+            });
+            return await this.galleryID($);
+        });
         if (!id || isNaN(id)) throw new Error('Invalid ID');
         return await this.g(id, more);
     }
 
     public async home(page?: number): Promise<HomeResult> {
-        const results = await this.fetch<Search>(`/api/galleries/all`, { page }).then(
-            res => res.data
-        );
+        const results = (await this.fetch<Search>(`/api/galleries/all`, { page })).data;
         if (page !== 1) return results;
         const popular_now = await this.fetch(`/`).then(async res => {
             const $ = load(<string>res.data, {
@@ -144,19 +143,17 @@ export class Client {
             }
         );
         return {
-            ...(await this.fetch<Search>(`/api/galleries/search`, { query, page, sort }).then(
-                res => res.data
-            )),
+            ...((await this.fetch<Search>(`/api/galleries/search`, { query, page, sort })).data),
             num_results,
         };
     }
 
     private async fromID(tag_id: number, page?: number, sort?: Sort): Promise<Search> {
-        return await this.fetch<Search>(`/api/galleries/tagged`, {
+        return (await this.fetch<Search>(`/api/galleries/tagged`, {
             tag_id,
             page,
             sort,
-        }).then(res => res.data);
+        })).data;
     }
 
     public async tag(query: string, page?: number, sort?: Sort): Promise<TagResult> {
