@@ -36,7 +36,7 @@ export class Client extends C {
                 'GUILD_VOICE_STATES',
             ],
             makeCache: Options.cacheWithLimits({
-                MessageManager: 0,
+                // MessageManager: 0,
                 GuildBanManager: 0,
                 GuildInviteManager: 0,
                 ThreadManager: 0,
