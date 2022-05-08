@@ -9,6 +9,7 @@ import {
     ContextMenuInteraction,
     Snowflake,
     TextChannel,
+    ThreadChannel,
 } from 'discord.js';
 import { readdirSync } from 'fs';
 import { ContextMenuCommand } from '@structures';
@@ -22,7 +23,7 @@ export class CommandHandler extends ApplicationCommandManager {
         super(client);
         this.client.on('interactionCreate', async interaction => {
             if (!interaction.isCommand() && !interaction.isContextMenu()) return;
-            if (!(interaction.channel instanceof TextChannel)) return;
+            if (!(interaction.channel instanceof TextChannel) || interaction.channel instanceof ThreadChannel) return;
             if (this.client.commands.has(interaction.commandName)) {
                 try {
                     await interaction.deferReply({
