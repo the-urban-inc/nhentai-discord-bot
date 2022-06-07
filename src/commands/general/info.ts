@@ -47,7 +47,7 @@ export default class extends Command {
                         '‎',
                         'Thanks for supporting the site!\n' + '❤️ Love,\n' + '–Team nhentai'
                     )
-                    .setFooter(`For bot info, use 'about' command`),
+                    .setFooter({ text: `For bot info, use 'about' command` }),
             ],
             allowedMentions: { repliedUser: false },
         };

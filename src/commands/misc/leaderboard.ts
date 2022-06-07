@@ -63,11 +63,11 @@ export default class extends Command {
             .default()
             .setTitle(`${interaction.guild.name}`)
             .setThumbnail(interaction.guild.iconURL())
-            .setFooter(
-                `Your guild placing stats : Rank [${pos + 1}]\u2000•\u2000Level : ${
+            .setFooter({
+                text: `Your guild placing stats : Rank [${pos + 1}]\u2000•\u2000Level : ${
                     pervs[pos]?.level ?? 0
-                }\u2000•\u2000Total Score : ${pervs[pos]?.points ?? 0}`
-            );
+                }\u2000•\u2000Total Score : ${pervs[pos]?.points ?? 0}`,
+            });
         return this.paginate(display, members, embed).run(
             interaction,
             `> **Viewing server rankings**`

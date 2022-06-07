@@ -31,12 +31,12 @@ export class Client extends C {
             ...options,
             intents: [
                 'GUILDS',
-                // 'DIRECT_MESSAGES',
-                // 'GUILD_MESSAGES',
+                'DIRECT_MESSAGES',
+                'GUILD_MESSAGES',
                 'GUILD_VOICE_STATES',
             ],
             makeCache: Options.cacheWithLimits({
-                // MessageManager: 0,
+                MessageManager: 0,
                 GuildBanManager: 0,
                 GuildInviteManager: 0,
                 ThreadManager: 0,

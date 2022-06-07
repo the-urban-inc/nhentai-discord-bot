@@ -47,7 +47,7 @@ export default class extends Command {
                         .setTitle(`Queue for ${interaction.guild.name}`)
                         .setDescription(`${current}\n\n__Up Next:__${queue}`)
                         .setThumbnail(subscription.queue[0].imageURL)
-                        .setFooter(`Page 1 of ${Math.ceil(subscription.queue.length / 5)}`),
+                        .setFooter({ text: `Page 1 of ${Math.ceil(subscription.queue.length / 5)}` }),
                 ],
             });
         }

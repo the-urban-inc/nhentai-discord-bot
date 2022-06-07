@@ -104,13 +104,13 @@ export default class extends Command {
             .setTitle('▶️\u2000Now Playing')
             .setDescription(`[${title}](${url})\nTags: ${tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'}`)
             .setThumbnail(image)
-            .setFooter(`Circle: ${circle}`);
+            .setFooter({ text: `Circle: ${circle}` });
         const fp = this.client.embeds
             .default()
             .setTitle('⏹️\u2000Finished Playing')
             .setDescription(`[${title}](${url})`)
             .setThumbnail(image)
-            .setFooter(`Circle: ${circle}`);
+            .setFooter({ text: `Circle: ${circle}` });
         try {
             const track = await Track.from(encodeURI(url), encodeURI(video), image, title, circle, {
                 onStart() {

@@ -52,7 +52,7 @@ export class Embeds {
                     .setTitle(`${decode(title.english)}`)
                     .setURL(`https://nhentai.net/g/${id}`)
                     .setImage(page)
-                    .setFooter(`ID : ${id}`)
+                    .setFooter({ text: `ID : ${id}` })
                     .setTimestamp(upload_date * 1000),
             };
         });
@@ -70,7 +70,7 @@ export class Embeds {
         const info = this.default()
             .setTitle(title)
             .setURL(`https://nhentai.net/g/${id}`)
-            .setFooter(`ID : ${id}`)
+            .setFooter({ text: `ID : ${id}` })
             .setTimestamp(upload_date * 1000);
         const rip = this.client.util.hasCommon(
             tags.map(x => x.id.toString()),
@@ -180,7 +180,7 @@ export class Embeds {
             const footer =
                 (page ? `Page ${page} of ${num_pages || 1}` : '') +
                 (num_results ? `${page ? '\u2000•\u2000' : ''}${num_results} galleries` : '');
-            if (footer.length) thumb.setFooter(footer);
+            if (footer.length) thumb.setFooter({ text: footer });
             const prip = this.client.util.hasCommon(
                 tags.map(tag => tag.id.toString()),
                 BANNED_TAGS

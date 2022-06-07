@@ -136,7 +136,7 @@ export default class extends Command {
             ],
         })) as Message;
         const answer = choices.findIndex(({ id }) => this.gallery.id === id);
-        const embed = this.client.embeds.default().setFooter('Quiz session ended');
+        const embed = this.client.embeds.default().setFooter({ text: 'Quiz session ended' });
         message
             .awaitMessageComponent(
                 {

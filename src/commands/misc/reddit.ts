@@ -23,10 +23,14 @@ export default class extends Command {
         if (!data) throw new Error('No post found');
         const embed = this.client.embeds
             .default()
-            .setAuthor(`u/${data.author}`, ICON, `https://reddit.com/user/${data.author}`)
+            .setAuthor({
+                name: `u/${data.author}`,
+                iconURL: ICON,
+                url: `https://reddit.com/user/${data.author}`,
+            })
             .setTitle(data.title)
             .setURL(`https://reddit.com${data.permalink}`)
-            .setFooter(`Upvote ratio: ${data.upvote_ratio * 100}%`)
+            .setFooter({ text: `Upvote ratio: ${data.upvote_ratio * 100}%` })
             .setTimestamp(data.created * 1000);
         if (data.url.match('.jpg') || data.url.match('.png')) embed.setImage(data.url);
         else embed.setImage(data.url + '.jpg');

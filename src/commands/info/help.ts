@@ -57,8 +57,8 @@ export default class extends Command {
                 "Gone. Completely migrated to slash commands."
             )
             .addField(
-                'Where is the thigh command? (And other images commands?)',
-                "They're all merged into action, sfw-image and nsfw-image commands due to Discord's commands limit."
+                'Why are the asmr commands not working?',
+                "I'm not sure. I'm working on it."
             )
             .addField(
                 'What is the private option and why is it in every commands?',
@@ -70,10 +70,10 @@ export default class extends Command {
             )
             .addField(
                 'What do these buttons do?',
-                '• `<<` / `>>` : Jumps to first/last embed | Jumps to previous/next page on nhentai (only works for home, search, tag, artist, etc. commands)\n' +
-                    '• `<` / `>` : Jumps to previous/next embed | Jumps to previous/next page on nhentai (only works for home, search, tag, artist, etc. commands)⁽¹⁾\n' +
+                '• `<<` / `>>` : Jumps to first/last embed | Jumps to previous/next page on nhentai ~~(only works for home, search, tag, artist, etc. commands)~~ (currently not working rn)\n' +
+                    '• `<` / `>` : Jumps to previous/next embed | Jumps to previous/next page on nhentai ~~(only works for home, search, tag, artist, etc. commands)⁽¹⁾~~ (currently not working rn)\n' +
                     '• `x of y` : Jumps to specified embed⁽¹⁾\n' +
-                    '• `Sauce?` : Searches for image source using SauceNAO\n' +
+                    '~~• `Sauce?` : Searches for image source using SauceNAO~~ Temporarily removed\n' +
                     '• `❤️` : Adds/Removes a doujin to/from favorites\n' +
                     '• `🔖` : Follows/Unfollows a tag/artist/parody/etc.\n' +
                     '• `🏴` : Blacklists a tag/artist/parody/etc.\n' +

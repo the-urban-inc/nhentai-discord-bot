@@ -1,9 +1,8 @@
-import { Client, Command } from '@structures';
+import { Client } from '@structures';
 import {
     Collection,
     CollectorFilter,
     CommandInteraction,
-    CommandInteractionOptionResolver,
     ContextMenuInteraction,
     InteractionCollector,
     InteractionCollectorOptions,
@@ -27,7 +26,6 @@ export enum Interactions {
     Jump = 'jump',
     Forward = 'forward',
     Last = 'last',
-    Info = 'info',
     Preview = 'preview',
     Return = 'return',
     Select = 'select',
@@ -164,10 +162,6 @@ export class Paginator {
                 ])
             )
             .set(
-                Interactions.Info,
-                new MessageButton().setCustomId('info').setLabel('Sauce?').setStyle('PRIMARY')
-            )
-            .set(
                 Interactions.Love,
                 new MessageButton().setCustomId('love').setLabel('❤️').setStyle('SECONDARY')
             )
@@ -270,23 +264,6 @@ export class Paginator {
         )
             optionsRow.spliceComponents(-1, 1);
         if (
-            this.image &&
-            this.interaction.commandName !== 'sauce' &&
-            this.interaction.commandName !== 'saucenao' &&
-            !this.priorityUser
-        ) {
-            return [
-                new MessageActionRow().addComponents(
-                    this.ephemeral
-                        ? [this.methodMap.get(Interactions.Info)]
-                        : [
-                              this.methodMap.get(Interactions.Info),
-                              this.methodMap.get(Interactions.Remove),
-                          ]
-                ),
-            ];
-        }
-        if (
             this.interaction.commandName === 'sauce' ||
             this.interaction.commandName === 'saucenao' ||
             (this.image && this.priorityUser)
@@ -322,11 +299,6 @@ export class Paginator {
                 new MessageActionRow().addComponents(this.methodMap.get(Interactions.Select))
             );
         return rows;
-    }
-
-    private async turnPage(interaction: MessageComponentInteraction): Promise<void> {
-        this.methodMap.forEach((v, k) => this.methodMap.get(k).setDisabled(!v.disabled));
-        await this.update(interaction);
     }
 
     private async update(interaction: MessageComponentInteraction): Promise<boolean> {
@@ -375,7 +347,7 @@ export class Paginator {
                 ),
             };
         }
-        this.ephemeral = interaction.options.getBoolean('private') ?? false;
+        this.ephemeral = interaction.options.get('private')?.value as boolean ?? false;
         const c = {
             content: content.length ? content : null,
             embeds: this.pages[this.#currentView].length
@@ -421,55 +393,7 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                if (this.#currentPage === 0) {
-                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
-                        if (
-                            (this.interaction.commandName === 'home' &&
-                                (this.interaction.options.getInteger('page') ?? 1) === 1) ||
-                            !this.interaction.options.getInteger('page')
-                        ) {
-                            if (!this.followedUp) return Promise.resolve(false);
-                            else await (interaction.message as Message).delete();
-                        }
-                        this.interaction.options = new CommandInteractionOptionResolver(
-                            this.client,
-                            [
-                                {
-                                    name: 'query',
-                                    type: 'STRING',
-                                    value: this.interaction.options.getString('query') ?? '',
-                                },
-                                {
-                                    name: 'page',
-                                    type: 'INTEGER',
-                                    value: this.interaction.options.getInteger('page') - 1,
-                                },
-                                {
-                                    name: 'sort',
-                                    type: 'STRING',
-                                    value: this.interaction.options.getString('sort') ?? 'recent',
-                                },
-                                {
-                                    name: 'private',
-                                    type: 'BOOLEAN',
-                                    value: this.interaction.options.getBoolean('private') ?? false,
-                                },
-                            ]
-                        );
-                        await this.turnPage(interaction);
-                        try {
-                            await (
-                                this.client.commands.get(this.interaction.commandName) as Command
-                            ).exec(this.interaction);
-                            this.collector.stop('Aborted');
-                        } catch (err) {
-                            await this.turnPage(interaction);
-                        } finally {
-                            return Promise.resolve(false);
-                        }
-                    }
-                    return Promise.resolve(false);
-                }
+                if (this.#currentPage === 0) return Promise.resolve(false);
                 this.#currentPage = 0;
                 return this.update(interaction);
             }
@@ -486,55 +410,7 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                if (this.#currentPage <= 0) {
-                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
-                        if (
-                            (this.interaction.commandName === 'home' &&
-                                (this.interaction.options.getInteger('page') ?? 1) === 1) ||
-                            !this.interaction.options.getInteger('page')
-                        ) {
-                            if (!this.followedUp) return Promise.resolve(false);
-                            else await (interaction.message as Message).delete();
-                        }
-                        this.interaction.options = new CommandInteractionOptionResolver(
-                            this.client,
-                            [
-                                {
-                                    name: 'query',
-                                    type: 'STRING',
-                                    value: this.interaction.options.getString('query') ?? '',
-                                },
-                                {
-                                    name: 'page',
-                                    type: 'INTEGER',
-                                    value: this.interaction.options.getInteger('page') - 1,
-                                },
-                                {
-                                    name: 'sort',
-                                    type: 'STRING',
-                                    value: this.interaction.options.getString('sort') ?? 'recent',
-                                },
-                                {
-                                    name: 'private',
-                                    type: 'BOOLEAN',
-                                    value: this.interaction.options.getBoolean('private') ?? false,
-                                },
-                            ]
-                        );
-                        await this.turnPage(interaction);
-                        try {
-                            await (
-                                this.client.commands.get(this.interaction.commandName) as Command
-                            ).exec(this.interaction);
-                            this.collector.stop('Aborted');
-                        } catch (err) {
-                            await this.turnPage(interaction);
-                        } finally {
-                            return Promise.resolve(false);
-                        }
-                    }
-                    return Promise.resolve(false);
-                }
+                if (this.#currentPage <= 0) return Promise.resolve(false);
                 this.#currentPage--;
                 return this.update(interaction);
             }
@@ -551,54 +427,7 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                if (this.#currentPage >= this.pages[this.#currentView].length - 1) {
-                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
-                        if (
-                            this.interaction.commandName === 'home' &&
-                            (this.interaction.options.getInteger('page') ?? 1) === 1
-                        ) {
-                            if (!this.followedUp) return Promise.resolve(false);
-                            else await (interaction.message as Message).delete();
-                        }
-                        this.interaction.options = new CommandInteractionOptionResolver(
-                            this.client,
-                            [
-                                {
-                                    name: 'query',
-                                    type: 'STRING',
-                                    value: this.interaction.options.getString('query') ?? '',
-                                },
-                                {
-                                    name: 'page',
-                                    type: 'INTEGER',
-                                    value: (this.interaction.options.getInteger('page') ?? 1) + 1,
-                                },
-                                {
-                                    name: 'sort',
-                                    type: 'STRING',
-                                    value: this.interaction.options.getString('sort') ?? 'recent',
-                                },
-                                {
-                                    name: 'private',
-                                    type: 'BOOLEAN',
-                                    value: this.interaction.options.getBoolean('private') ?? false,
-                                },
-                            ]
-                        );
-                        await this.turnPage(interaction);
-                        try {
-                            await (
-                                this.client.commands.get(this.interaction.commandName) as Command
-                            ).exec(this.interaction);
-                            this.collector.stop('Aborted');
-                        } catch (err) {
-                            await this.turnPage(interaction);
-                        } finally {
-                            return Promise.resolve(false);
-                        }
-                    }
-                    return Promise.resolve(false);
-                }
+                if (this.#currentPage >= this.pages[this.#currentView].length - 1) return Promise.resolve(false);
                 this.#currentPage++;
                 return this.update(interaction);
             }
@@ -615,54 +444,7 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                if (this.#currentPage === this.pages[this.#currentView].length - 1) {
-                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
-                        if (
-                            this.interaction.commandName === 'home' &&
-                            (this.interaction.options.getInteger('page') ?? 1) === 1
-                        ) {
-                            if (!this.followedUp) return Promise.resolve(false);
-                            else await (interaction.message as Message).delete();
-                        }
-                        this.interaction.options = new CommandInteractionOptionResolver(
-                            this.client,
-                            [
-                                {
-                                    name: 'query',
-                                    type: 'STRING',
-                                    value: this.interaction.options.getString('query') ?? '',
-                                },
-                                {
-                                    name: 'page',
-                                    type: 'INTEGER',
-                                    value: (this.interaction.options.getInteger('page') ?? 1) + 1,
-                                },
-                                {
-                                    name: 'sort',
-                                    type: 'STRING',
-                                    value: this.interaction.options.getString('sort') ?? 'recent',
-                                },
-                                {
-                                    name: 'private',
-                                    type: 'BOOLEAN',
-                                    value: this.interaction.options.getBoolean('private') ?? false,
-                                },
-                            ]
-                        );
-                        await this.turnPage(interaction);
-                        try {
-                            await (
-                                this.client.commands.get(this.interaction.commandName) as Command
-                            ).exec(this.interaction);
-                            this.collector.stop('Aborted');
-                        } catch (err) {
-                            await this.turnPage(interaction);
-                        } finally {
-                            return Promise.resolve(false);
-                        }
-                    }
-                    return Promise.resolve(false);
-                }
+                if (this.#currentPage === this.pages[this.#currentView].length - 1) return Promise.resolve(false);
                 this.#currentPage = this.pages[this.#currentView].length - 1;
                 return this.update(interaction);
             }
@@ -747,37 +529,6 @@ export class Paginator {
                 }
                 this.#currentView = interaction.values.includes('info') ? 'info' : 'thumbnail';
                 return this.update(interaction);
-            }
-        )
-        .set(
-            Interactions.Info,
-            async function (
-                this: Paginator,
-                interaction: MessageComponentInteraction
-            ): Promise<boolean> {
-                if (
-                    this.client.paginators.some(
-                        p => p.image === this.image && p.priorityUser?.id === interaction.user.id
-                    )
-                )
-                    return Promise.resolve(false);
-                this.interaction.options = new CommandInteractionOptionResolver(this.client, [
-                    {
-                        name: 'query',
-                        type: 'STRING',
-                        value: this.image,
-                    },
-                    {
-                        name: 'private',
-                        type: 'BOOLEAN',
-                        value: this.interaction.options.getBoolean('private') ?? false,
-                    },
-                ]);
-                await (this.client.commands.get('sauce') as Command).exec(this.interaction, {
-                    internal: true,
-                    user: interaction.user,
-                });
-                return Promise.resolve(false);
             }
         )
         .set(
