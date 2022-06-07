@@ -1,4 +1,4 @@
-FROM node:16.6-alpine3.14 as build
+FROM node:16.9.1-alpine3.14 as build
 
 WORKDIR /app
 
@@ -11,14 +11,14 @@ COPY tsconfig.json .
 COPY src/ src/
 RUN yarn build
 
-FROM node:16.6-alpine3.14 as deps
+FROM node:16.9.1-alpine3.14 as deps
 WORKDIR /app
 COPY --from=build /app/package.json .
 COPY --from=build /app/yarn.lock .
 RUN apk add py3-pip g++ make
 RUN yarn install --prod --frozen-lockfile
 
-FROM node:16.6-alpine3.14 as run
+FROM node:16.9.1-alpine3.14 as run
 WORKDIR /app
 COPY --from=build /app/package.json .
 COPY --from=build /app/build/ build/
