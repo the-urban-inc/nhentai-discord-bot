@@ -109,7 +109,7 @@ export class Embeds {
         //     .addField('Pages', `**\`[${doujin.num_pages}]\`**`);
         info.addField('Pages', `**\`${num_pages}\`**`).addField(
             'Uploaded',
-            moment(upload_date * 1000).fromNow()
+            `<t:${gallery.upload_date}:R>`
         );
         return { info, rip };
     }
