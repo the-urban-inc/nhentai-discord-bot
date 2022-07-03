@@ -1,6 +1,4 @@
 import { AudioResource, createAudioResource, StreamType } from '@discordjs/voice';
-import axios from 'axios';
-import prism from 'prism-media';
 
 export interface TrackData {
     url: string;
@@ -46,29 +44,9 @@ export class Track implements TrackData {
     }
 
     public async createAudioResource(): Promise<AudioResource<Track>> {
-        const response = await axios.get(this.videoURL, {
-            responseType: 'stream',
-        });
-        const transcoder = new prism.FFmpeg({
-            args: [
-                '-analyzeduration',
-                '0',
-                '-loglevel',
-                '0',
-                '-acodec',
-                'libopus',
-                '-f',
-                'opus',
-                '-ar',
-                '48000',
-                '-ac',
-                '2',
-            ],
-        });
-        const opus = response.data.pipe(transcoder);
-        return createAudioResource(opus, {
+        return createAudioResource(this.videoURL, {
             metadata: this,
-            inputType: StreamType.OggOpus,
+            inputType: StreamType.Arbitrary,
         });
     }
 

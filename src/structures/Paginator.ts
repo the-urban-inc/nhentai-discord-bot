@@ -35,6 +35,7 @@ export enum Interactions {
     Filter = 'filter',
     Download = 'download',
     Remove = 'remove',
+    Enqueue = 'enqueue',
 }
 
 export type Views = 'info' | 'thumbnail';
@@ -73,6 +74,7 @@ export class Paginator {
     pages: Record<Views, Page[]>;
     filteredPages: Record<Views, Page[]>;
     private followedUp: boolean;
+    selection: Promise<number | null>;
     private goBack: { previousView: 'info' | 'thumbnail'; previousPage: number; pages: Page[] };
     private readonly methodMap: Collection<Interactions, MessageButton | MessageSelectMenu>;
     private readonly priorityUser: User | null;
@@ -89,6 +91,7 @@ export class Paginator {
     #currentView: Views;
     #currentPage: number;
     #previewing = false;
+    #resolve: ((value?: number | PromiseLike<number | null> | null | undefined) => void) | null = null;
 
     constructor(client: Client, options: PaginatorOptions) {
         this.client = client;
@@ -191,6 +194,10 @@ export class Paginator {
             .set(
                 Interactions.Remove,
                 new MessageButton().setCustomId('remove').setLabel('🗑️').setStyle('DANGER')
+            )
+            .set(
+                Interactions.Enqueue,
+                new MessageButton().setCustomId('enqueue').setLabel('⏯️\u2000Enqueue this track to the playlist').setStyle('PRIMARY')
             );
     }
 
@@ -254,6 +261,8 @@ export class Paginator {
                       this.methodMap.get(Interactions.Download),
                       this.methodMap.get(Interactions.Remove),
                   ]
+                : ['play'].includes(this.interaction.commandName)
+                ? [this.methodMap.get(Interactions.Enqueue), this.methodMap.get(Interactions.Remove)]
                 : [this.methodMap.get(Interactions.Remove)]
         );
         if (
@@ -332,6 +341,9 @@ export class Paginator {
             );
         }
         this.interaction = interaction;
+        this.selection = this.interaction.commandName === 'play' ? new Promise(resolve => {
+			this.#resolve = resolve;
+		}) : Promise.resolve(null);
         this.followedUp = type === 'followUp';
         this.#currentView = ['g', 'random', 'favorite'].includes(this.interaction.commandName)
             ? this.#currentPage > 0
@@ -375,6 +387,12 @@ export class Paginator {
             this.client.paginators.delete(this.id);
         });
         return message;
+    }
+
+    private choose(value: number): Promise<boolean> {
+        this.#resolve!(value);
+        this.collector.stop("Chosen");
+        return Promise.resolve(true);
     }
 
     private methods: Map<
@@ -657,5 +675,20 @@ export class Paginator {
                 } */ // delete reference message
                 return true;
             }
-        );
+        )
+        .set(
+            Interactions.Enqueue,
+            async function (
+                this: Paginator,
+                interaction: MessageComponentInteraction
+            ): Promise<boolean> {
+                if (
+                    this.priorityUser
+                        ? this.priorityUser.id !== interaction.user.id
+                        : interaction.user.id !== this.interaction.user.id
+                )
+                    return Promise.resolve(false);
+                return this.choose(this.#currentPage);
+            }
+        )
 }

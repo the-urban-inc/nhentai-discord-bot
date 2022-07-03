@@ -1,6 +1,8 @@
 type F = (...args: any) => string;
 
 const Messages = {
+    FAILED_TO_PLAY_TRACK: 'Failed to play track, please try again later!',
+    FAILED_TO_JOIN_VC: 'Failed to join voice channel, please try again later!',
     OWNER_ONLY: 'This command is owner-only',
     NSFW_COMMAND_IN_SFW_CHANNEL: (command: string) =>
         `NSFW command (${command}) can't be used in SFW channel`,

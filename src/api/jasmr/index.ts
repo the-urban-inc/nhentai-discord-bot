@@ -1,8 +1,15 @@
 import axios, { AxiosResponse } from 'axios';
 import { load } from 'cheerio';
+import { decode } from 'he';
 type Root = ReturnType<typeof load>;
 
-interface SearchResult {
+export enum Sort {
+    Recent = 'recent',
+    PopularWeek = 'week',
+    PopularMonth = 'month',
+    PopularAllTime = 'all',
+}
+export interface SearchResult {
     circle: string;
     title: string;
     url: string;
@@ -26,34 +33,47 @@ export class Client {
         }
     }
 
-    private getURL($: Root): SearchResult {
-        return this.random(
-            $('.videoitem')
-                .toArray()
-                .map(e => {
-                    return {
-                        circle: $(e).find('.videoitemcircle').text(),
-                        title: $(e).find('.videoitemtitle').text(),
-                        url: `${this.baseURL}/${$(e).find('.videoitemtop').parent('a').attr('href')}`,
-                        tags: $(e).find('.videoitemtag').toArray().map(e => $(e).text()),
-                        image: `${$(e).find('img').attr('src')}`
-                    };
-                })
-        );
+    private getVideos($: Root): SearchResult[] {
+        return $('.mainitem')
+            .toArray()
+            .map(e => {
+                const tags = $(e).find('.mainitemtagstring').text();
+                return {
+                    circle: $(e).find('.mainitemleft').text(),
+                    title: $(e).find('.mainitemtitle').text(),
+                    url: `${this.baseURL}/${$(e).find('.mainitemtitle').parent('a').attr('href')}`,
+                    tags:
+                        tags && tags.length
+                            ? tags.split(' ').map(t => decode(t))
+                            : $(e)
+                                  .find('.tagitem')
+                                  .toArray()
+                                  .map(e => decode($(e).text())),
+                    image: `${$(e).find('img').attr('src')}`,
+                };
+            });
     }
 
-    private getVideo($: Root): string {
-        return $('source').attr('src');
-    }
-
-    public async tag(tag: string): Promise<SearchResult> {
+    public async tag(tag: string): Promise<SearchResult[]> {
         const url = `${this.baseURL}/t?q=${tag.replace(/ /g, '+')}`;
         const result = await this.fetch<string>(url).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
                 xmlMode: false,
             });
-            return this.getURL($);
+            return this.getVideos($);
+        });
+        return result;
+    }
+
+    public async search(query: string, page?: number, sort?: string): Promise<SearchResult[]> {
+        const url = `${this.baseURL}/s?q=${query.replace(/ /g, '+')}&page=${page}&sort=${sort}`;
+        const result = await this.fetch<string>(url).then(async res => {
+            const $ = load(<string>res.data, {
+                decodeEntities: false,
+                xmlMode: false,
+            });
+            return this.getVideos($);
         });
         return result;
     }
@@ -64,7 +84,7 @@ export class Client {
                 decodeEntities: false,
                 xmlMode: false,
             });
-            return this.getVideo($);
+            return $('source').attr('src');
         });
         return result;
     }

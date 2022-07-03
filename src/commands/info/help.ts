@@ -57,10 +57,6 @@ export default class extends Command {
                 "Gone. Completely migrated to slash commands."
             )
             .addField(
-                'Why are the asmr commands not working?',
-                "I'm not sure. I'm working on it."
-            )
-            .addField(
                 'What is the private option and why is it in every commands?',
                 "It basically works like DM. No one can see the message the bot sends to you if it's set to True."
             )

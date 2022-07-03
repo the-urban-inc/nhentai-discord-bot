@@ -1,4 +1,4 @@
-import { Client, Command, MusicSubscription, Track } from '@structures';
+import { Client, Command, MusicSubscription, Track, UserError } from '@structures';
 import { CommandInteraction, GuildMember } from 'discord.js';
 import {
     DiscordGatewayAdapterCreator,
@@ -6,52 +6,36 @@ import {
     joinVoiceChannel,
     VoiceConnectionStatus,
 } from '@discordjs/voice';
-
-const TAGS = [
-    'All ages',
-    'R18',
-    'R15',
-    'Whisper',
-    'Ear Licking',
-    'Ear Cleaning',
-    'Sleeping',
-    'Older Sister',
-    'Girlfriend',
-    'ASMR',
-    'Binaural',
-    'Fellatio',
-    'Footjob',
-    'Loli',
-    'Maid',
-    'Masturbation',
-    'Milf',
-    'NTR',
-    'Reverse Rape',
-    'Succubus',
-    'Tsundere',
-    'Virgin',
-    'Yandere',
-    'Yuri',
-];
+import { Sort } from '@api/jasmr';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'play',
             type: 'CHAT_INPUT',
-            description: 'Plays a random ASMR file with specified tag',
+            description: 'Plays a random ASMR file with specified query',
             cooldown: 10000,
             nsfw: true,
             options: [
                 {
-                    name: 'tag',
+                    name: 'query',
                     type: 'STRING',
-                    description: 'The tag to play',
+                    description: 'The query to search for',
                     required: true,
-                    choices: TAGS.map(t => {
+                },
+                {
+                    name: 'page',
+                    type: 'INTEGER',
+                    description: 'Page number (default: 1)',
+                },
+                {
+                    name: 'sort',
+                    type: 'STRING',
+                    description: 'Doujin sort method (default: recent)',
+                    choices: Object.keys(Sort).map(k => {
                         return {
-                            name: t,
-                            value: t,
+                            name: k.match(/[A-Z][a-z]+|[0-9]+/g).join(' '),
+                            value: Sort[k],
                         };
                     }),
                 },
@@ -60,7 +44,22 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        const tag = interaction.options.get('tag').value as string;
+        const query = interaction.options.get('query').value as string;
+        const page = (interaction.options.get('page')?.value as number) ?? 1;
+        const sort = (interaction.options.get('sort')?.value as string) ?? 'recent';
+
+        let results = await this.client.jasmr.search(query, page, sort);
+        if (!results || !results.length) {
+            throw new UserError('NO_RESULT', query);
+        }
+        results = results.filter(result => result.title && result.url && result.image);
+        const resultSelection = this.client.embeds.displayASMRList(results);
+        await resultSelection.run(interaction, `> **Searching for** **\`${query}\`**`);
+        const choice = await resultSelection.selection;
+        if (choice == null) return interaction.editReply('No choice selected.');
+
+        const result = results[choice];
+        const { circle, title, url, tags, image } = result;
         let subscription = this.client.subscriptions.get(interaction.guildId);
         if (!subscription) {
             if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
@@ -79,36 +78,38 @@ export default class extends Command {
         }
 
         if (!subscription) {
-            throw new Error('No voice channel found.');
+            throw new UserError('FAILED_TO_JOIN_VC');
         }
 
         try {
             await entersState(subscription.voiceConnection, VoiceConnectionStatus.Ready, 20e3);
         } catch (error) {
             this.client.logger.error(error);
-            throw new Error(
-                'Failed to join voice channel within 20 seconds, please try again later!'
-            );
+            throw new UserError('FAILED_TO_JOIN_VC');
         }
 
-        const { circle = 'N/A', title, url, tags = [], image } = await this.client.jasmr.tag(tag);
-        if (!title || !url || !image) {
-            throw new Error(`No result found: ${tag}`);
-        }
         const video = await this.client.jasmr.video(encodeURI(url));
         if (!video) {
-            throw new Error(`No result found: ${tag}`);
+            throw new UserError('NO_RESULT', query);
         }
         const np = this.client.embeds
             .default()
             .setTitle('▶️\u2000Now Playing')
-            .setDescription(`[${title}](${url})\nTags: ${tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'}`)
+            .setDescription(
+                `[${title}](${url})\nTags: ${
+                    tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'
+                }`
+            )
             .setThumbnail(image)
             .setFooter({ text: `Circle: ${circle}` });
         const fp = this.client.embeds
             .default()
             .setTitle('⏹️\u2000Finished Playing')
-            .setDescription(`[${title}](${url})`)
+            .setDescription(
+                `[${title}](${url}))\nTags: ${
+                    tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'
+                }`
+            )
             .setThumbnail(image)
             .setFooter({ text: `Circle: ${circle}` });
         try {
@@ -129,6 +130,7 @@ export default class extends Command {
             });
             subscription.enqueue(track);
             await interaction.editReply({
+                content: null,
                 embeds: [
                     this.client.embeds
                         .default()
@@ -136,10 +138,11 @@ export default class extends Command {
                             `Queued [${track.title}](${url})\nIt may take a while to fetch the audio resources`
                         ),
                 ],
+                components: [],
             });
         } catch (error) {
             this.client.logger.error(error);
-            throw new Error('Failed to play track, please try again later!');
+            throw new UserError('FAILED_TO_PLAY_TRACK');
         }
     }
 }

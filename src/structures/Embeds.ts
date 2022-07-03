@@ -4,6 +4,7 @@ import { Paginator, PaginatorOptions } from './Paginator';
 import { decode } from 'he';
 import moment from 'moment';
 import { Gallery, Comment, Language } from '@api/nhentai';
+import { SearchResult } from '@api/jasmr';
 import { BANNED_TAGS, FLAG_EMOJIS } from '@constants';
 import { Blacklist, Language as LanguageModel } from '@database/models';
 
@@ -157,9 +158,16 @@ export class Embeds {
             startView: 'thumbnail',
             collectorTimeout: 300000,
             ...additional_options,
-            filterIDs: language.query ? galleries
-                .filter(g => !g.tags.some(tag => language.preferred.map(x => x.id).includes(String(tag.id))))
-                .map(g => +g.id) : [],
+            filterIDs: language.query
+                ? galleries
+                      .filter(
+                          g =>
+                              !g.tags.some(tag =>
+                                  language.preferred.map(x => x.id).includes(String(tag.id))
+                              )
+                      )
+                      .map(g => +g.id)
+                : [],
         });
         for (const gallery of galleries) {
             const { id, title, tags, upload_date } = gallery;
@@ -225,11 +233,11 @@ export class Embeds {
         } of comments) {
             displayComments.addPage('thumbnail', {
                 embed: this.default()
-                    .setAuthor(
-                        `${decode(username)}`,
-                        `https://i5.nhentai.net/${avatar_url}`,
-                        `https://nhentai.net/users/${uid}/${username}`
-                    )
+                    .setAuthor({
+                        name: `${decode(username)}`,
+                        iconURL: `https://i5.nhentai.net/${avatar_url}`,
+                        url: `https://nhentai.net/users/${uid}/${username}`,
+                    })
                     .setDescription(
                         `[${this.client.util.shorten(
                             body
@@ -239,5 +247,24 @@ export class Embeds {
             });
         }
         return displayComments;
+    }
+
+    displayASMRList(asmr: SearchResult[]) {
+        const displayASMR = this.paginator(this.client, {
+            collectorTimeout: 180000,
+        });
+        for (const { circle, title, url, tags, image } of asmr) {
+            displayASMR.addPage('thumbnail', {
+                embed: this.default()
+                    .setTitle(title)
+                    .setURL(url)
+                    .setDescription(
+                        `Tags: ${tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'}`
+                    )
+                    .setThumbnail(image)
+                    .setFooter({ text: `Circle: ${circle}` }),
+            });
+        }
+        return displayASMR;
     }
 }

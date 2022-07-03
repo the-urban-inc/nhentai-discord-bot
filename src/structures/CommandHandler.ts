@@ -23,12 +23,18 @@ export class CommandHandler extends ApplicationCommandManager {
         super(client);
         this.client.on('interactionCreate', async interaction => {
             if (!interaction.isCommand() && !interaction.isContextMenu()) return;
-            if (!(interaction.channel instanceof TextChannel) || interaction.channel instanceof ThreadChannel) return;
+            if (
+                !(interaction.channel instanceof TextChannel) ||
+                interaction.channel instanceof ThreadChannel
+            )
+                return;
             if (this.client.commands.has(interaction.commandName)) {
                 try {
                     await interaction.deferReply({
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
-                        fetchReply: !((interaction.options.get('private')?.value as boolean) ?? false),
+                        fetchReply: !(
+                            (interaction.options.get('private')?.value as boolean) ?? false
+                        ),
                     });
                     const { commands, cooldowns } = this.client;
                     const command = commands.get(interaction.commandName);
@@ -104,12 +110,14 @@ export class CommandHandler extends ApplicationCommandManager {
                         if (['NO_RESULT', 'INVALID_PAGE_INDEX', 'UNKNOWN_TAG'].includes(err.code)) {
                             startCooldown();
                         }
-                        interaction[type](err.message);
+                        interaction[type]({ content: err.message, embeds: [], components: [] });
                         return;
                     }
-                    interaction[type](
-                        `An unexpected error occurred while executing the command \`${interaction.commandName}\`: \`\`\`${err.message}\`\`\``
-                    );
+                    interaction[type]({
+                        content: `An unexpected error occurred while executing the command \`${interaction.commandName}\`: \`\`\`${err.message}\`\`\``,
+                        embeds: [],
+                        components: [],
+                    });
                 }
             }
         });
