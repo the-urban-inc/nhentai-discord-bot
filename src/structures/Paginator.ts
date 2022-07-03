@@ -13,9 +13,12 @@ import {
     MessageEmbed,
     MessageSelectMenu,
     MessageSelectOptionData,
+    Modal,
+    ModalActionRowComponent,
     Snowflake,
     SnowflakeUtil,
     TextChannel,
+    TextInputComponent,
     User,
 } from 'discord.js';
 import { Gallery } from '@api/nhentai';
@@ -379,7 +382,7 @@ export class Paginator {
             if (interaction.user.bot) return;
             const method = interaction.customId as Interactions;
             if (!this.methodMap.has(method)) return;
-            await interaction.deferUpdate();
+            if (method !== Interactions.Jump) await interaction.deferUpdate();
             const rip = await this.methods.get(method)?.call(this, interaction);
             if (rip) this.collector.stop();
         });
@@ -479,24 +482,16 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                this.methodMap.get(Interactions.Jump).setDisabled(true);
-                await this.update(interaction);
-                const message = (await interaction.followUp({
-                    content: this.prompt,
-                    ephemeral: (this.interaction.options.get('private')?.value as boolean) ?? false,
-                })) as Message;
-                const collected = await this.interaction.channel.awaitMessages({
-                    filter: mess => mess.author === interaction.user,
-                    max: 1,
-                    idle: this.jumpTimeout,
-                });
-                this.methodMap.get(Interactions.Jump).setDisabled(false);
-                await this.update(interaction);
-                await message.delete();
-                const response = collected.first();
-                if (!response) return Promise.resolve(false);
-                const newPage = parseInt(response.content);
-                await response.delete();
+                const modal = new Modal()
+			        .setCustomId(this.id)
+			        .setTitle(this.client.user.username);
+                const pageInput = new TextInputComponent().setCustomId('pageInput').setLabel(this.prompt).setStyle('SHORT').setRequired(true);
+                const firstActionRow = new MessageActionRow<ModalActionRowComponent>().addComponents(pageInput);
+                modal.addComponents(firstActionRow);
+                await interaction.showModal(modal);
+                const response = await interaction.awaitModalSubmit({ filter: mint => mint.user === interaction.user, time: 15000, idle: this.jumpTimeout });
+                await response.deferUpdate();
+                let newPage = parseInt(response.fields.getTextInputValue('pageInput'));
                 if (
                     newPage &&
                     !isNaN(newPage) &&
