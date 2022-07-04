@@ -1,3 +1,5 @@
+import { config } from 'dotenv';
+config();
 import express from 'express';
 import PDFDocument from 'pdfkit';
 import he from 'he';
@@ -61,7 +63,10 @@ app.get('/download/:code/', async (req, res) => {
         doc.end();
         stream.on('end', () => res.end());
     } catch (err) {
-        if (err) return res.redirect('/');
+        if (err) {
+            log.error(err);
+            return res.redirect('/');
+        }
     }
 });
 
