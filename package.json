@@ -48,7 +48,7 @@
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "rimraf build/ && ttsc && cp ./web/error.html ./build/src/web",
+        "build": "rimraf build/ && ttsc && cp /src/web/error.html /build/src/web",
         "lint": "eslint src/**/* --ext .ts",
         "start": "node --trace-warnings --trace-deprecation build/src/index.js",
         "start:web": "node --trace-warnings --trace-deprecation build/src/web/index.js",
