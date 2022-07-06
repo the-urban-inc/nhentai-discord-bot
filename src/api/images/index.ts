@@ -109,9 +109,6 @@ export const SFW_METHODS = {
     avatar: {
         nekoslife: ['avatar'],
     },
-    baka: {
-        nekoslife: ['baka'],
-    },
     foxgirl: {
         nekoslife: ['foxGirl'],
     },
