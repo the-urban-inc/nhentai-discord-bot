@@ -1,5 +1,5 @@
 import { Client, Command, MusicSubscription, Track, UserError } from '@structures';
-import { CommandInteraction, GuildMember } from 'discord.js';
+import { CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 import {
     DiscordGatewayAdapterCreator,
     entersState,
@@ -60,10 +60,23 @@ export default class extends Command {
 
         const result = results[choice];
         const { circle, title, url, tags, image } = result;
+
+        await interaction.editReply({
+            content: null,
+            embeds: [
+                this.client.embeds
+                    .default()
+                    .setDescription(
+                        `Attempting to join voice channel...`
+                    ),
+            ],
+            components: [],
+        });
         let subscription = this.client.subscriptions.get(interaction.guildId);
         if (!subscription) {
             if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
                 const channel = interaction.member.voice.channel;
+                if (!(channel as VoiceChannel).nsfw) throw new UserError('NSFW_COMMAND_IN_SFW_CHANNEL');
                 subscription = new MusicSubscription(
                     joinVoiceChannel({
                         channelId: channel.id,
