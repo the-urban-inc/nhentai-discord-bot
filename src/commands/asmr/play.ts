@@ -1,11 +1,13 @@
-import { Client, Command, MusicSubscription, Track, UserError } from '@structures';
-import { CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 import {
-    DiscordGatewayAdapterCreator,
-    entersState,
-    joinVoiceChannel,
-    VoiceConnectionStatus,
-} from '@discordjs/voice';
+    Client,
+    Command,
+    MusicSubscription,
+    Track,
+    UserError,
+    createDiscordJSAdapter,
+} from '@structures';
+import { CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
+import { entersState, joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
 import { Sort } from '@api/jasmr';
 
 export default class extends Command {
@@ -62,27 +64,24 @@ export default class extends Command {
         const { circle, title, url, tags, image } = result;
 
         await interaction.editReply({
-            content: null,
-            embeds: [
-                this.client.embeds
-                    .default()
-                    .setDescription(
-                        `Attempting to join voice channel...`
-                    ),
-            ],
+            content: 'Attempting to join voice channel ...',
+            embeds: [],
             components: [],
         });
         let subscription = this.client.subscriptions.get(interaction.guildId);
-        if (!subscription) {
+        if (
+            !subscription ||
+            subscription.voiceConnection.state.status === VoiceConnectionStatus.Disconnected ||
+            subscription.voiceConnection.state.status === VoiceConnectionStatus.Destroyed
+        ) {
             if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
                 const channel = interaction.member.voice.channel;
-                if (!(channel as VoiceChannel).nsfw) throw new UserError('NSFW_COMMAND_IN_SFW_CHANNEL');
+                if (!(channel as VoiceChannel).nsfw) throw new UserError('NSFW_VOICE_CHANNEL');
                 subscription = new MusicSubscription(
                     joinVoiceChannel({
                         channelId: channel.id,
                         guildId: channel.guild.id,
-                        adapterCreator: channel.guild
-                            .voiceAdapterCreator as unknown as DiscordGatewayAdapterCreator,
+                        adapterCreator: createDiscordJSAdapter(channel),
                     })
                 );
                 subscription.voiceConnection.on('error', error => this.client.logger.error(error));

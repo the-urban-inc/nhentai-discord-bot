@@ -1,11 +1,6 @@
-import { Client, Command, MusicSubscription } from '@structures';
-import { CommandInteraction, GuildMember } from 'discord.js';
-import {
-    DiscordGatewayAdapterCreator,
-    entersState,
-    joinVoiceChannel,
-    VoiceConnectionStatus,
-} from '@discordjs/voice';
+import { Client, Command, MusicSubscription, UserError, createDiscordJSAdapter } from '@structures';
+import { CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
+import { entersState, joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -19,16 +14,21 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
+        await interaction.editReply('Attempting to join voice channel ...');
         let subscription = this.client.subscriptions.get(interaction.guildId);
-        if (!subscription) {
+        if (
+            !subscription ||
+            subscription.voiceConnection.state.status === VoiceConnectionStatus.Disconnected ||
+            subscription.voiceConnection.state.status === VoiceConnectionStatus.Destroyed
+        ) {
             if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
                 const channel = interaction.member.voice.channel;
+                if (!(channel as VoiceChannel).nsfw) throw new UserError('NSFW_VOICE_CHANNEL');
                 subscription = new MusicSubscription(
                     joinVoiceChannel({
                         channelId: channel.id,
                         guildId: channel.guild.id,
-                        adapterCreator: channel.guild
-                            .voiceAdapterCreator as unknown as DiscordGatewayAdapterCreator,
+                        adapterCreator: createDiscordJSAdapter(channel),
                     })
                 );
                 subscription.voiceConnection.on('error', error => this.client.logger.error(error));
@@ -37,16 +37,15 @@ export default class extends Command {
         }
 
         if (!subscription) {
-            throw new Error('No voice channel found.');
+            throw new UserError('FAILED_TO_JOIN_VC');
         }
 
         try {
             await entersState(subscription.voiceConnection, VoiceConnectionStatus.Ready, 20e3);
+            await interaction.editReply('✅\u2000Successfully joined voice channel!');
         } catch (error) {
             this.client.logger.error(error);
-            throw new Error(
-                'Failed to join voice channel within 20 seconds, please try again later!'
-            );
+            throw new UserError('FAILED_TO_JOIN_VC');
         }
     }
 }

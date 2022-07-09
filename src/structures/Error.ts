@@ -6,6 +6,7 @@ const Messages = {
     OWNER_ONLY: 'This command is owner-only',
     NSFW_COMMAND_IN_SFW_CHANNEL: (command: string) =>
         `NSFW command (${command}) can't be used in SFW channel`,
+    NSFW_VOICE_CHANNEL: 'The ASMR feature is NSFW and therefore the voice channel must also be NSFW',
     MISSING_PERMISSIONS: (missing: string[]) =>
         `User is missing permissions: ${missing.map(x => `\`${x}\``).join(', ')}`,
     COOLDOWN: (timeLeft: number) => `User on cooldown. ${timeLeft} second(s) left.`,
