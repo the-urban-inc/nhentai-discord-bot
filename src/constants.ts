@@ -39,7 +39,7 @@ export const BANNED_TAGS_TEXT = [
     'cannibalism',
 ]; // this should be enough
 
-export const BLOCKED_MESSAGE = `This command call contains contents violating Discord's Community Guidelines, therefore, for your own safety, I have decided to omit the violating images.\nIf you wish to continue viewing the images, contact someone in your server with the Manage Server permission to unlock them using the \`danger\` command.`;
+export const BLOCKED_MESSAGE = `This command call contains contents violating Discord's Community Guidelines, therefore, for your own safety, I have decided to omit the violating images.\nIf you wish to continue viewing the images, contact someone in your server with the Manage Server permission to unlock them using the \`general-settings\` command.`;
 
 export const TAGS = <const>[
     'g',
