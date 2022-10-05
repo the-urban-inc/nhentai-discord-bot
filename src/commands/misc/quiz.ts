@@ -93,7 +93,7 @@ export default class extends Command {
                 'Use buttons to select an option within 30 seconds. Your first choice will be your final choice. No cheating!'
             )
             .setImage(page)
-            .setFooter({ text: 'Only the person who started the quiz can answer.' })
+            .setFooter({ text: 'Only the person who started the quiz can answer' })
             .setTimestamp();
         const choices = this.client.util
             .shuffle(this.related)
