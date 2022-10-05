@@ -210,7 +210,7 @@ export default class extends Command {
                             .setColor('#ffbf00')
                             .setAuthor({ name: '⌛\u2000Timed out' })
                             .setDescription(
-                                `The session timed out as you did not answer within 30 seconds. The correct answer was **${abcd[answer]} [${choices[answer].title}](${choices[answer].url})**.`
+                                `The session timed out as you did not answer within 30 seconds. The correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
                             ),
                     ],
                     ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
