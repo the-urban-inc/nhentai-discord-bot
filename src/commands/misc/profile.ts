@@ -88,8 +88,12 @@ export default class extends Command {
         const progressBar = '▒'; // ░░░░░
         const embed = this.client.embeds
             .default()
-            .setAuthor(`nhentai profile`, ICON, 'https://nhentai.net')
-            .setTitle(`${member.displayName} [${member.user.tag}]`)
+            .setAuthor({ name: `nhentai profile`, iconURL: ICON, url: 'https://nhentai.net' })
+            .setTitle(
+                member.displayName === member.user.username
+                    ? member.user.tag
+                    : `${member.displayName} [${member.user.tag}]`
+            )
             .setColor(member.displayHexColor)
             .setThumbnail(member.user.displayAvatarURL())
             .setDescription(
