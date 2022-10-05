@@ -23,7 +23,7 @@ export default class extends Command {
                 embeds: [
                     this.client.embeds
                         .default()
-                        .setAuthor(interaction.guild.name, interaction.guild.iconURL())
+                        .setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
                         .setDescription('There are no recent calls in this server!'),
                 ],
             });
@@ -33,7 +33,7 @@ export default class extends Command {
                 embeds: [
                     this.client.embeds
                         .default()
-                        .setAuthor(interaction.guild.name, interaction.guild.iconURL())
+                        .setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
                         .setDescription('There are no recent calls in this server!'),
                 ],
             });
@@ -50,7 +50,7 @@ export default class extends Command {
             embeds: [
                 this.client.embeds
                     .default()
-                    .setAuthor(interaction.guild.name, interaction.guild.iconURL())
+                    .setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
                     .setDescription(_.join('\n')),
             ],
         });
