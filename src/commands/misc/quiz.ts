@@ -90,9 +90,10 @@ export default class extends Command {
             .default()
             .setTitle(`Guess which doujin is this picture from?`)
             .setDescription(
-                'Use buttons to select an option. Your first choice will be your final choice. No cheating!'
+                'Use buttons to select an option within 30 seconds. Your first choice will be your final choice. No cheating!'
             )
             .setImage(page)
+            .setFooter({ text: 'Only the person who started the quiz can answer.' })
             .setTimestamp();
         const choices = this.client.util
             .shuffle(this.related)
@@ -137,24 +138,23 @@ export default class extends Command {
         })) as Message;
         const answer = choices.findIndex(({ id }) => this.gallery.id === id);
         const embed = this.client.embeds.default().setFooter({ text: 'Quiz session ended' });
+        const buttons = [0, 1, 2, 3].map(i =>
+            new MessageButton()
+                .setCustomId(String(i))
+                .setLabel(abcd[i])
+                .setStyle('DANGER')
+                .setDisabled(true)
+        );
+        buttons[answer].setStyle('SUCCESS');
         message
-            .awaitMessageComponent(
-                {
-                    filter: i => ['0', '1', '2', '3'].includes(i.customId) && i.user.id === interaction.user.id,
-                    time: 30000,
-                }
-            )
+            .awaitMessageComponent({
+                filter: i =>
+                    ['0', '1', '2', '3'].includes(i.customId) && i.user.id === interaction.user.id,
+                time: 30000,
+            })
             .then(async i => {
                 await i.deferUpdate();
                 const choice = parseInt(i.customId, 10);
-                const buttons = [0, 1, 2, 3].map(i =>
-                    new MessageButton()
-                        .setCustomId(String(i))
-                        .setLabel(abcd[i])
-                        .setStyle('DANGER')
-                        .setDisabled(true)
-                );
-                buttons[answer].setStyle('SUCCESS');
                 await interaction.editReply({
                     embeds: [quiz],
                     components: [new MessageActionRow().addComponents(buttons)],
@@ -164,7 +164,7 @@ export default class extends Command {
                         embeds: [
                             embed
                                 .setColor('#008000')
-                                .setAuthor('✅\u2000Correct')
+                                .setAuthor({ name: '✅\u2000Correct' })
                                 .setDescription(
                                     `Congratulations! You got it right!\nThe correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
                                 ),
@@ -176,7 +176,7 @@ export default class extends Command {
                     embeds: [
                         embed
                             .setColor('#ff0000')
-                            .setAuthor('❌\u2000Wrong Answer')
+                            .setAuthor({ name: '❌\u2000Wrong Answer' })
                             .setDescription(
                                 `Unfortunately, that was the wrong answer.\nThe correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.\nYou chose **[${abcd[choice]}] [${choices[choice].title}](${choices[choice].url})**.`
                             ),
@@ -184,13 +184,17 @@ export default class extends Command {
                     ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                 });
             })
-            .catch(err => {
+            .catch(async err => {
                 if (err.reason === 'idle') {
+                    await interaction.editReply({
+                        embeds: [quiz],
+                        components: [new MessageActionRow().addComponents(buttons)],
+                    });
                     return interaction.followUp({
                         embeds: [
                             embed
                                 .setColor('#ffbf00')
-                                .setAuthor('⌛\u2000Timed out')
+                                .setAuthor({ name: '⌛\u2000Timed out' })
                                 .setDescription(
                                     `The session timed out as you did not answer within 30 seconds. The correct answer was **${abcd[answer]} [${choices[answer].title}](${choices[answer].url})**.`
                                 ),
