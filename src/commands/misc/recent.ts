@@ -43,7 +43,7 @@ export default class extends Command {
             recent.map(async x => {
                 return `• ${(await this.client.users.fetch(x.author as Snowflake)).tag}: **\`${
                     x.id
-                }\`** \`${x.name}\` (${moment(x.date).fromNow()})`;
+                }\`** \`${x.name}\` (<t:${x.date}:R>)`;
             })
         );
         return interaction.editReply({
