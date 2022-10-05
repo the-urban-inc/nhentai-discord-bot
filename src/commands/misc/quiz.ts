@@ -11,7 +11,7 @@ export default class extends Command {
             name: 'quiz',
             type: 'CHAT_INPUT',
             description:
-                'Starts a quiz session: try to guess the title of the displayed doujin page.',
+                'Starts a quiz session: try to guess the title of the displayed doujin page. Gains xp for each correct answer.',
             cooldown: 30000,
             nsfw: true,
         });
@@ -90,10 +90,9 @@ export default class extends Command {
             .default()
             .setTitle(`Guess which doujin is this picture from?`)
             .setDescription(
-                'Use buttons to select an option within 30 seconds. Your first choice will be your final choice. No cheating!'
+                'Use buttons to select an option within 30 seconds. Your first choice will be your final choice. No cheating!\n\nOnly the person who started the quiz can answer. Each correct answer will give you 30-50 xp.'
             )
             .setImage(page)
-            .setFooter({ text: 'Only the person who started the quiz can answer' })
             .setTimestamp();
         const choices = this.client.util
             .shuffle(this.related)
@@ -160,6 +159,22 @@ export default class extends Command {
                     components: [new MessageActionRow().addComponents(buttons)],
                 });
                 if (choice === answer) {
+                    const min = 30,
+                        max = 50;
+                    const inc = Math.floor(Math.random() * (max - min)) + min;
+                    const leveledUp = await this.client.db.xp.save(
+                        'add',
+                        'exp',
+                        interaction.user.id,
+                        interaction.guild.id,
+                        inc
+                    );
+                    if (leveledUp) {
+                        await interaction.followUp({
+                            content: 'Congratulations! You have leveled up!',
+                            ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        });
+                    }
                     return interaction.followUp({
                         embeds: [
                             embed
@@ -185,23 +200,21 @@ export default class extends Command {
                 });
             })
             .catch(async err => {
-                if (err.reason === 'idle') {
-                    await interaction.editReply({
-                        embeds: [quiz],
-                        components: [new MessageActionRow().addComponents(buttons)],
-                    });
-                    return interaction.followUp({
-                        embeds: [
-                            embed
-                                .setColor('#ffbf00')
-                                .setAuthor({ name: '⌛\u2000Timed out' })
-                                .setDescription(
-                                    `The session timed out as you did not answer within 30 seconds. The correct answer was **${abcd[answer]} [${choices[answer].title}](${choices[answer].url})**.`
-                                ),
-                        ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
-                    });
-                }
+                await interaction.editReply({
+                    embeds: [quiz],
+                    components: [new MessageActionRow().addComponents(buttons)],
+                });
+                return interaction.followUp({
+                    embeds: [
+                        embed
+                            .setColor('#ffbf00')
+                            .setAuthor({ name: '⌛\u2000Timed out' })
+                            .setDescription(
+                                `The session timed out as you did not answer within 30 seconds. The correct answer was **${abcd[answer]} [${choices[answer].title}](${choices[answer].url})**.`
+                            ),
+                    ],
+                    ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                });
             });
     }
 }

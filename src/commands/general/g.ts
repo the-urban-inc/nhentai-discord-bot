@@ -131,11 +131,12 @@ export default class extends Command {
                 interaction.guild.id,
                 inc
             );
-            if (leveledUp)
+            if (leveledUp) {
                 await interaction.followUp({
                     content: 'Congratulations! You have leveled up!',
                     ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                 });
+            }
         }
     }
 }
