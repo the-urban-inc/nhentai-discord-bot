@@ -11,7 +11,7 @@ export default class extends Command {
             name: 'quiz',
             type: 'CHAT_INPUT',
             description:
-                'Starts a quiz session: try to guess the title of the displayed doujin page. Gains xp for each correct answer.',
+                'Starts a quiz session: try to guess the title of the displayed doujin page.',
             cooldown: 30000,
             nsfw: true,
         });
