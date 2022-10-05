@@ -94,7 +94,8 @@ export class Paginator {
     #currentView: Views;
     #currentPage: number;
     #previewing = false;
-    #resolve: ((value?: number | PromiseLike<number | null> | null | undefined) => void) | null = null;
+    #resolve: ((value?: number | PromiseLike<number | null> | null | undefined) => void) | null =
+        null;
 
     constructor(client: Client, options: PaginatorOptions) {
         this.client = client;
@@ -200,7 +201,10 @@ export class Paginator {
             )
             .set(
                 Interactions.Enqueue,
-                new MessageButton().setCustomId('enqueue').setLabel('⏯️\u2000Enqueue this track to the playlist').setStyle('PRIMARY')
+                new MessageButton()
+                    .setCustomId('enqueue')
+                    .setLabel('⏯️\u2000Enqueue this track to the playlist')
+                    .setStyle('PRIMARY')
             );
     }
 
@@ -265,14 +269,23 @@ export class Paginator {
                       this.methodMap.get(Interactions.Remove),
                   ]
                 : ['play'].includes(this.interaction.commandName)
-                ? [this.methodMap.get(Interactions.Enqueue), this.methodMap.get(Interactions.Remove)]
+                ? [
+                      this.methodMap.get(Interactions.Enqueue),
+                      this.methodMap.get(Interactions.Remove),
+                  ]
                 : [this.methodMap.get(Interactions.Remove)]
         );
         if (
             this.ephemeral ||
             !(this.interaction.channel as TextChannel)
                 .permissionsFor(this.interaction.guild.me)
-                .has('MANAGE_MESSAGES')
+                .has('MANAGE_MESSAGES') ||
+            !(this.interaction.channel as TextChannel)
+                .permissionsFor(this.interaction.guild.me)
+                .has('VIEW_CHANNEL') ||
+            !(this.interaction.channel as TextChannel)
+                .permissionsFor(this.interaction.guild.me)
+                .has('READ_MESSAGE_HISTORY')
         )
             optionsRow.spliceComponents(-1, 1);
         if (
@@ -344,9 +357,12 @@ export class Paginator {
             );
         }
         this.interaction = interaction;
-        this.selection = this.interaction.commandName === 'play' ? new Promise(resolve => {
-			this.#resolve = resolve;
-		}) : Promise.resolve(null);
+        this.selection =
+            this.interaction.commandName === 'play'
+                ? new Promise(resolve => {
+                      this.#resolve = resolve;
+                  })
+                : Promise.resolve(null);
         this.followedUp = type === 'followUp';
         this.#currentView = ['g', 'random', 'favorite'].includes(this.interaction.commandName)
             ? this.#currentPage > 0
@@ -362,7 +378,7 @@ export class Paginator {
                 ),
             };
         }
-        this.ephemeral = interaction.options.get('private')?.value as boolean ?? false;
+        this.ephemeral = (interaction.options.get('private')?.value as boolean) ?? false;
         const c = {
             content: content.length ? content : null,
             embeds: this.pages[this.#currentView].length
@@ -394,7 +410,7 @@ export class Paginator {
 
     private choose(value: number): Promise<boolean> {
         this.#resolve!(value);
-        this.collector.stop("Chosen");
+        this.collector.stop('Chosen');
         return Promise.resolve(true);
     }
 
@@ -448,7 +464,8 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                if (this.#currentPage >= this.pages[this.#currentView].length - 1) return Promise.resolve(false);
+                if (this.#currentPage >= this.pages[this.#currentView].length - 1)
+                    return Promise.resolve(false);
                 this.#currentPage++;
                 return this.update(interaction);
             }
@@ -465,7 +482,8 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                if (this.#currentPage === this.pages[this.#currentView].length - 1) return Promise.resolve(false);
+                if (this.#currentPage === this.pages[this.#currentView].length - 1)
+                    return Promise.resolve(false);
                 this.#currentPage = this.pages[this.#currentView].length - 1;
                 return this.update(interaction);
             }
@@ -482,14 +500,21 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                const modal = new Modal()
-			        .setCustomId(this.id)
-			        .setTitle(this.client.user.username);
-                const pageInput = new TextInputComponent().setCustomId('pageInput').setLabel(this.prompt).setStyle('SHORT').setRequired(true);
-                const firstActionRow = new MessageActionRow<ModalActionRowComponent>().addComponents(pageInput);
+                const modal = new Modal().setCustomId(this.id).setTitle(this.client.user.username);
+                const pageInput = new TextInputComponent()
+                    .setCustomId('pageInput')
+                    .setLabel(this.prompt)
+                    .setStyle('SHORT')
+                    .setRequired(true);
+                const firstActionRow =
+                    new MessageActionRow<ModalActionRowComponent>().addComponents(pageInput);
                 modal.addComponents(firstActionRow);
                 await interaction.showModal(modal);
-                const response = await interaction.awaitModalSubmit({ filter: mint => mint.user === interaction.user, time: 15000, idle: this.jumpTimeout });
+                const response = await interaction.awaitModalSubmit({
+                    filter: mint => mint.user === interaction.user,
+                    time: 15000,
+                    idle: this.jumpTimeout,
+                });
                 await response.deferUpdate();
                 let newPage = parseInt(response.fields.getTextInputValue('pageInput'));
                 if (
@@ -663,12 +688,13 @@ export class Paginator {
                 if ((interaction.message as Message).deletable) {
                     this.collector.stop('Aborted');
                     await (interaction.message as Message).delete();
+                    return true;
                 }
                 /* if ((interaction.message as Message).reference) {
                     const message = await (interaction.message as Message).fetchReference();
                     if (message?.deletable) await message.delete();
                 } */ // delete reference message
-                return true;
+                return Promise.resolve(false);
             }
         )
         .set(
@@ -685,5 +711,5 @@ export class Paginator {
                     return Promise.resolve(false);
                 return this.choose(this.#currentPage);
             }
-        )
+        );
 }
