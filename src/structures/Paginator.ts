@@ -660,8 +660,8 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                this.collector.stop('Aborted');
                 if ((interaction.message as Message).deletable) {
+                    this.collector.stop('Aborted');
                     await (interaction.message as Message).delete();
                 }
                 /* if ((interaction.message as Message).reference) {
