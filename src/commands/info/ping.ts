@@ -13,7 +13,7 @@ export default class extends Command {
     async exec(interaction: CommandInteraction) {
         const sent = (await interaction.editReply('Pong!')) as Message;
         const timeDiff = sent.createdTimestamp - interaction.createdTimestamp;
-        return sent.edit({
+        return interaction.editReply({
             content: null,
             embeds: [
                 this.client.embeds
