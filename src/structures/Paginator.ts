@@ -254,7 +254,7 @@ export class Paginator {
             this.methodMap.get(Interactions.Last),
         ]);
         const optionsRow = new MessageActionRow().addComponents(
-            ['home', 'search', ...TAGS].includes(this.interaction.commandName)
+            TAGS.includes(this.interaction.commandName)
                 ? [
                       this.methodMap.get(Interactions.Love),
                       this.methodMap.get(Interactions.Follow),
@@ -262,7 +262,7 @@ export class Paginator {
                       this.methodMap.get(Interactions.Download),
                       this.methodMap.get(Interactions.Remove),
                   ]
-                : ['g', 'random', 'favorite'].includes(this.interaction.commandName)
+                : ['home', 'search', 'g', 'random', 'favorite'].includes(this.interaction.commandName)
                 ? [
                       this.methodMap.get(Interactions.Love),
                       this.methodMap.get(Interactions.Download),
