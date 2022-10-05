@@ -117,7 +117,7 @@ export default class extends Command {
                     title,
                     artist: t.get('artist')
                         ? this.client.util.gshorten(t.get('artist'), '\u2009\u2009')
-                        : 'N/A',
+                        : '`N/A`',
                 };
             });
         const abcd = ['A', 'B', 'C', 'D'];
@@ -159,6 +159,17 @@ export default class extends Command {
                     components: [new MessageActionRow().addComponents(buttons)],
                 });
                 if (choice === answer) {
+                    interaction.followUp({
+                        embeds: [
+                            embed
+                                .setColor('#008000')
+                                .setAuthor({ name: '✅\u2000Correct' })
+                                .setDescription(
+                                    `Congratulations! You got it right!\nThe correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
+                                ),
+                        ],
+                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                    });
                     const min = 30,
                         max = 50;
                     const inc = Math.floor(Math.random() * (max - min)) + min;
@@ -175,17 +186,7 @@ export default class extends Command {
                             ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                         });
                     }
-                    return interaction.followUp({
-                        embeds: [
-                            embed
-                                .setColor('#008000')
-                                .setAuthor({ name: '✅\u2000Correct' })
-                                .setDescription(
-                                    `Congratulations! You got it right!\nThe correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
-                                ),
-                        ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
-                    });
+                    return;
                 }
                 return interaction.followUp({
                     embeds: [
