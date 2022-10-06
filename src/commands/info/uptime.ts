@@ -6,7 +6,7 @@ export default class extends Command {
         super(client, {
             name: 'uptime',
             type: 'CHAT_INPUT',
-            description: 'Shows RTT and heartbeat of the bot',
+            description: 'Shows bot uptime',
         });
     }
 

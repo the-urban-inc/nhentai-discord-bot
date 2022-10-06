@@ -259,7 +259,7 @@ export class Embeds {
                     .setTitle(title)
                     .setURL(url)
                     .setDescription(
-                        `Duration: \`${duration}\`\nTags: ${tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'}`
+                        `Duration: \`${duration}\`\nTags: ${tags.length ? tags.map(t => `\`${t.trim()}\``).join(' ') : 'N/A'}`
                     )
                     .setThumbnail(image)
                     .setFooter({ text: `Circle: ${circle}` }),

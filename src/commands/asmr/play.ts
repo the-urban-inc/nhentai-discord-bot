@@ -76,7 +76,7 @@ export default class extends Command {
         ) {
             if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
                 const channel = interaction.member.voice.channel;
-                if (!(channel as VoiceChannel).nsfw) throw new UserError('NSFW_VOICE_CHANNEL');
+                if (!(channel as VoiceChannel).nsfw && tags.map(t => t.trim()).includes('R18')) throw new UserError('NSFW_VOICE_CHANNEL');
                 subscription = new MusicSubscription(
                     joinVoiceChannel({
                         channelId: channel.id,
@@ -109,7 +109,7 @@ export default class extends Command {
             .setTitle('▶️\u2000Now Playing')
             .setDescription(
                 `[${title}](${url})\nDuration: \`${duration}\`\nTags: ${
-                    tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'
+                    tags.length ? tags.map(t => `\`${t.trim()}\``).join(' ') : 'N/A'
                 }`
             )
             .setThumbnail(image)
@@ -119,7 +119,7 @@ export default class extends Command {
             .setTitle('⏹️\u2000Finished Playing')
             .setDescription(
                 `[${title}](${url}))\nTags: ${
-                    tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'
+                    tags.length ? tags.map(t => `\`${t.trim()}\``).join(' ') : 'N/A'
                 }`
             )
             .setThumbnail(image)
