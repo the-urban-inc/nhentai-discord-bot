@@ -6,6 +6,7 @@ export interface TrackData {
     imageURL: string;
     title: string;
     circle: string;
+    duration: string;
     onStart: () => void;
     onFinish: () => void;
     onError: (error: Error) => void;
@@ -19,6 +20,7 @@ export class Track implements TrackData {
     public readonly imageURL: string;
     public readonly title: string;
     public readonly circle: string;
+    public readonly duration: string;
     public readonly onStart: () => void;
     public readonly onFinish: () => void;
     public readonly onError: (error: Error) => void;
@@ -29,6 +31,7 @@ export class Track implements TrackData {
         imageURL,
         title,
         circle,
+        duration,
         onStart,
         onFinish,
         onError,
@@ -38,6 +41,7 @@ export class Track implements TrackData {
         this.imageURL = imageURL;
         this.title = title;
         this.circle = circle;
+        this.duration = duration;
         this.onStart = onStart;
         this.onFinish = onFinish;
         this.onError = onError;
@@ -56,6 +60,7 @@ export class Track implements TrackData {
         imageURL: string,
         title: string,
         circle: string,
+        duration: string,
         methods: Pick<Track, 'onStart' | 'onFinish' | 'onError'>
     ): Promise<Track> {
         const wrappedMethods = {
@@ -78,6 +83,7 @@ export class Track implements TrackData {
             imageURL,
             title,
             circle,
+            duration,
             ...wrappedMethods,
         });
     }

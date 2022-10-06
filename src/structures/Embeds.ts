@@ -253,13 +253,13 @@ export class Embeds {
         const displayASMR = this.paginator(this.client, {
             collectorTimeout: 180000,
         });
-        for (const { circle, title, url, tags, image } of asmr) {
+        for (const { circle, title, url, tags, image, duration } of asmr) {
             displayASMR.addPage('thumbnail', {
                 embed: this.default()
                     .setTitle(title)
                     .setURL(url)
                     .setDescription(
-                        `Tags: ${tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'}`
+                        `Duration: \`${duration}\`\nTags: ${tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'}`
                     )
                     .setThumbnail(image)
                     .setFooter({ text: `Circle: ${circle}` }),

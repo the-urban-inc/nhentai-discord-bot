@@ -15,6 +15,7 @@ export interface SearchResult {
     url: string;
     tags: string[];
     image: string;
+    duration: string;
 }
 
 export class Client {
@@ -34,22 +35,20 @@ export class Client {
     }
 
     private getVideos($: Root): SearchResult[] {
-        return $('.mainitem')
+        return $('.rightitem')
             .toArray()
             .map(e => {
-                const tags = $(e).find('.mainitemtagstring').text();
                 return {
-                    circle: $(e).find('.mainitemleft').text(),
-                    title: $(e).find('.mainitemtitle').text(),
-                    url: `${this.baseURL}/${$(e).find('.mainitemtitle').parent('a').attr('href')}`,
+                    circle: $(e).find('.rightitemcirclename').text(),
+                    title: $(e).find('.rightitemtoptitle').text(),
+                    url: `${this.baseURL}/${$(e).find('.rightitemtoptitle').parent('a').attr('href')}`,
                     tags:
-                        tags && tags.length
-                            ? tags.split(' ').map(t => decode(t))
-                            : $(e)
-                                  .find('.tagitem')
-                                  .toArray()
-                                  .map(e => decode($(e).text())),
+                        $(e)
+                            .find('.rightitemtoptag')
+                            .toArray()
+                            .map(e => decode($(e).text())),
                     image: `${$(e).find('img').attr('src')}`,
+                    duration: `${$(e).find('.rightitemlength').text()}`,
                 };
             });
     }

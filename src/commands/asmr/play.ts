@@ -61,7 +61,7 @@ export default class extends Command {
         if (choice == null) return interaction.editReply('No choice selected.');
 
         const result = results[choice];
-        const { circle, title, url, tags, image } = result;
+        const { circle, title, url, tags, image, duration } = result;
 
         await interaction.editReply({
             content: 'Attempting to join voice channel ...',
@@ -108,7 +108,7 @@ export default class extends Command {
             .default()
             .setTitle('▶️\u2000Now Playing')
             .setDescription(
-                `[${title}](${url})\nTags: ${
+                `[${title}](${url})\nDuration: \`${duration}\`\nTags: ${
                     tags.length ? tags.map(t => `\`${t}\``).join(' ') : 'N/A'
                 }`
             )
@@ -125,21 +125,29 @@ export default class extends Command {
             .setThumbnail(image)
             .setFooter({ text: `Circle: ${circle}` });
         try {
-            const track = await Track.from(encodeURI(url), encodeURI(video), image, title, circle, {
-                onStart() {
-                    interaction.followUp({
-                        embeds: [np],
-                    });
-                },
-                onFinish() {
-                    interaction.followUp({
-                        embeds: [fp],
-                    });
-                },
-                onError(error) {
-                    throw error;
-                },
-            });
+            const track = await Track.from(
+                encodeURI(url),
+                encodeURI(video),
+                image,
+                title,
+                circle,
+                duration,
+                {
+                    onStart() {
+                        interaction.followUp({
+                            embeds: [np],
+                        });
+                    },
+                    onFinish() {
+                        interaction.followUp({
+                            embeds: [fp],
+                        });
+                    },
+                    onError(error) {
+                        throw error;
+                    },
+                }
+            );
             subscription.enqueue(track);
             await interaction.editReply({
                 content: null,
