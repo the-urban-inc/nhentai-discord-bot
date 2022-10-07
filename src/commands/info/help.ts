@@ -12,6 +12,7 @@ import { SUPPORT_SERVER } from '@constants';
 const CATEGORIES = {
     qna: ['❔', 'QNA'],
     asmr: ['👂', 'ASMR'],
+    games: ['🎮', 'Games'],
     general: ['🧻', 'General'],
     images: ['🖼️', 'Images'],
     info: ['📄', 'Info'],

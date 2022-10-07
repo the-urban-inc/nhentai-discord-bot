@@ -88,11 +88,12 @@ export default class extends Command {
         const page = this.client.util.random(this.client.nhentai.getPages(this.gallery));
         const quiz = this.client.embeds
             .default()
-            .setTitle(`Guess which doujin is this picture from?`)
+            .setTitle(`Guess which doujin is this picture from!`)
             .setDescription(
-                'Use buttons to select an option within 30 seconds. Your first choice will be your final choice. No cheating!\n\nOnly the person who started the quiz can answer. Each correct answer will give you 30-50 xp.'
+                'Use buttons to select an option within 30 seconds. Your first choice will be your final choice. No cheating!'
             )
             .setImage(page)
+            .setFooter({ text: 'Only the person who started the quiz can answer. Each answer will give you 30-50 xp.' })
             .setTimestamp();
         const choices = this.client.util
             .shuffle(this.related)
@@ -132,6 +133,7 @@ export default class extends Command {
                     new MessageButton().setCustomId('1').setLabel('B').setStyle('SECONDARY'),
                     new MessageButton().setCustomId('2').setLabel('C').setStyle('SECONDARY'),
                     new MessageButton().setCustomId('3').setLabel('D').setStyle('SECONDARY'),
+                    new MessageButton().setCustomId('cancel').setLabel('Skip').setStyle('DANGER'),
                 ]),
             ],
         })) as Message;
@@ -148,11 +150,28 @@ export default class extends Command {
         message
             .awaitMessageComponent({
                 filter: i =>
-                    ['0', '1', '2', '3'].includes(i.customId) && i.user.id === interaction.user.id,
+                    ['0', '1', '2', '3', 'cancel'].includes(i.customId) && i.user.id === interaction.user.id,
                 time: 30000,
             })
             .then(async i => {
                 await i.deferUpdate();
+                if (i.customId === 'cancel') {
+                    await interaction.editReply({
+                        embeds: [quiz],
+                        components: [new MessageActionRow().addComponents(buttons)],
+                    });
+                    return interaction.followUp({
+                        embeds: [
+                            embed
+                                .setColor('#ffbf00')
+                                .setAuthor({ name: '⏭️\u2000Skipped' })
+                                .setDescription(
+                                    `Quiz skipped. The correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
+                                ),
+                        ],
+                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                    });
+                }
                 const choice = parseInt(i.customId, 10);
                 await interaction.editReply({
                     embeds: [quiz],
