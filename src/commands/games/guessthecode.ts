@@ -192,7 +192,7 @@ export default class extends Command {
                 }
                 let inc = Math.max(
                     0,
-                    (75 * (100 - Math.ceil(Math.abs(choice - answer) / 1000))) / 100
+                    Math.round((75 * (100 - Math.ceil(Math.abs(choice - answer) / 1000))) / 100)
                 );
                 if (choice === answer) {
                     interaction.followUp({
