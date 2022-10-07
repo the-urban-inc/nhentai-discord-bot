@@ -237,7 +237,7 @@ export default class extends Command {
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
                 }
-                inc = Math.max(0, 100 - Math.ceil(Math.abs(choice - answer) / 100));
+                inc = Math.max(0, 100 - Math.ceil(Math.abs(choice - answer) / 1000));
                 if (inc > 0) {
                     const leveledUp = await this.client.db.xp.save(
                         'add',
