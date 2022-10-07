@@ -118,9 +118,6 @@ export const SFW_METHODS = {
     gecg: {
         nekoslife: ['gecg'],
     },
-    holo: {
-        nekoslife: ['holo'],
-    },
     jahy: {
         hmtai: ['jahy'],
     },
@@ -152,90 +149,65 @@ export const NSFW_METHODS = {
         hmtai: ['ahegao'],
     },
     anal: {
-        nekoslife: ['anal'],
         nekobot: ['hanal'],
     },
     ass: {
         nekobot: ['hass'],
         hmtai: ['ass'],
     },
-    avatar: {
-        nekoslife: ['avatar'],
-    },
     bdsm: {
         hmtai: ['bdsm'],
     },
     blowjob: {
-        nekoslife: ['bJ', 'blowJob'],
         hmtai: ['blowjob'],
     },
     boobs: {
-        nekoslife: ['boobs', 'tits'],
         nekobot: ['hboobs'],
     },
     cuckold: {
         hmtai: ['cuckold'],
     },
     cum: {
-        nekoslife: ['cumsluts', 'cumArts'],
         hmtai: ['cum', 'creampie'],
     },
     elf: {
         hmtai: ['elves'],
     },
     ero: {
-        nekoslife: ['ero'],
         hmtai: ['ero'],
     },
     feet: {
-        nekoslife: ['feet', 'feetGif', 'eroFeet'],
         hmtai: ['foot'],
     },
     femdom: {
-        nekoslife: ['femdom'],
         hmtai: ['femdom'],
-    },
-    futa: {
-        nekoslife: ['futanari'],
     },
     glasses: {
         hmtai: ['glasses'],
     },
     hentai: {
-        nekoslife: ['classic', 'randomHentaiGif'],
         nekobot: ['hentai'],
         hmtai: ['hentai', 'gif'],
     },
     holo: {
-        nekoslife: ['holo', 'holoEro'],
         nekobot: ['holo'],
     },
     incest: {
         hmtai: ['incest'],
     },
     kemonomimi: {
-        nekoslife: ['kemonomimi', 'eroKemonomimi'],
         nekobot: ['kemonomimi'],
     },
-    keta: {
-        nekoslife: ['keta'],
-    },
     kitsune: {
-        nekoslife: ['kitsune'],
         nekobot: ['hkitsune'],
     },
-    kuni: {
-        nekoslife: ['kuni'],
-    },
     masturbation: {
-        nekoslife: ['girlSolo', 'girlSoloGif'],
         hmtai: ['masturbation'],
     },
     midriff: {
         nekobot: ['hmidriff'],
     },
     neko: {
-        nekoslife: ['neko', 'eroNeko', 'nekoGif'],
         nekobot: ['hneko'],
         hmtai: ['nsfwNeko'],
     },
@@ -253,7 +225,6 @@ export const NSFW_METHODS = {
         hmtai: ['public'],
     },
     pussy: {
-        nekoslife: ['pussy', 'pussyWankGif', 'pussyArt'],
         hmtai: ['vagina'],
     },
     tentacle: {
@@ -263,9 +234,6 @@ export const NSFW_METHODS = {
     thigh: {
         nekobot: ['hthigh'],
         hmtai: ['thighs'],
-    },
-    trap: {
-        nekoslife: ['trap'],
     },
     uniform: {
         hmtai: ['uniform'],
@@ -277,7 +245,6 @@ export const NSFW_METHODS = {
         nekobot: ['yaoi'],
     },
     yuri: {
-        nekoslife: ['yuri', 'eroYuri', 'lesbian'],
         hmtai: ['yuri'],
     },
     'zettai ryouiki': {
