@@ -178,8 +178,8 @@ export default class extends Command {
                     components: [new MessageActionRow().addComponents(buttons)],
                 });
                 if (choice === answer) {
-                    const min = 30,
-                    max = 50;
+                    const min = 75,
+                    max = 100;
                     const inc = Math.floor(Math.random() * (max - min)) + min;
                     interaction.followUp({
                         embeds: [
