@@ -96,7 +96,7 @@ export default class extends Command {
             )
             .setImage(page)
             .setFooter({
-                text: 'Only the person who started the quiz can answer. Each answer will give you 0-100 xp.',
+                text: 'Only the person who started the quiz can answer. Each answer will give you 0-75 xp.',
             })
             .setTimestamp();
         const message = (await interaction.editReply({
@@ -190,7 +190,7 @@ export default class extends Command {
                     });
                     return;
                 }
-                let inc = Math.max(0, 100 - Math.ceil(Math.abs(choice - answer) / 1000));
+                let inc = Math.max(0, 75 * (100 - Math.ceil(Math.abs(choice - answer) / 1000)) / 100);
                 if (choice === answer) {
                     interaction.followUp({
                         embeds: [

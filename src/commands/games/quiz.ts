@@ -93,7 +93,7 @@ export default class extends Command {
                 'Use buttons to select an option within 30 seconds. Your first choice will be your final choice. No cheating!'
             )
             .setImage(page)
-            .setFooter({ text: 'Only the person who started the quiz can answer. Each answer will give you 75-100 xp.' })
+            .setFooter({ text: 'Only the person who started the quiz can answer. Each answer will give you 50-100 xp.' })
             .setTimestamp();
         const choices = this.client.util
             .shuffle(this.related)
@@ -178,7 +178,7 @@ export default class extends Command {
                     components: [new MessageActionRow().addComponents(buttons)],
                 });
                 if (choice === answer) {
-                    const min = 75,
+                    const min = 50,
                     max = 100;
                     const inc = Math.floor(Math.random() * (max - min)) + min;
                     interaction.followUp({
