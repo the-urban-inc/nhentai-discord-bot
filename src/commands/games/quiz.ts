@@ -178,6 +178,9 @@ export default class extends Command {
                     components: [new MessageActionRow().addComponents(buttons)],
                 });
                 if (choice === answer) {
+                    const min = 30,
+                    max = 50;
+                    const inc = Math.floor(Math.random() * (max - min)) + min;
                     interaction.followUp({
                         embeds: [
                             embed
@@ -185,13 +188,11 @@ export default class extends Command {
                                 .setAuthor({ name: '✅\u2000Correct' })
                                 .setDescription(
                                     `Congratulations! You got it right!\nThe correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
-                                ),
+                                )
+                                .setFooter({ text: `Received ${inc} xp\u2000•\u2000Quiz session ended` }),
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
-                    const min = 30,
-                        max = 50;
-                    const inc = Math.floor(Math.random() * (max - min)) + min;
                     const leveledUp = await this.client.db.xp.save(
                         'add',
                         'exp',

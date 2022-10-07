@@ -1,5 +1,13 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction, Message, MessageActionRow, MessageButton, Modal, ModalActionRowComponent, TextInputComponent } from 'discord.js';
+import {
+    CommandInteraction,
+    Message,
+    MessageActionRow,
+    MessageButton,
+    Modal,
+    ModalActionRowComponent,
+    TextInputComponent,
+} from 'discord.js';
 import { User, Server, Blacklist } from '@database/models';
 import { Gallery, GalleryResult } from '@api/nhentai';
 import { BANNED_TAGS } from '@constants';
@@ -84,16 +92,21 @@ export default class extends Command {
             .default()
             .setTitle(`Guess the code this doujin is from!`)
             .setDescription(
-                'Come up with a guess within 1 minute (30 seconds to look at the pic, 30 seconds to input your answer).\nThe closer your guess is the higher xp you\'ll get. Your first choice will be your final choice. No cheating!'
+                "Come up with a guess within 1 minute (30 seconds to look at the pic, 30 seconds to input your answer).\nThe closer your guess is the higher xp you'll get. Your first choice will be your final choice. No cheating!"
             )
             .setImage(page)
-            .setFooter({ text: 'Only the person who started the quiz can answer. Each answer will give you 0-100 xp.' })
+            .setFooter({
+                text: 'Only the person who started the quiz can answer. Each answer will give you 0-100 xp.',
+            })
             .setTimestamp();
         const message = (await interaction.editReply({
             embeds: [quiz],
             components: [
                 new MessageActionRow().addComponents([
-                    new MessageButton().setCustomId('guess').setLabel('Guess').setStyle('SECONDARY'),
+                    new MessageButton()
+                        .setCustomId('guess')
+                        .setLabel('Guess')
+                        .setStyle('SECONDARY'),
                     new MessageButton().setCustomId('cancel').setLabel('Skip').setStyle('DANGER'),
                 ]),
             ],
@@ -110,9 +123,15 @@ export default class extends Command {
                 if (i.customId === 'cancel') {
                     await interaction.editReply({
                         embeds: [quiz],
-                        components: [new MessageActionRow().addComponents([
-                            new MessageButton().setCustomId('guess').setLabel('Guess').setStyle('SECONDARY').setDisabled(true),
-                        ])],
+                        components: [
+                            new MessageActionRow().addComponents([
+                                new MessageButton()
+                                    .setCustomId('guess')
+                                    .setLabel('Guess')
+                                    .setStyle('SECONDARY')
+                                    .setDisabled(true),
+                            ]),
+                        ],
                     });
                     return interaction.followUp({
                         embeds: [
@@ -126,7 +145,9 @@ export default class extends Command {
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
                 }
-                const modal = new Modal().setCustomId(String(this.gallery.id)).setTitle(this.client.user.username);
+                const modal = new Modal()
+                    .setCustomId(String(this.gallery.id))
+                    .setTitle(this.client.user.username);
                 const pageInput = new TextInputComponent()
                     .setCustomId('pageInput')
                     .setLabel('Input your guess!')
@@ -143,12 +164,17 @@ export default class extends Command {
                 });
                 await response.deferUpdate();
                 let choice = parseInt(response.fields.getTextInputValue('pageInput'));
-                let inc = 0;
                 await interaction.editReply({
                     embeds: [quiz],
-                    components: [new MessageActionRow().addComponents([
-                        new MessageButton().setCustomId('guess').setLabel('Guess').setStyle('SECONDARY').setDisabled(true),
-                    ])],
+                    components: [
+                        new MessageActionRow().addComponents([
+                            new MessageButton()
+                                .setCustomId('guess')
+                                .setLabel('Guess')
+                                .setStyle('SECONDARY')
+                                .setDisabled(true),
+                        ]),
+                    ],
                 });
                 if (isNaN(choice)) {
                     interaction.followUp({
@@ -164,6 +190,7 @@ export default class extends Command {
                     });
                     return;
                 }
+                let inc = Math.max(0, 100 - Math.ceil(Math.abs(choice - answer) / 1000));
                 if (choice === answer) {
                     interaction.followUp({
                         embeds: [
@@ -172,7 +199,10 @@ export default class extends Command {
                                 .setAuthor({ name: '🤩\u2000Amazing' })
                                 .setDescription(
                                     `Congratulations! You got it right to the digit! The code is exactly \`${answer}\`!!!`
-                                ),
+                                )
+                                .setFooter({
+                                    text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
+                                }),
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
@@ -183,8 +213,13 @@ export default class extends Command {
                                 .setColor('#ffa700')
                                 .setAuthor({ name: '😬\u2000Not a bad guess' })
                                 .setDescription(
-                                    `Unfortunately, that was still \`${Math.abs(choice - answer)}\` off. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
-                                ),
+                                    `Unfortunately, that was still \`${Math.abs(
+                                        choice - answer
+                                    )}\` off. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
+                                )
+                                .setFooter({
+                                    text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
+                                }),
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
@@ -195,8 +230,13 @@ export default class extends Command {
                                 .setColor('#fff400')
                                 .setAuthor({ name: '😬\u2000Pretty close' })
                                 .setDescription(
-                                    `You got pretty close there, though that was still \`${Math.abs(choice - answer)}\` off. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
-                                ),
+                                    `You got pretty close there, though that was still \`${Math.abs(
+                                        choice - answer
+                                    )}\` off. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
+                                )
+                                .setFooter({
+                                    text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
+                                }),
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
@@ -208,7 +248,10 @@ export default class extends Command {
                                 .setAuthor({ name: '🥺\u2000So close' })
                                 .setDescription(
                                     `You got really close there. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
-                                ),
+                                )
+                                .setFooter({
+                                    text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
+                                }),
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
@@ -220,7 +263,10 @@ export default class extends Command {
                                 .setAuthor({ name: '😔\u2000Just a little bit more' })
                                 .setDescription(
                                     `You almost had it. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
-                                ),
+                                )
+                                .setFooter({
+                                    text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
+                                }),
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
@@ -232,12 +278,14 @@ export default class extends Command {
                                 .setAuthor({ name: '😖\u2000So far away' })
                                 .setDescription(
                                     `Unfortunately, that was too far off. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
-                                ),
+                                )
+                                .setFooter({
+                                    text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
+                                }),
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
                 }
-                inc = Math.max(0, 100 - Math.ceil(Math.abs(choice - answer) / 1000));
                 if (inc > 0) {
                     const leveledUp = await this.client.db.xp.save(
                         'add',
@@ -249,7 +297,8 @@ export default class extends Command {
                     if (leveledUp) {
                         await interaction.followUp({
                             content: 'Congratulations! You have leveled up!',
-                            ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                            ephemeral:
+                                (interaction.options.get('private')?.value as boolean) ?? false,
                         });
                     }
                 }
