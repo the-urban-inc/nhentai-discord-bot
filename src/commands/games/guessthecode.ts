@@ -92,11 +92,11 @@ export default class extends Command {
             .default()
             .setTitle(`Guess the code this doujin is from!`)
             .setDescription(
-                "Come up with a guess within 1 minute (30 seconds to look at the pic, 30 seconds to input your answer).\nThe closer your guess is the higher xp you'll get. Your first choice will be your final choice. No cheating!"
+                'Come up with a guess within 1 minute (30 seconds to look at the thumbnail pic, 30 seconds to input your answer by clicking "Guess").\nThe closer your guess is the higher xp you\'ll get. Your first choice will be your final choice. No cheating!'
             )
             .setImage(page)
             .setFooter({
-                text: 'Only the person who started the quiz can answer. Each answer will give you 0-75 xp.',
+                text: 'Only the person who started the quiz can answer\u2000•\u2000Each answer will give you 0-75 xp',
             })
             .setTimestamp();
         const message = (await interaction.editReply({
@@ -190,7 +190,10 @@ export default class extends Command {
                     });
                     return;
                 }
-                let inc = Math.max(0, 75 * (100 - Math.ceil(Math.abs(choice - answer) / 1000)) / 100);
+                let inc = Math.max(
+                    0,
+                    (75 * (100 - Math.ceil(Math.abs(choice - answer) / 1000))) / 100
+                );
                 if (choice === answer) {
                     interaction.followUp({
                         embeds: [
