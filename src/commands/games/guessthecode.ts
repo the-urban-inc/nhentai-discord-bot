@@ -273,6 +273,23 @@ export default class extends Command {
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
+                } else if (this.client.util.isBetween(choice, answer - 100000, answer) || this.client.util.isBetween(choice, answer, answer + 100000)) {
+                    interaction.followUp({
+                        embeds: [
+                            embed
+                                .setColor('#ffa700')
+                                .setAuthor({ name: '😬\u2000Not a bad guess' })
+                                .setDescription(
+                                    `Unfortunately, that was still \`${Math.abs(
+                                        choice - answer
+                                    )}\` off. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
+                                )
+                                .setFooter({
+                                    text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
+                                }),
+                        ],
+                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                    });
                 } else {
                     interaction.followUp({
                         embeds: [
