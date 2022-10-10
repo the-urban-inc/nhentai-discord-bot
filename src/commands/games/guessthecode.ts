@@ -209,16 +209,14 @@ export default class extends Command {
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
-                } else if (choice <= answer - 10000 || choice >= answer + 10000) {
+                } else if (choice >= answer - 10 || choice <= answer + 10) {
                     interaction.followUp({
                         embeds: [
                             embed
-                                .setColor('#ffa700')
-                                .setAuthor({ name: '😬\u2000Not a bad guess' })
+                                .setColor('#a3ff00')
+                                .setAuthor({ name: '😔\u2000Just a little bit more' })
                                 .setDescription(
-                                    `Unfortunately, that was still \`${Math.abs(
-                                        choice - answer
-                                    )}\` off. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
+                                    `You almost had it. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
                                 )
                                 .setFooter({
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
@@ -226,7 +224,22 @@ export default class extends Command {
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
-                } else if (choice <= answer - 1000 || choice >= answer + 1000) {
+                } else if (choice >= answer - 100 || choice <= answer + 100) {
+                    interaction.followUp({
+                        embeds: [
+                            embed
+                                .setColor('#a3ff00')
+                                .setAuthor({ name: '🥺\u2000So close' })
+                                .setDescription(
+                                    `You got really close there. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
+                                )
+                                .setFooter({
+                                    text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
+                                }),
+                        ],
+                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                    });
+                } else if (choice >= answer - 1000 || choice <= answer + 1000) {
                     interaction.followUp({
                         embeds: [
                             embed
@@ -243,29 +256,16 @@ export default class extends Command {
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
-                } else if (choice <= answer - 100 || choice >= answer + 100) {
+                } else if (choice >= answer - 10000 || choice <= answer + 10000) {
                     interaction.followUp({
                         embeds: [
                             embed
-                                .setColor('#a3ff00')
-                                .setAuthor({ name: '🥺\u2000So close' })
+                                .setColor('#ffa700')
+                                .setAuthor({ name: '😬\u2000Not a bad guess' })
                                 .setDescription(
-                                    `You got really close there. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
-                                )
-                                .setFooter({
-                                    text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
-                                }),
-                        ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
-                    });
-                } else if (choice <= answer - 10 || choice >= answer + 10) {
-                    interaction.followUp({
-                        embeds: [
-                            embed
-                                .setColor('#a3ff00')
-                                .setAuthor({ name: '😔\u2000Just a little bit more' })
-                                .setDescription(
-                                    `You almost had it. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
+                                    `Unfortunately, that was still \`${Math.abs(
+                                        choice - answer
+                                    )}\` off. The correct answer was \`${answer}\`. You chose \`${choice}\`.`
                                 )
                                 .setFooter({
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
