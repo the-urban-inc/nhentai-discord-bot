@@ -209,7 +209,7 @@ export default class extends Command {
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
-                } else if (choice >= answer - 10 || choice <= answer + 10) {
+                } else if (this.client.util.isBetween(choice, answer - 10, answer) || this.client.util.isBetween(choice, answer, answer + 10)) {
                     interaction.followUp({
                         embeds: [
                             embed
@@ -224,7 +224,7 @@ export default class extends Command {
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
-                } else if (choice >= answer - 100 || choice <= answer + 100) {
+                } else if (this.client.util.isBetween(choice, answer - 100, answer) || this.client.util.isBetween(choice, answer, answer + 100)) {
                     interaction.followUp({
                         embeds: [
                             embed
@@ -239,7 +239,7 @@ export default class extends Command {
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
-                } else if (choice >= answer - 1000 || choice <= answer + 1000) {
+                } else if (this.client.util.isBetween(choice, answer - 1000, answer) || this.client.util.isBetween(choice, answer, answer + 1000)) {
                     interaction.followUp({
                         embeds: [
                             embed
@@ -256,7 +256,7 @@ export default class extends Command {
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
-                } else if (choice >= answer - 10000 || choice <= answer + 10000) {
+                } else if (this.client.util.isBetween(choice, answer - 10000, answer) || this.client.util.isBetween(choice, answer, answer + 10000)) {
                     interaction.followUp({
                         embeds: [
                             embed
