@@ -1614,7 +1614,7 @@ fast-xml-parser@^3.19.0:
   dependencies:
     strnum "^1.0.4"
 
-ffmpeg-static@^4.4.0:
+ffmpeg-static@4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/ffmpeg-static/-/ffmpeg-static-4.4.0.tgz#56f1fbff5dbfd33e368ce309333c8c12ffdafb77"
   integrity sha512-NIJHVPXlSsIK9pYvsTPh4ZlppauorpPLLeOaIG7VOXWQck4Fx4Qi7Ahe+j8mj8KZXhWwCg3Hx46JdWAIOWLcpg==
