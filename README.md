@@ -33,7 +33,7 @@ If you find bugs or would like to suggest features, join my bot development/supp
 
 # Self-host
 
-Self-hosting your own copy of this bot is not supported. The source code is provided here so users and other bot developers can see how the bot functions. No help will be provided for editing, or building any code in this repository.
+Self-hosting your own copy of this bot is **not supported**. The source code is provided here so users and other bot developers can see how the bot functions. **No help** will be provided for editing, or building any code in this repository.
 
 # License
 nhentai is licensed under the **[GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.html)**.
