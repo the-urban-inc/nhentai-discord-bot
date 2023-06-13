@@ -210,7 +210,7 @@ export class Paginator {
 
     private getButtons() {
         const id = this.pages[this.#currentView][this.#currentPage]?.galleryID ?? this.info.id;
-        let downloadURL = `https://nhentai-discord-bot-web.herokuapp.com/download/${id}`;
+        let downloadURL = `https://d.nope.ovh/download/${id}`;
         if (!id) downloadURL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
         (this.methodMap.get(Interactions.Download) as MessageButton).setURL(downloadURL);
         (this.methodMap.get(Interactions.Jump) as MessageButton).setLabel(
