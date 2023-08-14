@@ -109,5 +109,8 @@ build/
 # NPM
 package-lock.json
 
+# Yarn
+.yarn/
+
 # Never ignore src files
 !src/**/*

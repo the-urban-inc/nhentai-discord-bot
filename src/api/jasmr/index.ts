@@ -4,10 +4,10 @@ import { decode } from 'he';
 type Root = ReturnType<typeof load>;
 
 export enum Sort {
-    Recent = 'recent',
-    PopularWeek = 'week',
-    PopularMonth = 'month',
-    PopularAllTime = 'all',
+    Relevance = 'relevance',
+    UploadDate = 'upload',
+    ViewCount = 'views',
+    Rating = 'rating',
 }
 export interface SearchResult {
     circle: string;
@@ -35,20 +35,20 @@ export class Client {
     }
 
     private getVideos($: Root): SearchResult[] {
-        return $('.rightitem')
+        return $('.recent-item')
             .toArray()
             .map(e => {
                 return {
-                    circle: $(e).find('.rightitemcirclename').text(),
-                    title: $(e).find('.rightitemtoptitle').text(),
-                    url: `${this.baseURL}/${$(e).find('.rightitemtoptitle').parent('a').attr('href')}`,
+                    circle: $(e).find('.popular-item-circle').text(),
+                    title: $(e).find('.popular-item-title').text(),
+                    url: `${this.baseURL}/${$(e).find('.popular-item-title').parent('a').attr('href')}`,
                     tags:
                         $(e)
-                            .find('.rightitemtoptag')
+                            .find('.popular-item-tag')
                             .toArray()
-                            .map(e => decode($(e).text())),
+                            .map(e => decode($(e).text())) ?? [],
                     image: `${$(e).find('img').attr('src')}`,
-                    duration: `${$(e).find('.rightitemlength').text()}`,
+                    duration: `${$(e).find('.popular-item-duration').text()}`,
                 };
             });
     }
@@ -66,7 +66,7 @@ export class Client {
     }
 
     public async search(query: string, page?: number, sort?: string): Promise<SearchResult[]> {
-        const url = `${this.baseURL}/s?q=${query.replace(/ /g, '+')}&page=${page}&sort=${sort}`;
+        const url = `${this.baseURL}/s?page=${page}&q=${query.replace(/ /g, '+')}&sort=${sort}&min=none&max=none&age=none&upload=alltime`;
         const result = await this.fetch<string>(url).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,

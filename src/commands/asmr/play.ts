@@ -9,6 +9,7 @@ import {
 import { CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 import { entersState, joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
 import { Sort } from '@api/jasmr';
+import axios from 'axios';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -33,7 +34,7 @@ export default class extends Command {
                 {
                     name: 'sort',
                     type: 'STRING',
-                    description: 'Doujin sort method (default: recent)',
+                    description: 'ASMR sort method (default: relevance)',
                     choices: Object.keys(Sort).map(k => {
                         return {
                             name: k.match(/[A-Z][a-z]+|[0-9]+/g).join(' '),
@@ -48,7 +49,7 @@ export default class extends Command {
     async exec(interaction: CommandInteraction) {
         const query = interaction.options.get('query').value as string;
         const page = (interaction.options.get('page')?.value as number) ?? 1;
-        const sort = (interaction.options.get('sort')?.value as string) ?? 'recent';
+        const sort = (interaction.options.get('sort')?.value as string) ?? 'relevance';
 
         let results = await this.client.jasmr.search(query, page, sort);
         if (!results || !results.length) {
@@ -76,7 +77,8 @@ export default class extends Command {
         ) {
             if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
                 const channel = interaction.member.voice.channel;
-                if (!(channel as VoiceChannel).nsfw && tags.map(t => t.trim()).includes('R18')) throw new UserError('NSFW_VOICE_CHANNEL');
+                if (!(channel as VoiceChannel).nsfw && tags.map(t => t.trim()).includes('R18'))
+                    throw new UserError('NSFW_VOICE_CHANNEL');
                 subscription = new MusicSubscription(
                     joinVoiceChannel({
                         channelId: channel.id,
@@ -100,10 +102,32 @@ export default class extends Command {
             throw new UserError('FAILED_TO_JOIN_VC');
         }
 
-        const video = await this.client.jasmr.video(encodeURI(url));
-        if (!video) {
+        // cheesing it
+        const videoID = title.match(/RJ\d+/g)[0]; // await this.client.jasmr.video(encodeURI(url));
+        if (!videoID) {
             throw new UserError('NO_RESULT', query);
         }
+
+        // double cheese
+        async function getStatus(url: string) {
+            return new Promise((resolve, reject) => {
+                axios
+                    .head(url)
+                    .then(r => resolve(r.status))
+                    .catch(e => resolve(e.response.status));
+            });
+        }
+        let testURL = [
+            `https://server.jasmr.net/api/uploads/${videoID}.mp3`,
+            `https://server.jasmr.net/api/uploads/${videoID}.m4a`,
+            `https://server.jasmr.net/content/rereleases/${videoID}.mp4`,
+            `https://server.jasmr.net/content/rereleases/${videoID}.m4a`,
+        ].map(async url => { return getStatus(url).then(r => r == 200 ? url : null) });
+        const videos = (await Promise.all(testURL)).filter(Boolean);
+        if (!videos.length) {
+            throw new UserError('NO_RESULT', query);
+        }
+        
         const np = this.client.embeds
             .default()
             .setTitle('▶️\u2000Now Playing')
@@ -127,7 +151,7 @@ export default class extends Command {
         try {
             const track = await Track.from(
                 encodeURI(url),
-                encodeURI(video),
+                encodeURI(videos[0]),
                 image,
                 title,
                 circle,
