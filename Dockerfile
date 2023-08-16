@@ -20,6 +20,7 @@ RUN yarn install --prod --frozen-lockfile
 
 FROM node:16.9.1-alpine3.14 as run
 WORKDIR /app
+RUN apk add --no-cache ffmpeg
 COPY --from=build /app/package.json .
 COPY --from=build /app/build/ build/
 COPY --from=deps /app/node_modules node_modules/
