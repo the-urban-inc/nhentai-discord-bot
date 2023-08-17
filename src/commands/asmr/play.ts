@@ -51,7 +51,7 @@ export default class extends Command {
         const page = (interaction.options.get('page')?.value as number) ?? 1;
         const sort = (interaction.options.get('sort')?.value as string) ?? 'relevance';
 
-        let results = await this.client.jasmr.search(query, page, sort);
+        let results = await this.client.jasmr.search(query.toLowerCase(), page, sort);
         if (!results || !results.length) {
             throw new UserError('NO_RESULT', query);
         }
