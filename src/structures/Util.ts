@@ -97,12 +97,10 @@ export class Util {
      * Shorten a `string[]` to conform to 1024-character limit
      * @param {string[]}} tags
      */
-    gshorten(tags: Array<string>, split = ' ') {
-        let res = '';
-        for (const tag of tags) {
-            res += res.length + tag.length + split.length <= 1020 ? tag + split : '';
-        }
-        return res + (tags.join(split).length > 1024 ? ' ...' : '');
+    gshorten(tags: Array<string>, split = ' ', maxLen = 1024) {
+        let text = tags.join(split);
+        if (text.length <= maxLen) return text;
+        return text.substring(0, text.lastIndexOf(split, maxLen) + 1) + ' ...';
     }
 
     hasCommon<T>(texts: T[], keywords: T[]) {
@@ -197,7 +195,7 @@ export class Util {
         return array[Math.floor(Math.random() * array.length)];
     }
 
-    shorten(text: string, split = ' ', maxLen = 2000) {
+    shorten(text: string, split = ' ', maxLen = 4090) {
         if (text.length <= maxLen) return text;
         return text.substring(0, text.lastIndexOf(split, maxLen) + 1) + '`...`';
     }

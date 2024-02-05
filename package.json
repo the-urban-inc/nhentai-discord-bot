@@ -56,6 +56,6 @@
         "dev:web": "ts-node --compiler ttypescript src/web/index.ts"
     },
     "engines": {
-        "node": ">=16.9.0"
+        "node": ">=18.19.0"
     }
 }

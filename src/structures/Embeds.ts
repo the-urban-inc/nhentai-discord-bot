@@ -34,8 +34,7 @@ export class Embeds {
         return new MessageEmbed()
             .setColor('#ff0000')
             .setDescription(
-                `An unexpected error has occurred${
-                    text.length < 2000 ? `:\n\`\`\`${text}\`\`\`` : '.'
+                `An unexpected error has occurred${text.length < 2000 ? `:\n\`\`\`${text}\`\`\`` : '.'
                 }`
             );
     }
@@ -83,9 +82,8 @@ export class Embeds {
         tags.forEach(tag => {
             const { id, type, name, count } = tag;
             const a = t.get(type) || [];
-            let s = `**\`${name}\`**\u2009\`(${
-                count >= 1000 ? `${Math.floor(count / 1000)}K` : count
-            })\``;
+            let s = `**\`${name}\`**\u2009\`(${count >= 1000 ? `${Math.floor(count / 1000)}K` : count
+                })\``;
             // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
             if (blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
             if (follows.some(fl => fl === id)) s = `__${s}__`;
@@ -140,6 +138,34 @@ export class Embeds {
         return { displayGallery, rip };
     }
 
+    displayShortGallery(
+        gallery: Gallery,
+        danger = false,
+        blacklists: Blacklist[] = [],
+        follows: number[] = []
+    ) {
+        const { id, title, tags } = gallery;
+        const rip = this.client.util.hasCommon(
+            tags.map(x => x.id.toString()),
+            BANNED_TAGS
+        );
+        tags.sort((a, b) => b.count - a.count);
+        tags.forEach(tag => {
+            const { id, name } = tag;
+            let s = name;
+            // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
+            if (blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
+            if (follows.some(fl => fl === id)) s = `__${s}__`;
+            tag.name = s;
+        });
+        const thumb = this.default()
+            .setTitle(`${decode(title.pretty)}`)
+            .setURL(`https://nhentai.net/g/${id}`)
+            .setDescription(this.client.util.gshorten(tags.filter(tag => tag.type == 'tag').map(tag => tag.name), ', ', 4096))
+        if (danger || !rip) thumb.setThumbnail(this.client.nhentai.getCoverThumbnail(gallery));
+        return { thumb, rip };
+    }
+
     displayGalleryList(
         galleries: Gallery[],
         danger = false,
@@ -160,13 +186,13 @@ export class Embeds {
             ...additional_options,
             filterIDs: language.query
                 ? galleries
-                      .filter(
-                          g =>
-                              !g.tags.some(tag =>
-                                  language.preferred.map(x => x.id).includes(String(tag.id))
-                              )
-                      )
-                      .map(g => +g.id)
+                    .filter(
+                        g =>
+                            !g.tags.some(tag =>
+                                language.preferred.map(x => x.id).includes(String(tag.id))
+                            )
+                    )
+                    .map(g => +g.id)
                 : [],
         });
         for (const gallery of galleries) {
@@ -180,9 +206,9 @@ export class Embeds {
                 .setURL(`https://nhentai.net/g/${id}`)
                 .setDescription(
                     `**ID** : ${id}` +
-                        (FLAG_EMOJIS[language]
-                            ? `\u2000•\u2000**Language** : ${FLAG_EMOJIS[language]}`
-                            : '')
+                    (FLAG_EMOJIS[language]
+                        ? `\u2000•\u2000**Language** : ${FLAG_EMOJIS[language]}`
+                        : '')
                 )
                 .setTimestamp(upload_date * 1000);
             const footer =
