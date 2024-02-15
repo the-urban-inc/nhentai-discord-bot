@@ -144,7 +144,7 @@ export class Embeds {
         blacklists: Blacklist[] = [],
         follows: number[] = []
     ) {
-        const { id, title, tags } = gallery;
+        const { id, title, tags, upload_date } = gallery;
         const rip = this.client.util.hasCommon(
             tags.map(x => x.id.toString()),
             BANNED_TAGS
@@ -162,6 +162,8 @@ export class Embeds {
             .setTitle(`${decode(title.pretty)}`)
             .setURL(`https://nhentai.net/g/${id}`)
             .setDescription(this.client.util.gshorten(tags.filter(tag => tag.type == 'tag').map(tag => tag.name), ', ', 4096))
+            .setFooter({ text: `ID : ${id}` })
+            .setTimestamp(upload_date * 1000);
         if (danger || !rip) thumb.setThumbnail(this.client.nhentai.getCoverThumbnail(gallery));
         return { thumb, rip };
     }
