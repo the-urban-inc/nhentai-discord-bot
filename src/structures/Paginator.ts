@@ -188,13 +188,13 @@ export class Paginator {
                     .setEmoji('👁️')
                     .setStyle('SECONDARY')
             )
-            .set(
-                Interactions.Download,
-                new MessageButton()
-                    .setLabel('📥')
-                    .setStyle('LINK')
-                    .setURL('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-            )
+            // .set(
+            //     Interactions.Download,
+            //     new MessageButton()
+            //         .setLabel('📥')
+            //         .setStyle('LINK')
+            //         .setURL('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+            // )
             .set(
                 Interactions.Remove,
                 new MessageButton().setCustomId('remove').setLabel('🗑️').setStyle('DANGER')
@@ -210,9 +210,9 @@ export class Paginator {
 
     private getButtons() {
         const id = this.pages[this.#currentView][this.#currentPage]?.galleryID ?? this.info.id;
-        let downloadURL = `https://d.nope.ovh/download/${id}`;
-        if (!id) downloadURL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-        (this.methodMap.get(Interactions.Download) as MessageButton).setURL(downloadURL);
+        // let downloadURL = `https://d.nope.ovh/download/${id}`;
+        // if (!id) downloadURL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        // (this.methodMap.get(Interactions.Download) as MessageButton).setURL(downloadURL);
         (this.methodMap.get(Interactions.Jump) as MessageButton).setLabel(
             `${this.#currentPage + 1} of ${this.pages[this.#currentView].length}`
         );
@@ -259,13 +259,13 @@ export class Paginator {
                       this.methodMap.get(Interactions.Love),
                       this.methodMap.get(Interactions.Follow),
                       this.methodMap.get(Interactions.Blacklist),
-                      this.methodMap.get(Interactions.Download),
+                    //   this.methodMap.get(Interactions.Download),
                       this.methodMap.get(Interactions.Remove),
                   ]
                 : ['home', 'search', 'g', 'random', 'favorite'].includes(this.interaction.commandName)
                 ? [
                       this.methodMap.get(Interactions.Love),
-                      this.methodMap.get(Interactions.Download),
+                    //   this.methodMap.get(Interactions.Download),
                       this.methodMap.get(Interactions.Remove),
                   ]
                 : ['play'].includes(this.interaction.commandName)
