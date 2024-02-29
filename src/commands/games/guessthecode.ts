@@ -25,9 +25,6 @@ export default class extends Command {
     }
 
     danger = false;
-    warning = false;
-    iteration = 0;
-    gallery: Gallery = null;
     related: Gallery[] = null;
     rawChoices: Gallery[] = [];
     blacklists: Blacklist[] = [];
@@ -49,13 +46,10 @@ export default class extends Command {
                     settings: { danger: false },
                 }).save();
             }
-            this.iteration = 0;
-            this.gallery = null;
             this.related = null;
             this.rawChoices = [];
             this.blacklists = [];
             this.danger = server.settings.danger;
-            this.warning = false;
         } catch (err) {
             this.client.logger.error(err);
             throw new Error(`Database error: ${err.message}`);
@@ -63,31 +57,20 @@ export default class extends Command {
     }
 
     async fetchRandomDoujin() {
-        if (this.iteration++ >= 3) return;
-        let result: void | GalleryResult = null;
-        for (let i = 0; i < 5; i++) {
-            result = await this.client.nhentai
-                .random(true)
-                .catch(err => this.client.logger.error(err.message));
-            if (!result) continue;
-            const tags = result.gallery.tags;
-            const rip = this.client.util.hasCommon(
-                tags.map(x => x.id.toString()),
-                BANNED_TAGS
-            );
-            if (this.danger || !rip) break;
-        }
-        if (!result) return this.fetchRandomDoujin();
-        this.gallery = result.gallery;
+        return await this.client.db.cache.safeRandom(this.danger, this.blacklists.map(bl => bl.id));
     }
 
     async exec(interaction: CommandInteraction) {
         await this.before(interaction);
-        await this.fetchRandomDoujin();
-        if (!this.gallery || this.iteration > 3) {
+        const id = await this.fetchRandomDoujin();
+        if (!id) {
             throw new UserError('NO_RESULT');
         }
-        const page = this.client.nhentai.getCover(this.gallery);
+        const { gallery } = await this.client.nhentai.g(id);
+        if (!gallery) {
+            throw new UserError('NO_RESULT');
+        }
+        const page = this.client.nhentai.getCover(gallery);
         const quiz = this.client.embeds
             .default()
             .setTitle(`Guess the code this doujin is from!`)
@@ -111,7 +94,7 @@ export default class extends Command {
                 ]),
             ],
         })) as Message;
-        const answer = +this.gallery.id;
+        const answer = +gallery.id;
         const embed = this.client.embeds.default().setFooter({ text: 'Quiz session ended' });
         message
             .awaitMessageComponent({
@@ -146,7 +129,7 @@ export default class extends Command {
                     });
                 }
                 const modal = new Modal()
-                    .setCustomId(String(this.gallery.id))
+                    .setCustomId(String(gallery.id))
                     .setTitle(this.client.user.username);
                 const pageInput = new TextInputComponent()
                     .setCustomId('pageInput')

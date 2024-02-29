@@ -59,8 +59,11 @@ export default class extends Command {
         await this.before(interaction);
         const more = interaction.options.get('more')?.value as boolean;
         const page = (interaction.options.get('page')?.value as number) ?? 1;
-        const data = await this.client.nhentai
-            .random(more)
+        const id = await this.client.db.cache.safeRandom(this.danger, this.blacklists.map(({ id }) => id));
+        if (!id) {
+            throw new UserError('NO_RESULT');
+        }
+        const data = await this.client.nhentai.g(id)
             .catch(err => this.client.logger.error(err.message));
         if (!data || !data.gallery) {
             throw new UserError('NO_RESULT');

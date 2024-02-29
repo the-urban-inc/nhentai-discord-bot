@@ -303,7 +303,7 @@ export class Client {
 
     public getCoverThumbnail(gallery: Gallery) {
         return `${this.baseThumbnailURL}/galleries/${gallery.media_id}/thumb.${
-            ImageT[gallery.images.cover.t]
+            ImageT[gallery.images.thumbnail.t]
         }`;
     }
 }

@@ -2,8 +2,7 @@ import { Client, Command, UserError } from '@structures';
 import { CommandInteraction, Message, MessageActionRow, MessageButton } from 'discord.js';
 import { decode } from 'he';
 import { User, Server, Blacklist } from '@database/models';
-import { Gallery, GalleryResult } from '@api/nhentai';
-import { BANNED_TAGS } from '@constants';
+import { Gallery } from '@api/nhentai';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -18,10 +17,6 @@ export default class extends Command {
     }
 
     danger = false;
-    warning = false;
-    iteration = 0;
-    gallery: Gallery = null;
-    related: Gallery[] = null;
     rawChoices: Gallery[] = [];
     blacklists: Blacklist[] = [];
 
@@ -42,13 +37,9 @@ export default class extends Command {
                     settings: { danger: false },
                 }).save();
             }
-            this.iteration = 0;
-            this.gallery = null;
-            this.related = null;
             this.rawChoices = [];
             this.blacklists = [];
             this.danger = server.settings.danger;
-            this.warning = false;
         } catch (err) {
             this.client.logger.error(err);
             throw new Error(`Database error: ${err.message}`);
@@ -56,36 +47,20 @@ export default class extends Command {
     }
 
     async fetchRandomDoujin() {
-        if (this.iteration++ >= 3) return;
-        let result: void | GalleryResult = null;
-        for (let i = 0; i < 5; i++) {
-            result = await this.client.nhentai
-                .random(true)
-                .catch(err => this.client.logger.error(err.message));
-            if (!result) continue;
-            const tags = result.gallery.tags;
-            const rip = this.client.util.hasCommon(
-                tags.map(x => x.id.toString()),
-                BANNED_TAGS
-            );
-            if (this.danger || !rip) break;
-        }
-        if (!result) return this.fetchRandomDoujin();
-        this.gallery = result.gallery;
-        this.related = result.related;
-        this.related.splice(3, 5);
-        this.related.push(this.gallery);
-        const titles = this.rawChoices.map(({ title }) => decode(title.english).toLowerCase());
-        if ([...new Set(titles)].length < titles.length) return this.fetchRandomDoujin();
+        return await this.client.db.cache.safeRandom(this.danger, this.blacklists.map(bl => bl.id));
     }
 
     async exec(interaction: CommandInteraction) {
         await this.before(interaction);
-        await this.fetchRandomDoujin();
-        if (!this.gallery || this.iteration > 3) {
+        const galleryID = await this.fetchRandomDoujin();
+        if (!galleryID) {
             throw new UserError('NO_RESULT');
         }
-        const page = this.client.util.random(this.client.nhentai.getPages(this.gallery));
+        const gallery = await this.client.nhentai.g(galleryID, true);
+        if (!gallery) {
+            throw new UserError('NO_RESULT');
+        }
+        const page = this.client.util.random(this.client.nhentai.getPages(gallery.gallery));
         const quiz = this.client.embeds
             .default()
             .setTitle(`Guess which doujin is this picture from!`)
@@ -96,7 +71,8 @@ export default class extends Command {
             .setFooter({ text: 'Only the person who started the quiz can answer\u2000•\u2000Each answer will give you 50-100 xp' })
             .setTimestamp();
         const choices = this.client.util
-            .shuffle(this.related)
+            .shuffle(this.client.util.shuffle(gallery.related)
+                .slice(0, 3).concat([gallery.gallery]))
             .map(({ id, title: { english }, tags }) => {
                 const title = decode(english);
                 const t = new Map();
@@ -104,9 +80,8 @@ export default class extends Command {
                 tags.forEach(tag => {
                     const { id, type, name, count } = tag;
                     const a = t.get(type) || [];
-                    let s = `**\`${name}\`**\u2009\`(${
-                        count >= 1000 ? `${Math.floor(count / 1000)}K` : count
-                    })\``;
+                    let s = `**\`${name}\`**\u2009\`(${count >= 1000 ? `${Math.floor(count / 1000)}K` : count
+                        })\``;
                     // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
                     if (this.blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
                     a.push(s);
@@ -123,7 +98,10 @@ export default class extends Command {
             });
         const abcd = ['A', 'B', 'C', 'D'];
         choices.forEach((c, i) => {
-            quiz.addField(`[${abcd[i]}] ${c.title}`, `Artists: ${c.artist}`);
+            quiz.addFields({
+                name: `[${abcd[i]}] ${c.title}`,
+                value: `Artists: ${c.artist}`
+            });
         });
         const message = (await interaction.editReply({
             embeds: [quiz],
@@ -137,7 +115,7 @@ export default class extends Command {
                 ]),
             ],
         })) as Message;
-        const answer = choices.findIndex(({ id }) => this.gallery.id === id);
+        const answer = choices.findIndex(({ id }) => +gallery.gallery.id === +id);
         const embed = this.client.embeds.default().setFooter({ text: 'Quiz session ended' });
         const buttons = [0, 1, 2, 3].map(i =>
             new MessageButton()
@@ -179,7 +157,7 @@ export default class extends Command {
                 });
                 if (choice === answer) {
                     const min = 50,
-                    max = 100;
+                        max = 100;
                     const inc = Math.floor(Math.random() * (max - min)) + min;
                     interaction.followUp({
                         embeds: [

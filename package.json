@@ -24,6 +24,7 @@
         "libsodium-wrappers": "^0.7.9",
         "moment": "^2.29.1",
         "mongoose": "^5.12.14",
+        "mysql2": "^3.9.2",
         "nekos.life": "^2.0.7",
         "pdfkit": "^0.12.1",
         "qs": "^6.10.1",

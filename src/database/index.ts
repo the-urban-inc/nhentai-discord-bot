@@ -3,15 +3,18 @@ import { Server } from './settings/server';
 import { User } from './settings/user';
 import { XP } from './settings/xp';
 import { Client, Logger } from '@structures';
+import { Cache } from './cache';
 const log = new Logger();
 
 export class Database {
     client: Client;
+    cache: Cache;
     server: Server;
     user: User;
     xp: XP;
     constructor(client: Client) {
         this.client = client;
+        this.cache = new Cache();
         this.server = new Server();
         this.user = new User();
         this.xp = new XP();

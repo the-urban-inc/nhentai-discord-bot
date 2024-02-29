@@ -101,14 +101,20 @@ export class Embeds {
         ].forEach(
             ([key, fieldName]) =>
                 t.has(key) &&
-                info.addField(fieldName, this.client.util.gshorten(t.get(key), '\u2009\u2009'))
+                info.addFields([{
+                    name: fieldName,
+                    value: this.client.util.gshorten(t.get(key), '\u2009\u2009')
+                }])
         );
         // info.addField('‏‏‎ ‎', `${doujin.num_pages} pages\nUploaded ${moment(doujin.upload_date * 1000).fromNow()}`);
         //     .addField('Pages', `**\`[${doujin.num_pages}]\`**`);
-        info.addField('Pages', `**\`${num_pages}\`**`).addField(
-            'Uploaded',
-            `<t:${gallery.upload_date}:R>`
-        );
+        info.addFields([{
+            name: 'Pages',
+            value: `**\`${num_pages}\`**`
+        }, {
+            name: 'Uploaded',
+            value: `<t:${gallery.upload_date}:R>`
+        }]);
         return { info, rip };
     }
 
