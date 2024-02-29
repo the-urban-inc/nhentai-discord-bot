@@ -59,16 +59,16 @@ export class Cache {
     }
 
     async random() {
-        const [rows] = await this.connection.query<IDoujin[]>('SELECT id FROM doujinshi ORDER BY RAND() LIMIT 1');
+        const [rows] = await this.connection.query<IDoujin[]>('SELECT DISTINCT id FROM doujinshi');
         if (!rows.length) return null;
-        const { id } = rows[0];
+        const { id } = rows[Math.floor(Math.random() * rows.length)];
         return id;
     }
 
     async safeRandom(banned: boolean, additional: string[] = []) {
-        const [rows] = await this.connection.query<RowDataPacket[]>('SELECT doujinshi_id FROM doujinshi_tag WHERE tag_id NOT IN (?) ORDER BY RAND() LIMIT 1', [[...(banned ? ['0'] : BANNED_TAGS), ...additional]]);
+        const [rows] = await this.connection.query<RowDataPacket[]>('SELECT DISTINCT doujinshi_id FROM doujinshi_tag WHERE tag_id NOT IN (?)', [[...(banned ? ['0'] : BANNED_TAGS), ...additional]]);
         if (!rows.length) return null;
-        const { doujinshi_id } = rows[0];
+        const { doujinshi_id } = rows[Math.floor(Math.random() * rows.length)];
         return doujinshi_id;
     }
 }
