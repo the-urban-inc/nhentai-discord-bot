@@ -22,7 +22,7 @@ export class CommandHandler extends ApplicationCommandManager {
     constructor(client: Client) {
         super(client);
         this.client.on('interactionCreate', async interaction => {
-            if (!interaction.isCommand() && !interaction.isContextMenu()) return;
+            if (!interaction.isCommand() && !interaction.isContextMenu() && !interaction.isAutocomplete()) return;
             if (
                 !(interaction.channel instanceof TextChannel) ||
                 interaction.channel instanceof ThreadChannel
@@ -30,14 +30,17 @@ export class CommandHandler extends ApplicationCommandManager {
                 return;
             if (this.client.commands.has(interaction.commandName)) {
                 try {
+                    const { commands, cooldowns } = this.client;
+                    const command = commands.get(interaction.commandName);
+                    if (interaction.isAutocomplete()) {
+                        return await (command as Command).autocomplete(interaction);
+                    }
                     await interaction.deferReply({
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                         fetchReply: !(
                             (interaction.options.get('private')?.value as boolean) ?? false
                         ),
                     });
-                    const { commands, cooldowns } = this.client;
-                    const command = commands.get(interaction.commandName);
                     const { name, permissions, cooldown, nsfw, owner } = command.data;
 
                     if (owner && interaction.user.id !== this.client.ownerID) {
@@ -104,6 +107,7 @@ export class CommandHandler extends ApplicationCommandManager {
                 } catch (err) {
                     if (axios.isAxiosError(err)) this.client.logger.error(err.message);
                     else this.client.logger.error(err instanceof UserError ? err.code : err);
+                    if (interaction.isAutocomplete()) return;
                     const type =
                         interaction.deferred || interaction.replied ? 'editReply' : 'reply';
                     if (err instanceof UserError) {

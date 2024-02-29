@@ -43,10 +43,10 @@ export class Client {
                     title: $(e).find('.popular-item-title').text(),
                     url: `${this.baseURL}/${$(e).find('.popular-item-title').parent('a').attr('href')}`,
                     tags:
-                        $(e)
+                        ($(e)
                             .find('.popular-item-tag')
                             .toArray()
-                            .map(e => decode($(e).text())) ?? [],
+                            .map(e => decode($(e).text()))) ?? [],
                     image: `${$(e).find('img').attr('src')}`,
                     duration: `${$(e).find('.popular-item-duration').text()}`,
                 };

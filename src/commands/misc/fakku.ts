@@ -49,7 +49,7 @@ export default class extends Command {
         await this.before(interaction);
         const query = interaction.options.get('query').value as string;
         const consoleLog = console.log;
-        console.log = function () {};
+        console.log = function () { };
         const results: { link: string }[] = await googleIt({
             query,
             limit: 25,
@@ -79,7 +79,7 @@ export default class extends Command {
             const { title, thumbnail } = doujin;
             const info = this.client.embeds
                 .default()
-                .setAuthor(title, ICON, url)
+                .setAuthor({ name: title, iconURL: ICON, url })
                 .setTimestamp();
             Object.keys(doujin).forEach(t => {
                 if (t === 'title' || t === 'thumbnail') return;
@@ -91,21 +91,21 @@ export default class extends Command {
                     if (prip) this.warning = true;
                     else info.setThumbnail(thumbnail);
                 }
-                info.addField(
-                    this.client.util.capitalize(t),
-                    typeof doujin[t] === 'string'
+                info.addFields([{
+                    name: this.client.util.capitalize(t),
+                    value: typeof doujin[t] === 'string'
                         ? this.client.util.shorten(doujin[t], '\n', 1000)
                         : Array.isArray(doujin[t])
-                        ? this.client.util.gshorten(
-                              doujin[t].map((d: { name: string; href: string }) =>
-                                  t === 'tags'
-                                      ? `\`${d.name}\``
-                                      : `[${d.name}](https://fakku.net${d.href})`
-                              )
-                          )
-                        : `[${doujin[t].name}](https://fakku.net${doujin[t].href})`,
-                    t !== 'description' && t !== 'tags'
-                );
+                            ? this.client.util.gshorten(
+                                doujin[t].map((d: { name: string; href: string }) =>
+                                    t === 'tags'
+                                        ? `\`${d.name}\``
+                                        : `[${d.name}](https://fakku.net${d.href})`
+                                )
+                            )
+                            : `[${doujin[t].name}](https://fakku.net${doujin[t].href})`,
+                    inline: t !== 'description' && t !== 'tags'
+                }]);
             });
             display.addPage('info', { embed: info });
         }

@@ -6,10 +6,12 @@ import {
     UserError,
     createDiscordJSAdapter,
 } from '@structures';
-import { CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
+import { AutocompleteInteraction, CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 import { entersState, joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
 import { Sort } from '@api/jasmr';
 import axios from 'axios';
+import Fuse from 'fuse.js';
+import { ASMR_TAGS } from '@constants';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -24,6 +26,7 @@ export default class extends Command {
                     name: 'query',
                     type: 'STRING',
                     description: 'The query to search for',
+                    autocomplete: true,
                     required: true,
                 },
                 {
@@ -44,6 +47,20 @@ export default class extends Command {
                 },
             ],
         });
+    }
+
+    async autocomplete(interaction: AutocompleteInteraction) {
+        await interaction.respond(
+            new Fuse(ASMR_TAGS, {
+                includeScore: true,
+                threshold: 0.1,
+            }).search(interaction.options.getFocused(), { limit: 25 }).map(f => {
+                return {
+                    name: f.item,
+                    value: f.item,
+                };
+            })
+        )
     }
 
     async exec(interaction: CommandInteraction) {

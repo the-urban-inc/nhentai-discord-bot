@@ -1,6 +1,7 @@
 import { Client } from './Client';
 import {
     ApplicationCommandOptionData,
+    AutocompleteInteraction,
     ChatInputApplicationCommandData,
     CommandInteraction,
     ContextMenuInteraction,
@@ -46,6 +47,7 @@ export interface Command {
 export abstract class Command {
     client: Client;
     data: CommandOptions;
+    autocomplete?(interaction: AutocompleteInteraction): any | Promise<any>;
     abstract exec(
         interaction: CommandInteraction,
         options?: { internal?: boolean; user?: User }
