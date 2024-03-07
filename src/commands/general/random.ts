@@ -8,7 +8,7 @@ export default class extends Command {
             name: 'random',
             type: 'CHAT_INPUT',
             description: 'Shows a random gallery',
-            cooldown: 20000,
+            cooldown: 5000,
             nsfw: true,
             options: [
                 {
@@ -81,6 +81,7 @@ export default class extends Command {
                     throw new UserError('NO_RESULT', String(id));
                 }
                 await this.client.db.cache.addDoujin(data.gallery);
+                gallery = data.gallery;
             }
             const { displayGallery, rip } = this.client.embeds.displayLazyFullGallery(gallery, this.danger, this.blacklists);
             if (rip) this.warning = true;
@@ -88,7 +89,7 @@ export default class extends Command {
             return await this.after(interaction);
         }
 
-        const data = await this.client.nhentai.g(id)
+        const data = await this.client.nhentai.g(id, more)
             .catch(err => this.client.logger.error(err.message));
         if (!data || !data.gallery) {
             throw new UserError('NO_RESULT');

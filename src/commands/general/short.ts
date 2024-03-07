@@ -10,7 +10,7 @@ export default class extends Command {
             name: 'short',
             type: 'CHAT_INPUT',
             description: 'Searches nhentai for specified code (with shortened output)',
-            cooldown: 20000,
+            cooldown: 5000,
             nsfw: true,
             options: [
                 {

@@ -10,7 +10,7 @@ export default class extends Command {
             name: 'g',
             type: 'CHAT_INPUT',
             description: 'Searches nhentai for specified code',
-            cooldown: 20000,
+            cooldown: 5000,
             nsfw: true,
             options: [
                 {
@@ -118,6 +118,7 @@ export default class extends Command {
                     throw new UserError('NO_RESULT', String(code));
                 }
                 await this.client.db.cache.addDoujin(data.gallery);
+                gallery = data.gallery;
             }
             const { displayGallery, rip } = this.client.embeds.displayLazyFullGallery(gallery, this.danger, this.blacklists);
             if (rip) this.warning = true;
