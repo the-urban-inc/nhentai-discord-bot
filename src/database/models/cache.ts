@@ -1,7 +1,6 @@
 import { TagType } from '@api/nhentai';
-import { RowDataPacket } from 'mysql2';
 
-export interface IDoujin extends RowDataPacket {
+export interface IDoujin {
     id: number;
     media_id: string;
     upload_date: Date;
@@ -14,7 +13,7 @@ export interface IDoujin extends RowDataPacket {
     thumb_type: 'j' | 'p' | 'g' | 'n';
 }
 
-export interface ITag extends RowDataPacket {
+export interface ITag {
     tag_id: number;
     name: string;
     type: TagType;
