@@ -3,7 +3,7 @@ import type { Client } from './Client';
 import { Paginator, PaginatorOptions } from './Paginator';
 import { decode } from 'he';
 import moment from 'moment';
-import { Gallery, Comment, Language } from '@api/nhentai';
+import { Gallery, Comment, Language, PartialGallery } from '@api/nhentai';
 import { SearchResult } from '@api/jasmr';
 import { BANNED_TAGS, FLAG_EMOJIS } from '@constants';
 import { Blacklist, Language as LanguageModel } from '@database/models';
@@ -43,7 +43,7 @@ export class Embeds {
         return new Paginator(client, options);
     }
 
-    private getPages(gallery: Gallery) {
+    getPages(gallery: Gallery) {
         return this.client.nhentai.getPages(gallery).map(page => {
             const { id, title, upload_date } = gallery;
             return {
@@ -59,7 +59,7 @@ export class Embeds {
     }
 
     displayGalleryInfo(
-        gallery: Gallery,
+        gallery: PartialGallery | Gallery,
         danger = false,
         blacklists: Blacklist[] = [],
         follows: number[] = []
@@ -82,8 +82,7 @@ export class Embeds {
         tags.forEach(tag => {
             const { id, type, name, count } = tag;
             const a = t.get(type) || [];
-            let s = `**\`${name}\`**\u2009\`(${count >= 1000 ? `${Math.floor(count / 1000)}K` : count
-                })\``;
+            let s = `**\`${name}\`**\u2009\`(${count ? (count >= 1000 ? `${Math.floor(count / 1000)}K` : count) : '?'})\``;
             // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
             if (blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
             if (follows.some(fl => fl === id)) s = `__${s}__`;
@@ -140,6 +139,30 @@ export class Embeds {
         });
         if (danger || !rip) {
             displayGallery.addPage('thumbnail', this.getPages(gallery));
+        }
+        return { displayGallery, rip };
+    }
+
+    displayLazyFullGallery(
+        gallery: PartialGallery,
+        danger = false,
+        blacklists: Blacklist[] = []
+    ) {
+        const rip = this.client.util.hasCommon(
+            gallery.tags.map(x => x.id.toString()),
+            BANNED_TAGS
+        );
+        const id = gallery.id.toString(),
+            title = decode(gallery.title.english);
+        const displayGallery = this.paginator(this.client, {
+            info: { id, name: title },
+            collectorTimeout: 300000,
+        }).addPage('info', {
+            galleryID: id,
+            embed: this.displayGalleryInfo(gallery, danger, blacklists).info,
+        });
+        if (danger || !rip) {
+            displayGallery.addPage('thumbnail', [{ galleryID: -1, embed: this.default() }]);
         }
         return { displayGallery, rip };
     }

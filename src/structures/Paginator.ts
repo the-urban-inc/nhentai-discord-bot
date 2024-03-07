@@ -278,13 +278,13 @@ export class Paginator {
         if (
             this.ephemeral ||
             !(this.interaction.channel as TextChannel)
-                .permissionsFor(this.interaction.guild.me)
+                .permissionsFor(this.interaction.guild.members.me)
                 .has('MANAGE_MESSAGES') ||
             !(this.interaction.channel as TextChannel)
-                .permissionsFor(this.interaction.guild.me)
+                .permissionsFor(this.interaction.guild.members.me)
                 .has('VIEW_CHANNEL') ||
             !(this.interaction.channel as TextChannel)
-                .permissionsFor(this.interaction.guild.me)
+                .permissionsFor(this.interaction.guild.members.me)
                 .has('READ_MESSAGE_HISTORY')
         )
             optionsRow.spliceComponents(-1, 1);
@@ -537,6 +537,11 @@ export class Paginator {
             ): Promise<boolean> {
                 if (interaction.user !== this.interaction.user || !interaction.isSelectMenu())
                     return Promise.resolve(false);
+                if (this.interaction.commandName === 'g' || this.interaction.commandName === 'random') {
+                    if (this.pages.thumbnail[0].galleryID === -1) {
+                        this.pages.thumbnail = await this.client.nhentai.g(+this.info.id).then(g => this.client.embeds.getPages(g.gallery));
+                    }
+                }
                 if (interaction.values.includes('preview')) {
                     if (!this.pages[this.#currentView][this.#currentPage].pages)
                         return Promise.resolve(false);

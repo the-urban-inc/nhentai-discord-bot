@@ -2,6 +2,7 @@ import { Client, Command, UserError } from '@structures';
 import { CommandInteraction } from 'discord.js';
 import { decode } from 'he';
 import { User, Server, Blacklist } from '@database/models';
+import { Gallery, PartialGallery } from '@api/nhentai';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -64,46 +65,7 @@ export default class extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
-        const code = interaction.options.get('query').value as number;
-        const more = interaction.options.get('more')?.value as boolean;
-        const page = (interaction.options.get('page')?.value as number) ?? 1;
-        const data = await this.client.nhentai
-            .g(code, more)
-            .catch(err => this.client.logger.error(err.message));
-        if (!data || !data.gallery) {
-            throw new UserError('NO_RESULT', String(code));
-        }
-        const { gallery } = data;
-        if (page < 1 || page > gallery.num_pages) {
-            throw new UserError('INVALID_PAGE_INDEX', page, gallery.num_pages);
-        }
-
-        const { displayGallery, rip } = this.client.embeds.displayFullGallery(
-            gallery,
-            page - 1,
-            this.danger,
-            this.blacklists
-        );
-        if (rip) this.warning = true;
-        await displayGallery.run(interaction, `> **Searching for** **\`${code}\`**`);
-
-        if (more) {
-            const { related, comments } = data;
-
-            const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(
-                related,
-                this.danger
-            );
-            if (rip) this.warning = true;
-            await displayRelated.run(interaction, '> **More Like This**');
-
-            if (!comments.length) return;
-            const displayComments = this.client.embeds.displayCommentList(comments);
-            await displayComments.run(interaction, '> `💬` **Comments**');
-        }
-
+    async after(interaction: CommandInteraction, gallery: PartialGallery | Gallery) {
         if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
@@ -138,5 +100,68 @@ export default class extends Command {
                 });
             }
         }
+    }
+
+    async exec(interaction: CommandInteraction) {
+        await this.before(interaction);
+        const code = interaction.options.get('query').value as number;
+        const more = interaction.options.get('more')?.value as boolean;
+        const page = interaction.options.get('page')?.value as number;
+
+        if (!page && !more) {
+            let gallery = await this.client.db.cache.getDoujin(code);
+            if (!gallery) {
+                const data = await this.client.nhentai
+                    .g(code)
+                    .catch(err => this.client.logger.error(err.message));
+                if (!data || !data.gallery) {
+                    throw new UserError('NO_RESULT', String(code));
+                }
+                await this.client.db.cache.addDoujin(data.gallery);
+            }
+            const { displayGallery, rip } = this.client.embeds.displayLazyFullGallery(gallery, this.danger, this.blacklists);
+            if (rip) this.warning = true;
+            await displayGallery.run(interaction, `> **Searching for** **\`${code}\`**`);
+            return await this.after(interaction, gallery);
+        }
+
+        const data = await this.client.nhentai
+            .g(code)
+            .catch(err => this.client.logger.error(err.message));
+        if (!data || !data.gallery) {
+            throw new UserError('NO_RESULT', String(code));
+        }
+
+        const { gallery } = data;
+        
+        if (page && (page < 1 || page > gallery.num_pages)) {
+            throw new UserError('INVALID_PAGE_INDEX', page, gallery.num_pages);
+        }
+
+        const { displayGallery, rip } = this.client.embeds.displayFullGallery(
+            gallery,
+            (page ?? 1) - 1,
+            this.danger,
+            this.blacklists
+        );
+        if (rip) this.warning = true;
+        await displayGallery.run(interaction, `> **Searching for** **\`${code}\`**`);
+
+        if (more) {
+            const { related, comments } = data;
+
+            const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(
+                related,
+                this.danger
+            );
+            if (rip) this.warning = true;
+            await displayRelated.run(interaction, '> **More Like This**');
+
+            if (!comments.length) return;
+            const displayComments = this.client.embeds.displayCommentList(comments);
+            await displayComments.run(interaction, '> `💬` **Comments**');
+        }
+
+        await this.after(interaction, gallery);
     }
 }

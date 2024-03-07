@@ -55,6 +55,13 @@ export default class extends Command {
         }
     }
 
+    async after(interaction: CommandInteraction) {
+        if (this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+            this.client.warned.add(interaction.user.id);
+            await interaction.followUp(this.client.util.communityGuidelines());
+        }
+    }
+
     async exec(interaction: CommandInteraction) {
         await this.before(interaction);
         const more = interaction.options.get('more')?.value as boolean;
@@ -63,6 +70,24 @@ export default class extends Command {
         if (!id) {
             throw new UserError('NO_RESULT');
         }
+
+        if (!page && !more) {
+            let gallery = await this.client.db.cache.getDoujin(id);
+            if (!gallery) {
+                const data = await this.client.nhentai
+                    .g(id)
+                    .catch(err => this.client.logger.error(err.message));
+                if (!data || !data.gallery) {
+                    throw new UserError('NO_RESULT', String(id));
+                }
+                await this.client.db.cache.addDoujin(data.gallery);
+            }
+            const { displayGallery, rip } = this.client.embeds.displayLazyFullGallery(gallery, this.danger, this.blacklists);
+            if (rip) this.warning = true;
+            await displayGallery.run(interaction, `> **Searching for** **\`${id}\`**`);
+            return await this.after(interaction);
+        }
+
         const data = await this.client.nhentai.g(id)
             .catch(err => this.client.logger.error(err.message));
         if (!data || !data.gallery) {
@@ -97,9 +122,6 @@ export default class extends Command {
             await displayComments.run(interaction, '> `💬` **Comments**');
         }
 
-        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
-            this.client.warned.add(interaction.user.id);
-            await interaction.followUp(this.client.util.communityGuidelines());
-        }
+        await this.after(interaction);
     }
 }

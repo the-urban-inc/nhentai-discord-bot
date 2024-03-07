@@ -66,7 +66,7 @@ export default class extends Command {
         if (!id) {
             throw new UserError('NO_RESULT');
         }
-        const { gallery } = await this.client.nhentai.g(id);
+        const gallery = await this.client.db.cache.getDoujin(id);
         if (!gallery) {
             throw new UserError('NO_RESULT');
         }

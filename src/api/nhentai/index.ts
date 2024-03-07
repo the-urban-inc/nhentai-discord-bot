@@ -1,4 +1,4 @@
-import { Gallery, Related, Comment, Search, SearchQuery, Sort, ImageT } from './structures';
+import { Gallery, Related, Comment, Search, SearchQuery, Sort, ImageT, PartialGallery } from './structures';
 import axios, { AxiosResponse } from 'axios';
 import { load } from 'cheerio';
 type Root = ReturnType<typeof load>;
@@ -295,15 +295,15 @@ export class Client {
         return pages;
     }
 
-    public getCover(gallery: Gallery) {
+    public getCover(gallery: PartialGallery | Gallery) {
         return `${this.baseThumbnailURL}/galleries/${gallery.media_id}/cover.${
             ImageT[gallery.images.cover.t]
         }`;
     }
 
-    public getCoverThumbnail(gallery: Gallery) {
+    public getCoverThumbnail(gallery: PartialGallery | Gallery) {
         return `${this.baseThumbnailURL}/galleries/${gallery.media_id}/thumb.${
-            ImageT[gallery.images.thumbnail.t]
+            ImageT[gallery.images.thumbnail.t === 'n' ? gallery.images.cover.t : gallery.images.thumbnail.t]
         }`;
     }
 }

@@ -1,12 +1,11 @@
 import { IDoujin, ITag } from '../models';
 import mysql, { RowDataPacket } from 'mysql2/promise';
-import { Client as NhentaiAPI, Gallery } from '@api/nhentai';
+import { PartialGallery, Gallery } from '@api/nhentai';
 import moment from 'moment';
 import { BANNED_TAGS } from '@constants';
 
 export class Cache {
     connection: mysql.Pool;
-    api: NhentaiAPI;
 
     constructor() {
         this.connection = mysql.createPool({
@@ -18,44 +17,37 @@ export class Cache {
             connectionLimit: 10,
             queueLimit: 0,
         });
-        this.api = null;
     }
 
-    async doujinBase(id: number) {
+    private async doujinBase(id: number) {
         return await this.connection.query<IDoujin[]>('SELECT * FROM doujinshi WHERE id = ?', [id]);
     }
 
-    async doujinTagIds(id: number) {
+    private async doujinTagIds(id: number) {
         return await this.connection.query<RowDataPacket[]>('SELECT tag_id FROM doujinshi_tag WHERE doujinshi_id = ?', [id]);
     }
 
-    async doujinTags(ids: number[]) {
-        return await this.connection.query<ITag[]>('SELECT * FROM tags WHERE id IN (?)', [ids]);
+    private async doujinTags(ids: number[]) {
+        return await this.connection.query<ITag[]>('SELECT tag_id, name, type, count_tag(tag_id) as `count` FROM tag WHERE tag_id IN (?)', [ids]);
     }
 
-    async getDoujin(id: number) {
+    async getDoujin(id: number): Promise<PartialGallery | null> {
         const [rows] = await this.doujinBase(id);
-        if (!rows.length) {
-            if (!this.api) this.api = new NhentaiAPI();
-            const { gallery } = (await this.api.g(id));
-            if (!gallery) return null;
-            await this.addDoujin(gallery);
-            const { media_id, title: { japanese, english, pretty }, upload_date, tags, num_pages } = gallery;
-            return { id, media_id, title: { japanese, english, pretty }, upload_date, tags, num_pages };
-        }
-        const [{ media_id, title_japanese, title_english, title_pretty, upload_date, pages }] = rows;
+        if (!rows.length) return null;
+        const [{ media_id, title_japanese, title_english, title_pretty, upload_date, num_pages, num_favourites, cover_type, thumb_type }] = rows;
         const [tagIds] = await this.doujinTagIds(id);
         const [tags] = await this.doujinTags(tagIds.map(({ tag_id }) => tag_id));
-        return { id, media_id, title: { japanese: title_japanese, english: title_english, pretty: title_pretty }, upload_date, tags, num_pages: pages };
+        const reformatTags = tags.map(({ tag_id, name, type, count }) => ({ id: tag_id, name, type, count }));
+        return { id, media_id, title: { japanese: title_japanese, english: title_english, pretty: title_pretty }, upload_date: upload_date.getTime() / 1000, tags: reformatTags, num_pages, num_favorites: num_favourites, images: { cover: { t: cover_type }, thumbnail: { t: thumb_type } } };
     }
 
     async addDoujin(doujin: Gallery) {
-        const { id, media_id, title, upload_date, num_pages, tags } = doujin;
+        const { id, media_id, title, upload_date, num_pages, num_favorites, tags, images } = doujin;
         const { japanese, english, pretty } = title;
-        await this.connection.query('INSERT INTO doujinshi (id, media_id, title_japanese, title_english, title_pretty, upload_date, pages) VALUES (?, ?, ?, ?, ?, ?, ?)', [id, media_id, japanese, english, pretty, moment.unix(upload_date).format('YYYY-MM-DD HH:mm:ss'), num_pages]);
+        await this.connection.query('REPLACE INTO doujinshi (id, media_id, title_japanese, title_english, title_pretty, upload_date, num_pages, num_favourites, cover_type, thumb_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [id, media_id, japanese, english, pretty, moment.unix(upload_date).format('YYYY-MM-DD HH:mm:ss'), num_pages, num_favorites, images.cover.t, images.thumbnail.t]);
         const tagIds = tags.map(tag => tag.id);
-        await this.connection.query('INSERT INTO doujinshi_tag (doujinshi_id, tag_id) VALUES ?', [tagIds.map(tagId => [id, tagId])]);
-        await this.connection.query('INSERT INTO tags (id, name, type, count) VALUES ?', [tags.map(tag => [tag.id, tag.name, tag.type, tag.count])]);
+        await this.connection.query('REPLACE INTO doujinshi_tag (doujinshi_id, tag_id) VALUES ?', [tagIds.map(tagId => [id, tagId])]);
+        await this.connection.query('REPLACE INTO tag (tag_id, name, type) VALUES ?', [tags.map(tag => [tag.id, tag.name, tag.type])]);
     }
 
     async random() {

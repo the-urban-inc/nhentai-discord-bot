@@ -33,7 +33,7 @@ export class Database {
             })
             .then(async () => {
                 log.info(`[DATABASE] Connected to MongoDB successfully!`);
-                if (!this.client.notifier.current) await this.client.notifier.start();
+                if (!this.client.notifier.current && process.env.ENVIRONMENT !== 'development') await this.client.notifier.start();
             })
             .catch(err => log.error(`[DATABASE] Connection error : ${err}`));
         mongoose.connection

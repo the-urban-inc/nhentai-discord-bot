@@ -1,6 +1,6 @@
 
 export interface Image {
-    t: 'j' | 'p' | 'g';
+    t: 'j' | 'p' | 'g' | 'n';
     w: number;
     h: number;
 }
@@ -14,7 +14,8 @@ enum ImageType {
 export const ImageT = {
     'j': ImageType.JPG,
     'p': ImageType.PNG,
-    'g': ImageType.GIF
+    'g': ImageType.GIF,
+    'n': null
 }
 
 export enum Language {
@@ -23,7 +24,7 @@ export enum Language {
     Chinese = 'chinese',
 }
 
-enum TagType {
+export enum TagType {
     Tag = 'tag',
     Artist = 'artist',
     Character = 'character',
@@ -40,7 +41,34 @@ export interface Tag {
     count: number;
 }
 
-export interface Gallery {
+export interface PartialGallery {
+    id: number | string;
+    media_id: number | string;
+    title: {
+        english: string,
+        japanese: string,
+        pretty: string,
+    };
+    images: {
+        cover: {
+            t: Image['t'],
+        },
+        thumbnail: {
+            t: Image['t'],
+        },
+    };
+    upload_date: number;
+    tags: {
+        id: number;
+        type: TagType;
+        name: string;
+        count: number;
+    }[];
+    num_pages: number;
+    num_favorites: number;
+}
+
+export interface Gallery extends PartialGallery {
     id: number | string;
     media_id: number | string;
     title: {
