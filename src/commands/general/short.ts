@@ -2,6 +2,7 @@ import { Client, Command, UserError } from '@structures';
 import { CommandInteraction } from 'discord.js';
 import { decode } from 'he';
 import { User, Server, Blacklist } from '@database/models';
+import { PartialGallery } from '@api/nhentai';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -54,27 +55,7 @@ export default class extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
-        const code = interaction.options.get('query').value as number;
-        const data = await this.client.nhentai
-            .g(code, false)
-            .catch(err => this.client.logger.error(err.message));
-        if (!data || !data.gallery) {
-            throw new UserError('NO_RESULT', String(code));
-        }
-        const { gallery } = data;
-
-        const { thumb, rip } = this.client.embeds.displayShortGallery(
-            gallery,
-            this.danger,
-            this.blacklists
-        );
-        if (rip) this.warning = true;
-        await interaction.editReply({
-            embeds: [thumb],
-        });
-
+    async after(interaction: CommandInteraction, gallery: PartialGallery) {
         if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
@@ -109,5 +90,32 @@ export default class extends Command {
                 });
             }
         }
+    }
+
+    async exec(interaction: CommandInteraction) {
+        await this.before(interaction);
+        const code = interaction.options.get('query').value as number;
+        let gallery = await this.client.db.cache.getDoujin(code);
+        if (!gallery) {
+            const data = await this.client.nhentai
+                .g(code)
+                .catch(err => this.client.logger.error(err.message));
+            if (!data || !data.gallery) {
+                throw new UserError('NO_RESULT', String(code));
+            }
+            await this.client.db.cache.addDoujin(data.gallery);
+            gallery = data.gallery;
+        }
+        const { thumb, rip } = this.client.embeds.displayShortGallery(
+            gallery,
+            this.danger,
+            this.blacklists
+        );
+        if (rip) this.warning = true;
+        await interaction.editReply({
+            embeds: [thumb],
+        });
+
+        await this.after(interaction, gallery);
     }
 }

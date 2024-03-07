@@ -168,7 +168,7 @@ export class Embeds {
     }
 
     displayShortGallery(
-        gallery: Gallery,
+        gallery: PartialGallery | Gallery,
         danger = false,
         blacklists: Blacklist[] = [],
         follows: number[] = []
