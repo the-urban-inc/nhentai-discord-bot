@@ -12,8 +12,7 @@ client.start();
 let cur = 0;
 
 async function getRandomCode() {
-    const data = await client.nhentai.random();
-    return data?.gallery?.id?.toString() ?? '177013';
+    return String(await client.db.cache.random()) ?? '177013';
 }
 
 async function changePresence() {
@@ -46,9 +45,9 @@ client.once('ready', async () => {
     client.ownerID = owner;
     client.logger.info(`[READY] Fetched application profile. Setting owner ID to ${owner}.`);
     client.logger.info(`[READY] Logged in as ${client.user.tag}! ID: ${client.user.id}.`);
-    await changePresence();
     await client.db.init();
     await client.commandHandler.loadCommands();
+    await changePresence();
 });
 
 client.on('guildCreate', async guild => {
