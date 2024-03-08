@@ -294,15 +294,15 @@ export class Paginator {
             (this.image && this.priorityUser)
         ) {
             const imageURL = this.image;
-            const googleURL = `https://www.google.com/searchbyimage?image_url=${imageURL}&safe=off`,
+            const googleURL = `https://lens.google.com/uploadbyurl?url=${imageURL}&safe=off`,
                 tineyeURL = `https://tineye.com/search/?url=${imageURL}`,
                 ascii2dURL = `https://ascii2d.net/search/url/${imageURL}`,
                 yandexURL = `https://yandex.com/images/search?url=${imageURL}&rpt=imageview`;
             const others = [
-                new MessageButton().setLabel('Google Image').setStyle('LINK').setURL(googleURL),
+                new MessageButton().setLabel('Google Lens').setStyle('LINK').setURL(googleURL),
                 new MessageButton().setLabel('TinEye').setStyle('LINK').setURL(tineyeURL),
                 new MessageButton().setLabel('ascii2d').setStyle('LINK').setURL(ascii2dURL),
-                new MessageButton().setLabel('Yandex').setStyle('LINK').setURL(yandexURL),
+                // new MessageButton().setLabel('Yandex').setStyle('LINK').setURL(yandexURL),
                 this.methodMap.get(Interactions.Remove),
             ];
             return [
@@ -537,10 +537,12 @@ export class Paginator {
             ): Promise<boolean> {
                 if (interaction.user !== this.interaction.user || !interaction.isSelectMenu())
                     return Promise.resolve(false);
-                if (this.interaction.commandName === 'g' || this.interaction.commandName === 'random') {
-                    if (this.pages.thumbnail[0].galleryID === -1) {
-                        this.pages.thumbnail = await this.client.nhentai.g(+this.info.id).then(g => this.client.embeds.getPages(g.gallery));
-                    }
+                let id = 0;
+                if ((id = +this.pages.info[0].galleryID) < 0) {
+                    this.pages.info = await this.client.nhentai.g(Math.abs(id)).then(g => this.client.embeds.getPages(g.gallery));
+                }
+                if ((id = +this.pages.thumbnail[0].galleryID) < 0) {
+                    this.pages.thumbnail = await this.client.nhentai.g(Math.abs(id)).then(g => this.client.embeds.getPages(g.gallery));
                 }
                 if (interaction.values.includes('preview')) {
                     if (!this.pages[this.#currentView][this.#currentPage].pages)

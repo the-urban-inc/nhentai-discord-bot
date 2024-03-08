@@ -162,7 +162,7 @@ export class Embeds {
             embed: this.displayGalleryInfo(gallery, danger, blacklists).info,
         });
         if (danger || !rip) {
-            displayGallery.addPage('thumbnail', [{ galleryID: -1, embed: this.default() }]);
+            displayGallery.addPage('thumbnail', [{ galleryID: -id, embed: this.default() }]);
         }
         return { displayGallery, rip };
     }
@@ -272,6 +272,86 @@ export class Embeds {
             displayList.addPage(
                 'thumbnail',
                 danger || !prip ? { pages: this.getPages(gallery), ...thumbnail } : thumbnail
+            );
+        }
+        return { displayList, rip };
+    }
+
+    displayLazyGalleryList(
+        galleries: PartialGallery[],
+        danger = false,
+        blacklists: Blacklist[] = [],
+        language: LanguageModel = { preferred: [], query: false, follow: false },
+        options?: {
+            page?: number;
+            num_pages?: number;
+            num_results?: number;
+            additional_options?: PaginatorOptions;
+        }
+    ) {
+        let rip = false;
+        const { page = 0, num_pages = 0, num_results = 0, additional_options = {} } = options || {};
+        const displayList = this.paginator(this.client, {
+            startView: 'thumbnail',
+            collectorTimeout: 300000,
+            ...additional_options,
+            filterIDs: language.query
+                ? galleries
+                    .filter(
+                        g =>
+                            !g.tags.some(tag =>
+                                language.preferred.map(x => x.id).includes(String(tag.id))
+                            )
+                    )
+                    .map(g => +g.id)
+                : [],
+        });
+        for (const gallery of galleries) {
+            const { id, title, tags, upload_date } = gallery;
+            let language: Language = null;
+            if (tags.some(tag => tag.id === 6346)) language = Language.Japanese;
+            else if (tags.some(tag => tag.id === 12227)) language = Language.English;
+            else if (tags.some(tag => tag.id === 29963)) language = Language.Chinese;
+            const thumb = this.default()
+                .setTitle(`${decode(title.english)}`)
+                .setURL(`https://nhentai.net/g/${id}`)
+                .setDescription(
+                    `**ID** : ${id}` +
+                    (FLAG_EMOJIS[language]
+                        ? `\u2000•\u2000**Language** : ${FLAG_EMOJIS[language]}`
+                        : '')
+                )
+                .setTimestamp(upload_date * 1000);
+            const footer =
+                (page ? `Page ${page} of ${num_pages || 1}` : '') +
+                (num_results ? `${page ? '\u2000•\u2000' : ''}${num_results} galleries` : '');
+            if (footer.length) thumb.setFooter({ text: footer });
+            const prip = this.client.util.hasCommon(
+                tags.map(tag => tag.id.toString()),
+                BANNED_TAGS
+            );
+            if (prip) rip = true;
+            if (
+                (danger || !prip) &&
+                !blacklists.filter(b => tags.some(tag => tag.id.toString() === b.id)).length
+            ) {
+                thumb.setImage(this.client.nhentai.getCoverThumbnail(gallery));
+            }
+            const info = {
+                galleryID: String(id),
+                embed: this.displayGalleryInfo(gallery, danger, blacklists).info,
+            };
+            displayList.addPage(
+                'info',
+                danger || !prip ? { pages: [{ galleryID: -id, embed: this.default() }], ...info } : info
+            );
+            const thumbnail = {
+                galleryID: String(id),
+                embed: thumb,
+            };
+            displayList.addPage(
+                'thumbnail',
+                danger || !prip ? { pages: [{ galleryID: -id, embed: this.default() }], ...thumbnail } : thumbnail
             );
         }
         return { displayList, rip };

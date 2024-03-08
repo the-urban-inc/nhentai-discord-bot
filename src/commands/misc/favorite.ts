@@ -1,7 +1,7 @@
 import { Client, Command } from '@structures';
 import { CommandInteraction, User as DiscordUser } from 'discord.js';
 import { User, Server, Blacklist } from '@database/models';
-import { GalleryResult } from '@api/nhentai';
+import { GalleryResult, PartialGallery } from '@api/nhentai';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -99,23 +99,24 @@ export default class extends Command {
                 ],
             });
         }
-        let result = [];
+        let result: PartialGallery[] = [];
         const delay = (ms = 500) => new Promise(r => setTimeout(r, ms));
         for (const [i, code] of user.favorites.entries()) {
             await delay();
-            const { gallery } = await this.client.nhentai.g(parseInt(code, 10));
+            const gallery = await this.client.db.cache.getDoujin(+code);
             const progress = Math.floor((i / user.favorites.length) * 100);
             const totalBar = '░░░░░░░░░░░░░░░░';
             const progressBar = '▒'; // ░░░░░
             await interaction.editReply(
-                `Fetching favorites list ${'.'.repeat(i % 3 + 1)} It may take a while\n[${
+                `Fetching favorites list ${'.'.repeat(i % 3 + 1)} It may take a while${gallery ? '' : `\nNo result found for ${code}. Skipping...`}\n[${
                     progressBar.repeat((totalBar.length / 100) * progress) +
                     totalBar.substring((totalBar.length / 100) * progress + 1)
                 }] [${progress}%]`
             );
+            if (!gallery) continue;
             result.push(gallery);
         }
-        const { displayList, rip } = this.client.embeds.displayGalleryList(
+        const { displayList, rip } = this.client.embeds.displayLazyGalleryList(
             result,
             this.danger,
             this.blacklists

@@ -26,10 +26,9 @@ export class Cache {
     }
 
     private async doujinTags(ids: number[]) {
-        let res = await this.pool.execute<ITag[]>(
+        return await this.pool.execute<ITag[]>(
             `SELECT tag_id, name, type, count_tag(tag_id) as \`count\` FROM tag WHERE tag_id IN (${ids.join(',')})`,
         );
-        return res;
     }
 
     async getDoujin(id: number): Promise<PartialGallery | null> {
