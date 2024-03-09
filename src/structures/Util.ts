@@ -100,7 +100,7 @@ export class Util {
     gshorten(tags: Array<string>, split = ' ', maxLen = 1024) {
         let text = tags.join(split);
         if (text.length <= maxLen) return text;
-        return text.substring(0, text.lastIndexOf(split, maxLen) + 1) + ' ...';
+        return text.substring(0, text.lastIndexOf(split, maxLen - 4) + 1) + '...';
     }
 
     hasCommon<T>(texts: T[], keywords: T[]) {

@@ -103,7 +103,7 @@ export default class extends Command {
         const delay = (ms = 500) => new Promise(r => setTimeout(r, ms));
         for (const [i, code] of user.favorites.entries()) {
             await delay();
-            const gallery = await this.client.db.cache.getDoujin(+code);
+            let gallery = await this.client.db.cache.getDoujin(+code);
             const progress = Math.floor((i / user.favorites.length) * 100);
             const totalBar = '░░░░░░░░░░░░░░░░';
             const progressBar = '▒'; // ░░░░░
@@ -113,7 +113,10 @@ export default class extends Command {
                     totalBar.substring((totalBar.length / 100) * progress + 1)
                 }] [${progress}%]`
             );
-            if (!gallery) continue;
+            if (!gallery) {
+                gallery = (await this.client.nhentai.g(+code))?.gallery;
+                if (!gallery) continue;
+            }
             result.push(gallery);
         }
         const { displayList, rip } = this.client.embeds.displayLazyGalleryList(

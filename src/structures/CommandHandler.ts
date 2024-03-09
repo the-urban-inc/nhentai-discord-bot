@@ -14,7 +14,6 @@ import {
 import { readdirSync } from 'fs';
 import { ContextMenuCommand } from '@structures';
 import axios from 'axios';
-const { ENVIRONMENT, DEVELOPMENT_GUILD } = process.env;
 
 let startCooldown: () => void;
 export class CommandHandler extends ApplicationCommandManager {
@@ -167,16 +166,9 @@ export class CommandHandler extends ApplicationCommandManager {
                 allCommands = allCommands.concat(...commands);
             }
             let updatedCommands = new Collection<Snowflake, ApplicationCommand>();
-            if (ENVIRONMENT == 'development') {
-                updatedCommands = await this.client.application?.commands.set(
-                    allCommands.map(c => c.data),
-                    DEVELOPMENT_GUILD as Snowflake
-                );
-            } else {
-                updatedCommands = await this.client.application?.commands.set(
-                    allCommands.map(c => c.data)
-                );
-            }
+            updatedCommands = await this.client.application?.commands.set(
+                allCommands.map(c => c.data)
+            );
             allCommands.forEach(cc => {
                 const cmd = updatedCommands.find(dc => dc.name === cc.data.name);
                 if (!cmd) return;

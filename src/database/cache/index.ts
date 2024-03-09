@@ -13,7 +13,7 @@ export class Cache {
             user: process.env.MYSQL_USER,
             password: process.env.MYSQL_PASSWORD,
             database: process.env.MYSQL_DATABASE,
-            pipelining: true
+            pipelining: true,
         });
     }
 
@@ -22,23 +22,50 @@ export class Cache {
     }
 
     private async doujinTagIds(id: number) {
-        return await this.pool.execute<{ tag_id: number; }[]>('SELECT tag_id FROM doujinshi_tag WHERE doujinshi_id = ?', [id]);
+        return await this.pool.execute<{ tag_id: number }[]>(
+            'SELECT tag_id FROM doujinshi_tag WHERE doujinshi_id = ?',
+            [id]
+        );
     }
 
     private async doujinTags(ids: number[]) {
         return await this.pool.execute<ITag[]>(
-            `SELECT tag_id, name, type, count_tag(tag_id) as \`count\` FROM tag WHERE tag_id IN (${ids.join(',')})`,
+            `SELECT tag_id, name, type, count_tag(tag_id) as \`count\` FROM tag WHERE tag_id IN (${ids.join(',')})`
         );
     }
 
     async getDoujin(id: number): Promise<PartialGallery | null> {
         const rows = await this.doujinBase(id);
         if (!rows.length) return null;
-        const { media_id, title_japanese, title_english, title_pretty, upload_date, num_pages, num_favourites, cover_type, thumb_type } = rows[0];
+        const {
+            media_id,
+            title_japanese,
+            title_english,
+            title_pretty,
+            upload_date,
+            num_pages,
+            num_favourites,
+            cover_type,
+            thumb_type,
+        } = rows[0];
         const tagIds = await this.doujinTagIds(id);
         const tags = await this.doujinTags(tagIds.map(({ tag_id }) => tag_id));
-        const reformatTags = tags.map(({ tag_id, name, type, count }) => ({ id: tag_id, name, type, count }));
-        return { id, media_id, title: { japanese: title_japanese, english: title_english, pretty: title_pretty }, upload_date: upload_date.getTime() / 1000, tags: reformatTags, num_pages, num_favorites: num_favourites, images: { cover: { t: cover_type }, thumbnail: { t: thumb_type } } };
+        const reformatTags = tags.map(({ tag_id, name, type, count }) => ({
+            id: tag_id,
+            name,
+            type,
+            count,
+        }));
+        return {
+            id,
+            media_id,
+            title: { japanese: title_japanese, english: title_english, pretty: title_pretty },
+            upload_date: upload_date.getTime() / 1000,
+            tags: reformatTags,
+            num_pages,
+            num_favorites: num_favourites,
+            images: { cover: { t: cover_type }, thumbnail: { t: thumb_type } },
+        };
     }
 
     async addDoujin(doujin: Gallery) {
@@ -58,11 +85,32 @@ export class Cache {
             await conn.beginTransaction();
 
             try {
-                const { id, media_id, title, upload_date, num_pages, num_favorites, tags, images } = doujin;
+                const { id, media_id, title, upload_date, num_pages, num_favorites, tags, images } =
+                    doujin;
                 const { japanese, english, pretty } = title;
-                await conn.query('REPLACE INTO doujinshi (id, media_id, title_japanese, title_english, title_pretty, upload_date, num_pages, num_favourites, cover_type, thumb_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [id, media_id, japanese, english, pretty, moment.unix(upload_date).format('YYYY-MM-DD HH:mm:ss'), num_pages, num_favorites, images.cover.t, images.thumbnail.t]);
-                await conn.batch('REPLACE INTO doujinshi_tag (doujinshi_id, tag_id) VALUES (?, ?)', tags.map(({ id: tagId }) => [id, tagId]));
-                await conn.batch('REPLACE INTO tag (tag_id, name, type) VALUES (?, ?, ?)', tags.map(tag => [tag.id, tag.name, tag.type]));
+                await conn.query(
+                    'REPLACE INTO doujinshi (id, media_id, title_japanese, title_english, title_pretty, upload_date, num_pages, num_favourites, cover_type, thumb_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [
+                        id,
+                        media_id,
+                        japanese,
+                        english,
+                        pretty,
+                        moment.unix(upload_date).format('YYYY-MM-DD HH:mm:ss'),
+                        num_pages,
+                        num_favorites,
+                        images.cover.t,
+                        images.thumbnail.t,
+                    ]
+                );
+                await conn.batch(
+                    'REPLACE INTO doujinshi_tag (doujinshi_id, tag_id) VALUES (?, ?)',
+                    tags.map(({ id: tagId }) => [id, tagId])
+                );
+                await conn.batch(
+                    'REPLACE INTO tag (tag_id, name, type) VALUES (?, ?, ?)',
+                    tags.map(tag => [tag.id, tag.name, tag.type])
+                );
 
                 await conn.commit();
             } catch (err) {
@@ -84,7 +132,10 @@ export class Cache {
     }
 
     async safeRandom(banned: boolean, additional: string[] = []) {
-        const rows = await this.pool.query('SELECT DISTINCT doujinshi_id FROM doujinshi_tag WHERE tag_id NOT IN (?)', [...(banned ? ['0'] : BANNED_TAGS), ...additional]);
+        const rows = await this.pool.query(
+            'SELECT DISTINCT doujinshi_id FROM doujinshi_tag WHERE tag_id NOT IN (?)',
+            [...(banned ? ['0'] : BANNED_TAGS), ...additional]
+        );
         if (!rows.length) return null;
         const { doujinshi_id } = rows[Math.floor(Math.random() * rows.length)];
         return doujinshi_id;

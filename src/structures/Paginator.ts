@@ -259,13 +259,15 @@ export class Paginator {
                       this.methodMap.get(Interactions.Love),
                       this.methodMap.get(Interactions.Follow),
                       this.methodMap.get(Interactions.Blacklist),
-                    //   this.methodMap.get(Interactions.Download),
+                      //   this.methodMap.get(Interactions.Download),
                       this.methodMap.get(Interactions.Remove),
                   ]
-                : ['home', 'search', 'g', 'random', 'favorite'].includes(this.interaction.commandName)
+                : ['home', 'search', 'g', 'random', 'favorite'].includes(
+                      this.interaction.commandName
+                  )
                 ? [
                       this.methodMap.get(Interactions.Love),
-                    //   this.methodMap.get(Interactions.Download),
+                      //   this.methodMap.get(Interactions.Download),
                       this.methodMap.get(Interactions.Remove),
                   ]
                 : ['play'].includes(this.interaction.commandName)
@@ -539,14 +541,25 @@ export class Paginator {
                     return Promise.resolve(false);
                 let id = 0;
                 if ((id = +this.pages.info[0].galleryID) < 0) {
-                    this.pages.info = await this.client.nhentai.g(Math.abs(id)).then(g => this.client.embeds.getPages(g.gallery));
+                    this.pages.info = await this.client.nhentai
+                        .g(Math.abs(id))
+                        .then(g => this.client.embeds.getPages(g.gallery));
                 }
                 if ((id = +this.pages.thumbnail[0].galleryID) < 0) {
-                    this.pages.thumbnail = await this.client.nhentai.g(Math.abs(id)).then(g => this.client.embeds.getPages(g.gallery));
+                    this.pages.thumbnail = await this.client.nhentai
+                        .g(Math.abs(id))
+                        .then(g => this.client.embeds.getPages(g.gallery));
                 }
                 if (interaction.values.includes('preview')) {
-                    if (!this.pages[this.#currentView][this.#currentPage].pages)
+                    if (!this.pages[this.#currentView][this.#currentPage].pages) {
                         return Promise.resolve(false);
+                    }
+                    if ((id = +this.pages[this.#currentView][this.#currentPage].pages[0].galleryID) < 0) {
+                        this.pages[this.#currentView][this.#currentPage].pages =
+                            await this.client.nhentai
+                                .g(Math.abs(id))
+                                .then(g => this.client.embeds.getPages(g.gallery));
+                    }
                     this.goBack = {
                         previousView: this.#currentView,
                         previousPage: this.#currentPage,
