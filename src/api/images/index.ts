@@ -6,7 +6,7 @@ export type Endpoint = keyof typeof ACTIONS | keyof typeof SFW_METHODS | keyof t
 export class Client {
     public NekosAPI = new NekosClient();
     public nekobotAPI = 'https://nekobot.xyz/api/image?type=';
-    public hmtaiAPI = 'https://hmtai.herokuapp.com/v2/';
+    public hmtaiAPI = 'https://hmtai.hatsunia.cfd/v2/';
 
     private random<T>(a: T[]): T {
         return a[Math.floor(Math.random() * a.length)];

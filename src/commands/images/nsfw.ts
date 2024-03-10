@@ -1,6 +1,7 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { AutocompleteInteraction, CommandInteraction } from 'discord.js';
 import { NSFW_METHODS } from '@api/images';
+import Fuse from 'fuse.js';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -15,10 +16,35 @@ export default class extends Command {
                     name: 'tag',
                     type: 'STRING',
                     description: 'Tag to search for (type list to see tag list)',
+                    autocomplete: true,
                     required: true,
                 },
             ],
         });
+    }
+
+    async autocomplete(interaction: AutocompleteInteraction) {
+        if (!interaction.options.getFocused() || !interaction.options.getFocused().length) {
+            return await interaction.respond([
+                {
+                    name: 'list',
+                    value: 'list',
+                },
+            ]);
+        }
+        await interaction.respond(
+            new Fuse(Object.keys(NSFW_METHODS), {
+                includeScore: true,
+                threshold: 0.1,
+            })
+                .search(interaction.options.getFocused(), { limit: 25 })
+                .map(f => {
+                    return {
+                        name: f.item,
+                        value: f.item,
+                    };
+                })
+        );
     }
 
     async exec(interaction: CommandInteraction) {

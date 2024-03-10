@@ -711,7 +711,7 @@ export class Paginator {
 
                 await (this.client.commands.get('sauce') as Command).run(
                     this.interaction as CommandInteraction,
-                    this.image,
+                    (await this.interaction.fetchReply() as Message).embeds[0].image.url, // this.image,
                     {
                         external: true,
                         user: interaction.user,

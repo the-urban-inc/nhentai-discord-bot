@@ -1,6 +1,6 @@
 {
     "name": "nhentai-discord-bot",
-    "version": "4.1.0",
+    "version": "4.10.0",
     "description": "A Discord bot specializes in nhentai, (but it also does other things)",
     "main": "/build/src/index.js",
     "repository": "https://github.com/the-urban-inc/nhentai-discord-bot",
