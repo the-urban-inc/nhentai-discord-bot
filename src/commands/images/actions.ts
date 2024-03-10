@@ -3,15 +3,43 @@ import { CommandInteraction, User } from 'discord.js';
 import { ACTIONS } from '@api/images';
 
 const ACTIONS_PAST_TENSE = {
-    tickle: 'tickled',
-    slap: 'slapped',
-    poke: 'poked',
-    pat: 'patted',
-    kiss: 'kissed',
-    hug: 'hugged',
-    feed: 'fed',
-    cuddle: 'cuddled',
+    bite: 'bit someone',
+    blushed: 'blushed in front of someone',
+    boop: 'booped someone',
+    bonk: 'bonked someone',
+    bully: 'bullied someone',
+    blush: 'blushed in front of someone',
+    cuddle: 'cuddled with someone',
+    cry: 'cried in front of someone',
+    dance: 'danced with someone',
+    depression: 'felt depressed with someone',
+    feed: 'fed someone',
+    glomp: 'glomped someone',
+    handhold: 'held hands with someone',
+    highfive: 'high-fived someone',
+    hug: 'hugged someone',
+    kick: 'kicked someone',
+    kill: 'killed someone',
+    kiss: 'kissed someone',
+    lick: 'licked someone',
+    like: 'liked someone',
+    nom: 'nommed on someone',
+    nosebleed: 'had a nosebleed at someone',
+    pat: 'patted someone',
+    poke: 'poked someone',
+    punch: 'punched someone',
+    slap: 'slapped someone',
+    sleep: 'slept with someone',
+    smile: 'smiled at someone',
+    smug: 'smugged at someone',
+    tea: 'had tea with someone',
+    threaten: 'threatened someone',
+    throw: 'threw someone away',
+    tickle: 'tickled someone',
+    wave: 'waved at someone',
+    wink: 'winked at someone',
 };
+
 
 export default class extends Command {
     constructor(client: Client) {
@@ -60,8 +88,8 @@ export default class extends Command {
                     .default()
                     .setTitle(
                         user === interaction.user
-                            ? `You just got ${ACTIONS_PAST_TENSE[action]}!`
-                            : `${interaction.user.tag} ${ACTIONS_PAST_TENSE[action]} ${user.tag}!`
+                            ? `You ${ACTIONS_PAST_TENSE[action].replace('someone', 'yourself')}!`
+                            : `${interaction.user.tag} ${ACTIONS_PAST_TENSE[action].replace('someone', user.tag)}!`
                     )
                     .setDescription(`[Click here if image failed to load](${image})`)
                     .setImage(image),

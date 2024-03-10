@@ -47,7 +47,7 @@ export class Client {
         if (method[query]?.nekoslife) {
             const q = this.random(method[query].nekoslife) as keyof typeof NekosClient;
             try {
-                const url = (await this.NekosAPI[type === 'nsfw' ? 'nsfw' : 'sfw'][q]())
+                const url = (await this.NekosAPI[q]())
                     ?.url;
                 if (this.isURL(url)) urls.push(url);
             } catch (err) {
@@ -79,35 +79,122 @@ export class Client {
 }
 
 export const ACTIONS = {
-    tickle: {
-        nekoslife: ['tickle'],
+    bite: {
+        hmtai: ['bite'],
     },
-    slap: {
-        nekoslife: ['slap'],
+    blush: {
+        hmtai: ['blush'],
     },
-    poke: {
-        nekoslife: ['poke'],
+    boop: {
+        hmtai: ['boop'],
     },
-    pat: {
-        nekoslife: ['pat'],
+    bonk: {
+        hmtai: ['bonk'],
     },
-    kiss: {
-        nekoslife: ['kiss'],
+    bully: {
+        hmtai: ['bully'],
     },
-    hug: {
-        nekoslife: ['hug'],
-    },
-    feed: {
-        nekoslife: ['feed'],
+    cry: {
+        hmtai: ['cry'],
     },
     cuddle: {
         nekoslife: ['cuddle'],
+        hmtai: ['cuddle'],
+    },
+    dance: {
+        hmtai: ['dance'],
+    },
+    depression: {
+        hmtai: ['depression'],
+    },
+    feed: {
+        nekoslife: ['feed'],
+        hmtai: ['feed'],
+    },
+    glomp: {
+        hmtai: ['glomp'],
+    },
+    handhold: {
+        hmtai: ['hold'],
+    },
+    highfive: {
+        hmtai: ['five'],
+    },
+    hug: {
+        nekoslife: ['hug'],
+        hmtai: ['hug'],
+    },
+    kick: {
+        hmtai: ['kick'],
+    },
+    kill: {
+        hmtai: ['kill'],
+    },
+    kiss: {
+        nekoslife: ['kiss'],
+        hmtai: ['kiss'],
+    },
+    lick: {
+        hmtai: ['lick'],
+    },
+    like: {
+        hmtai: ['like'],
+    },
+    nom: {
+        hmtai: ['nom'],
+    },
+    nosebleed: {
+        hmtai: ['nosebleed'],
+    },
+    pat: {
+        nekoslife: ['pat'],
+        hmtai: ['pat'],
+    },
+    poke: {
+        nekoslife: ['poke'],
+        hmtai: ['poke'],
+    },
+    punch: {
+        hmtai: ['punch'],
+    },
+    slap: {
+        nekoslife: ['slap'],
+        hmtai: ['slap'],
+    },
+    sleep: {
+        hmtai: ['sleep'],
+    },
+    smile: {
+        hmtai: ['smile'],
+    },
+    smug: {
+        nekoslife: ['smug'],
+        hmtai: ['smug'],
+    },
+    threaten: {
+        hmtai: ['threaten'],
+    },
+    throw: {
+        hmtai: ['throw'],
+    },
+    tickle: {
+        nekoslife: ['tickle'],
+        hmtai: ['tickle'],
+    },
+    wave: {
+        hmtai: ['wave'],
+    },
+    wink: {
+        hmtai: ['wink'],
     },
 };
 
 export const SFW_METHODS = {
     avatar: {
         nekoslife: ['avatar'],
+    },
+    coffee: {
+        hmtai: ['coffee'],
     },
     foxgirl: {
         nekoslife: ['foxGirl'],
@@ -119,7 +206,7 @@ export const SFW_METHODS = {
         nekoslife: ['gecg'],
     },
     jahy: {
-        hmtai: ['jahy'],
+        hmtai: ['jahy_arts'],
     },
     kanna: {
         nekobot: ['kanna'],
@@ -128,19 +215,16 @@ export const SFW_METHODS = {
         nekoslife: ['kemonomimi'],
     },
     neko: {
-        nekoslife: ['neko', 'nekoGif'],
+        hmtai: ['neko_arts'],
         nekobot: ['neko'],
-        hmtai: ['neko'],
-    },
-    smug: {
-        nekoslife: ['smug'],
+        nekoslife: ['neko', 'nekoGif'],
     },
     waifu: {
         nekoslife: ['waifu'],
     },
     wallpaper: {
-        nekoslife: ['wallpaper'],
         hmtai: ['wallpaper', 'mobileWallpaper'],
+        nekoslife: ['wallpaper'],
     },
 };
 
