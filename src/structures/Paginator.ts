@@ -494,7 +494,7 @@ export class Paginator {
                 )
                     return Promise.resolve(false);
                 if (this.#currentPage === 0) {
-                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
+                    if (['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)) {
                         if (this.currentCommandPage === 1) return Promise.resolve(false);
                         if (
                             this.interaction.commandName === 'home' &&
@@ -510,7 +510,8 @@ export class Paginator {
                                 this.client.commands.get(this.interaction.commandName) as Command
                             ).run(
                                 this.interaction as CommandInteraction,
-                                this.currentCommandPage - 1
+                                this.currentCommandPage - 1,
+                                true
                             );
                             this.collector.stop('Aborted');
                         } catch (err) {
@@ -538,7 +539,7 @@ export class Paginator {
                 )
                     return Promise.resolve(false);
                 if (this.#currentPage <= 0) {
-                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
+                    if (['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)) {
                         if (this.currentCommandPage === 1) return Promise.resolve(false);
                         if (
                             this.interaction.commandName === 'home' &&
@@ -554,7 +555,8 @@ export class Paginator {
                                 this.client.commands.get(this.interaction.commandName) as Command
                             ).run(
                                 this.interaction as CommandInteraction,
-                                this.currentCommandPage - 1
+                                this.currentCommandPage - 1,
+                                true
                             );
                             this.collector.stop('Aborted');
                         } catch (err) {
@@ -582,7 +584,7 @@ export class Paginator {
                 )
                     return Promise.resolve(false);
                 if (this.#currentPage >= this.pages[this.#currentView].length - 1) {
-                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
+                    if (['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)) {
                         if (
                             this.interaction.commandName === 'home' &&
                             this.currentCommandPage == 1
@@ -597,7 +599,8 @@ export class Paginator {
                                 this.client.commands.get(this.interaction.commandName) as Command
                             ).run(
                                 this.interaction as CommandInteraction,
-                                this.currentCommandPage + 1
+                                this.currentCommandPage + 1,
+                                true
                             );
                             this.collector.stop('Aborted');
                         } catch (err) {
@@ -625,7 +628,7 @@ export class Paginator {
                 )
                     return Promise.resolve(false);
                 if (this.#currentPage === this.pages[this.#currentView].length - 1) {
-                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
+                    if (['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)) {
                         if (
                             this.interaction.commandName === 'home' &&
                             this.currentCommandPage == 1
@@ -640,7 +643,8 @@ export class Paginator {
                                 this.client.commands.get(this.interaction.commandName) as Command
                             ).run(
                                 this.interaction as CommandInteraction,
-                                this.currentCommandPage + 1
+                                this.currentCommandPage + 1,
+                                true
                             );
                             this.collector.stop('Aborted');
                         } catch (err) {

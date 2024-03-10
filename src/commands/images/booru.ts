@@ -19,7 +19,6 @@ const SITES = [
     'safebooru.org',
     'tbib.org',
     'xbooru.com',
-    'rule34.paheal.net',
     'derpibooru.org',
 ] as const;
 
@@ -40,15 +39,21 @@ export default class extends Command {
                     choices: SITES.map(k => {
                         return {
                             name: k,
-                            value: k,
+                            value: k === 'rule34.xxx' ? 'api.rule34.xxx' : k,
                         };
                     }),
                 },
                 {
-                    name: 'tag',
+                    name: 'tags',
                     type: 'STRING',
-                    description: 'The tag to search for',
+                    description:
+                        'The tag(s) to search for. Separate tags with spaces. Wrap multi-word tags in quotes "".',
                     required: true,
+                },
+                {
+                    name: 'page',
+                    type: 'INTEGER',
+                    description: 'The page to display',
                 },
             ],
         });
@@ -74,38 +79,36 @@ export default class extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
-        const site = interaction.options.get('site').value as typeof SITES[number];
-        const tag = interaction.options.get('tag').value as string;
-        let res: void | SearchResults = null;
-        Promise.race([
-            (res = await search(site, tag.replace(/ /g, '_'), { limit: 25, random: true }).catch(
-                err => {
-                    throw err;
-                }
-            )), // 25 is more than enough for a page
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000)),
-        ]).catch(function (err) {
-            if (err.message === 'Timeout') {
-                throw new UserError('TIMED_OUT');
-            }
-        });
+    async run(interaction: CommandInteraction, page: number, external = false) {
+        const site = interaction.options.get('site').value as (typeof SITES)[number];
+        const tags = interaction.options.get('tags').value as string;
+
+        const res = await search(
+            site,
+            this.client.util.splitWithQuotes(tags).map(t => t.replace(/ /g, '_')),
+            { limit: 25, page }
+        ).catch(err => {
+            throw err;
+        }); // 25 is more than enough for a page
         if (
             !res ||
             !res.posts.length ||
             !res.posts.filter(x => this.client.util.isUrl(x.fileUrl)).length
         ) {
-            throw new UserError('NO_RESULT', tag);
+            if (external) return;
+            throw new UserError('NO_RESULT', tags);
         }
         const dataPosts = res.posts.filter(x => this.client.util.isUrl(x.fileUrl));
         const display = this.client.embeds.paginator(this.client, {
             startView: 'thumbnail',
             collectorTimeout: 180000,
+            commandPage: page,
         });
         dataPosts.forEach(data => {
             const image = data.fileUrl,
-                original = data.postView;
+                source = data.source,
+                original = data.postView,
+                createdAt = data.createdAt;
             let tags = data.tags;
             tags = tags.map(x => decode(x).replace(/_/g, ' '));
             const prip = this.client.util.hasCommon(tags, BANNED_TAGS_TEXT);
@@ -113,18 +116,32 @@ export default class extends Command {
             const embed = this.client.embeds
                 .default()
                 .setDescription(
-                    `**Tags** : ${this.client.util.shorten(
-                        tags.map((x: string) => `\`${x}\``).join('\u2000'),
-                        '\u2000'
-                    )}\n\n[Original post](${original})\u2000•\u2000[Click here if image failed to load](${image})`
-                );
+                    `**Tags** : ${this.client.util.gshorten(
+                        tags.map((x: string) => `\`${x}\``),
+                        '\u2000',
+                        2048
+                    )}\n\n[Original post](${original})\u2000•\u2000[Source](${source})\u2000•\u2000[Click here if image failed to load](${image})`
+                )
+                .setFooter({
+                    text: `Page ${page} of ?`,
+                })
+                .setTimestamp(createdAt);
             if (this.danger || !prip) embed.setImage(image);
             display.addPage('thumbnail', { embed });
         });
-        await display.run(interaction, `> **Searching for posts with tag** **\`${tag}\`**`);
+        await display.run(interaction, `> **Searching for posts with tag(s)** **\`${tags}\`**`);
+
         if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
         }
+    }
+
+    async exec(interaction: CommandInteraction) {
+        await this.before(interaction);
+
+        const page = (interaction.options.get('page')?.value as number) ?? 1;
+
+        await this.run(interaction, page);
     }
 }
