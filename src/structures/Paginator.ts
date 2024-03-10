@@ -29,6 +29,7 @@ export enum Interactions {
     Jump = 'jump',
     Forward = 'forward',
     Last = 'last',
+    Info = 'info',
     Preview = 'preview',
     Return = 'return',
     Select = 'select',
@@ -132,11 +133,17 @@ export class Paginator {
         this.methodMap
             .set(
                 Interactions.First,
-                new MessageButton().setCustomId(this.id + ' first').setLabel('<<').setStyle('SECONDARY')
+                new MessageButton()
+                    .setCustomId(this.id + ' first')
+                    .setLabel('<<')
+                    .setStyle('SECONDARY')
             )
             .set(
                 Interactions.Back,
-                new MessageButton().setCustomId(this.id + ' back').setLabel('<').setStyle('SECONDARY')
+                new MessageButton()
+                    .setCustomId(this.id + ' back')
+                    .setLabel('<')
+                    .setStyle('SECONDARY')
             )
             .set(
                 Interactions.Jump,
@@ -147,11 +154,24 @@ export class Paginator {
             )
             .set(
                 Interactions.Forward,
-                new MessageButton().setCustomId(this.id + ' forward').setLabel('>').setStyle('SECONDARY')
+                new MessageButton()
+                    .setCustomId(this.id + ' forward')
+                    .setLabel('>')
+                    .setStyle('SECONDARY')
             )
             .set(
                 Interactions.Last,
-                new MessageButton().setCustomId(this.id + ' last').setLabel('>>').setStyle('SECONDARY')
+                new MessageButton()
+                    .setCustomId(this.id + ' last')
+                    .setLabel('>>')
+                    .setStyle('SECONDARY')
+            )
+            .set(
+                Interactions.Info,
+                new MessageButton()
+                    .setCustomId(this.id + ' info')
+                    .setLabel('Sauce?')
+                    .setStyle('PRIMARY')
             )
             .set(
                 Interactions.Select,
@@ -174,15 +194,24 @@ export class Paginator {
             )
             .set(
                 Interactions.Love,
-                new MessageButton().setCustomId(this.id + ' love').setLabel('❤️').setStyle('SECONDARY')
+                new MessageButton()
+                    .setCustomId(this.id + ' love')
+                    .setLabel('❤️')
+                    .setStyle('SECONDARY')
             )
             .set(
                 Interactions.Follow,
-                new MessageButton().setCustomId(this.id + ' follow').setLabel('🔖').setStyle('SECONDARY')
+                new MessageButton()
+                    .setCustomId(this.id + ' follow')
+                    .setLabel('🔖')
+                    .setStyle('SECONDARY')
             )
             .set(
                 Interactions.Blacklist,
-                new MessageButton().setCustomId(this.id + ' blacklist').setLabel('🏴').setStyle('SECONDARY')
+                new MessageButton()
+                    .setCustomId(this.id + ' blacklist')
+                    .setLabel('🏴')
+                    .setStyle('SECONDARY')
             )
             .set(
                 Interactions.Filter,
@@ -201,7 +230,10 @@ export class Paginator {
             // )
             .set(
                 Interactions.Remove,
-                new MessageButton().setCustomId(this.id + ' remove').setLabel('🗑️').setStyle('DANGER')
+                new MessageButton()
+                    .setCustomId(this.id + ' remove')
+                    .setLabel('🗑️')
+                    .setStyle('DANGER')
             )
             .set(
                 Interactions.Enqueue,
@@ -294,6 +326,23 @@ export class Paginator {
                 .has('READ_MESSAGE_HISTORY')
         )
             optionsRow.spliceComponents(-1, 1);
+        if (
+            this.image &&
+            this.interaction.commandName !== 'sauce' &&
+            this.interaction.commandName !== 'saucenao' &&
+            !this.priorityUser
+        ) {
+            return [
+                new MessageActionRow().addComponents(
+                    this.ephemeral
+                        ? [this.methodMap.get(Interactions.Info)]
+                        : [
+                              this.methodMap.get(Interactions.Info),
+                              this.methodMap.get(Interactions.Remove),
+                          ]
+                ),
+            ];
+        }
         if (
             this.interaction.commandName === 'sauce' ||
             this.interaction.commandName === 'saucenao' ||
@@ -406,7 +455,8 @@ export class Paginator {
             if (!method.startsWith(this.id)) return;
             method = method.slice(this.id.length + 1);
             if (!this.methodMap.has(method as Interactions)) return;
-            if (method !== Interactions.Jump && !interaction.deferred && !interaction.replied) await interaction.deferUpdate();
+            if (method !== Interactions.Jump && !interaction.deferred && !interaction.replied)
+                await interaction.deferUpdate();
             const rip = await this.methods.get(method as Interactions)?.call(this, interaction);
             if (rip) this.collector.stop();
         });
@@ -647,6 +697,30 @@ export class Paginator {
             }
         )
         .set(
+            Interactions.Info,
+            async function (
+                this: Paginator,
+                interaction: MessageComponentInteraction
+            ): Promise<boolean> {
+                if (
+                    this.client.paginators.some(
+                        p => p.image === this.image && p.priorityUser?.id === interaction.user.id
+                    )
+                )
+                    return Promise.resolve(false);
+
+                await (this.client.commands.get('sauce') as Command).run(
+                    this.interaction as CommandInteraction,
+                    this.image,
+                    {
+                        external: true,
+                        user: interaction.user,
+                    }
+                );
+                return Promise.resolve(false);
+            }
+        )
+        .set(
             Interactions.Select,
             async function (
                 this: Paginator,
@@ -669,7 +743,11 @@ export class Paginator {
                     if (!this.pages[this.#currentView][this.#currentPage].pages) {
                         return Promise.resolve(false);
                     }
-                    if ((id = +this.pages[this.#currentView][this.#currentPage].pages[0].galleryID) < 0) {
+                    if (
+                        (id =
+                            +this.pages[this.#currentView][this.#currentPage].pages[0].galleryID) <
+                        0
+                    ) {
                         this.pages[this.#currentView][this.#currentPage].pages =
                             await this.client.nhentai
                                 .g(Math.abs(id))

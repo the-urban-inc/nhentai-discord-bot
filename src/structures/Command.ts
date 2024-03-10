@@ -51,7 +51,7 @@ export abstract class Command {
     run?(interaction: CommandInteraction, ...args: any): any | Promise<any>;
     abstract exec(
         interaction: CommandInteraction,
-        options?: { internal?: boolean; user?: User }
+        options?: any,
     ): any | Promise<any>;
     constructor(client: Client, commandOptions: CommandOptions) {
         this.client = client;

@@ -67,7 +67,7 @@ export default class extends Command {
                 value: '• `<<` / `>>` : Jumps to first/last embed | Jumps to previous/next page on nhentai (only works for home, search, tag, artist, etc. commands)⁽*⁾\n' +
                     '• `<` / `>` : Jumps to previous/next embed | Jumps to previous/next page on nhentai (only works for home, search, tag, artist, etc. commands)⁽*⁾\n' +
                     '• `x of y` : Jumps to specified embed⁽*⁾\n' +
-                    '~~• `Sauce?` : Searches for image source using SauceNAO~~ Temporarily removed\n' +
+                    '• `Sauce?` : Searches for image source using SauceNAO\n' +
                     '• `❤️` : Adds/Removes a doujin to/from favorites\n' +
                     '• `🔖` : Follows/Unfollows a tag/artist/parody/etc.\n' +
                     '• `🏴` : Blacklists a tag/artist/parody/etc.\n' +
