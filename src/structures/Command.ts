@@ -48,6 +48,7 @@ export abstract class Command {
     client: Client;
     data: CommandOptions;
     autocomplete?(interaction: AutocompleteInteraction): any | Promise<any>;
+    run?(interaction: CommandInteraction, ...args: any): any | Promise<any>;
     abstract exec(
         interaction: CommandInteraction,
         options?: { internal?: boolean; user?: User }

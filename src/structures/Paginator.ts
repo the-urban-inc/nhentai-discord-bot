@@ -90,6 +90,7 @@ export class Paginator {
     private readonly dispose: boolean;
     private readonly jumpTimeout: number;
     private readonly collectorTimeout: number;
+    private readonly currentCommandPage: number;
     ended = false;
     #currentView: Views;
     #currentPage: number;
@@ -112,8 +113,10 @@ export class Paginator {
         this.image = options.image;
         this.ephemeral = false;
         this.prompt = options.prompt ?? 'Which page would you like to jump to?';
+        this.dispose = options.dispose ?? false;
         this.jumpTimeout = options.jumpTimeout ?? 30000;
         this.collectorTimeout = options.collectorTimeout ?? 900000;
+        this.currentCommandPage = options.commandPage ?? 1;
         this.#currentView = options.startView ?? 'info';
         this.#currentPage = options.startPage ?? 0;
         this.goBack = {
@@ -416,6 +419,11 @@ export class Paginator {
         return Promise.resolve(true);
     }
 
+    private async turnPage(interaction: MessageComponentInteraction): Promise<void> {
+        this.methodMap.forEach((v, k) => this.methodMap.get(k).setDisabled(!v.disabled));
+        await this.update(interaction);
+    }
+
     private methods: Map<
         Interactions,
         (this: Paginator, interaction: MessageComponentInteraction) => Promise<boolean>
@@ -432,7 +440,34 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                if (this.#currentPage === 0) return Promise.resolve(false);
+                if (this.#currentPage === 0) {
+                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
+                        if (this.currentCommandPage === 1) return Promise.resolve(false);
+                        if (
+                            this.interaction.commandName === 'home' &&
+                            this.currentCommandPage == 1
+                        ) {
+                            if (!this.followedUp) return Promise.resolve(false);
+                            else await (interaction.message as Message).delete();
+                        } else {
+                            await this.turnPage(interaction);
+                        }
+                        try {
+                            await (
+                                this.client.commands.get(this.interaction.commandName) as Command
+                            ).run(
+                                this.interaction as CommandInteraction,
+                                this.currentCommandPage - 1
+                            );
+                            this.collector.stop('Aborted');
+                        } catch (err) {
+                            await this.turnPage(interaction);
+                        } finally {
+                            return Promise.resolve(false);
+                        }
+                    }
+                    return Promise.resolve(false);
+                }
                 this.#currentPage = 0;
                 return this.update(interaction);
             }
@@ -449,7 +484,34 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                if (this.#currentPage <= 0) return Promise.resolve(false);
+                if (this.#currentPage <= 0) {
+                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
+                        if (this.currentCommandPage === 1) return Promise.resolve(false);
+                        if (
+                            this.interaction.commandName === 'home' &&
+                            this.currentCommandPage == 1
+                        ) {
+                            if (!this.followedUp) return Promise.resolve(false);
+                            else await (interaction.message as Message).delete();
+                        } else {
+                            await this.turnPage(interaction);
+                        }
+                        try {
+                            await (
+                                this.client.commands.get(this.interaction.commandName) as Command
+                            ).run(
+                                this.interaction as CommandInteraction,
+                                this.currentCommandPage - 1
+                            );
+                            this.collector.stop('Aborted');
+                        } catch (err) {
+                            await this.turnPage(interaction);
+                        } finally {
+                            return Promise.resolve(false);
+                        }
+                    }
+                    return Promise.resolve(false);
+                }
                 this.#currentPage--;
                 return this.update(interaction);
             }
@@ -466,7 +528,31 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                if (this.#currentPage >= this.pages[this.#currentView].length - 1)
+                if (this.#currentPage >= this.pages[this.#currentView].length - 1) {
+                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
+                        if (
+                            this.interaction.commandName === 'home' &&
+                            this.currentCommandPage == 1
+                        ) {
+                            if (!this.followedUp) return Promise.resolve(false);
+                            else await (interaction.message as Message).delete();
+                        } else {
+                            await this.turnPage(interaction);
+                        }
+                        try {
+                            await (
+                                this.client.commands.get(this.interaction.commandName) as Command
+                            ).run(
+                                this.interaction as CommandInteraction,
+                                this.currentCommandPage + 1
+                            );
+                            this.collector.stop('Aborted');
+                        } catch (err) {
+                            await this.turnPage(interaction);
+                        } finally {
+                            return Promise.resolve(false);
+                        }
+                    }
                     return Promise.resolve(false);
                 this.#currentPage++;
                 return this.update(interaction);
@@ -484,7 +570,31 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                if (this.#currentPage === this.pages[this.#currentView].length - 1)
+                if (this.#currentPage === this.pages[this.#currentView].length - 1) {
+                    if (['home', 'search', ...TAGS].includes(this.interaction.commandName)) {
+                        if (
+                            this.interaction.commandName === 'home' &&
+                            this.currentCommandPage == 1
+                        ) {
+                            if (!this.followedUp) return Promise.resolve(false);
+                            else await (interaction.message as Message).delete();
+                        } else {
+                            await this.turnPage(interaction);
+                        }
+                        try {
+                            await (
+                                this.client.commands.get(this.interaction.commandName) as Command
+                            ).run(
+                                this.interaction as CommandInteraction,
+                                this.currentCommandPage + 1
+                            );
+                            this.collector.stop('Aborted');
+                        } catch (err) {
+                            await this.turnPage(interaction);
+                        } finally {
+                            return Promise.resolve(false);
+                        }
+                    }
                     return Promise.resolve(false);
                 this.#currentPage = this.pages[this.#currentView].length - 1;
                 return this.update(interaction);

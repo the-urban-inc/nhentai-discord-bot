@@ -58,17 +58,17 @@ export default class extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
-        const page = (interaction.options.get('page')?.value as number) ?? 1;
+    async run(interaction: CommandInteraction, page: number, external = false) {
         const data = await this.client.nhentai
             .home(page)
             .catch(err => this.client.logger.error(err.message));
         if (!data || !data.result || !data.result.length) {
+            if (external) return;
             throw new UserError('NO_RESULT');
         }
         const { result, num_pages } = data;
         if (page < 1 || page > num_pages) {
+            if (external) return;
             throw new UserError('INVALID_PAGE_INDEX', page, num_pages);
         }
 
@@ -97,6 +97,9 @@ export default class extends Command {
             {
                 page,
                 num_pages,
+                additional_options: {
+                    commandPage: page,
+                }
             }
         );
         if (rip) this.warning = true;
@@ -111,5 +114,12 @@ export default class extends Command {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
         }
+    }
+
+    async exec(interaction: CommandInteraction) {
+        await this.before(interaction);
+        const page = (interaction.options.get('page')?.value as number) ?? 1;
+        
+        await this.run(interaction, page);
     }
 }

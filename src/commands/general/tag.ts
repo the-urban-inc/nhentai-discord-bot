@@ -85,13 +85,10 @@ export default class C extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
+    async run(interaction: CommandInteraction, page: number, external = false) {
         const type = interaction.commandName;
         const tag = interaction.options.get('query').value as string;
-        const page = (interaction.options.get('page')?.value as number) ?? 1;
         const sort = (interaction.options.get('sort')?.value as string) ?? 'recent';
-
         const data =
             sort === 'recent'
                 ? await this.client.nhentai[type](tag.toLowerCase(), page).catch((err: Error) =>
@@ -101,11 +98,13 @@ export default class C extends Command {
                       (err: Error) => this.client.logger.error(err.message)
                   );
         if (!data || !data.result || !data.result.length) {
+            if (external) return;
             throw new UserError('NO_RESULT', tag);
         }
         const { result, tag_id, num_pages, num_results } = data;
 
         if (page < 1 || page > num_pages) {
+            if (external) return;
             throw new UserError('INVALID_PAGE_INDEX', page, num_pages);
         }
 
@@ -134,6 +133,7 @@ export default class C extends Command {
                 num_results,
                 additional_options: {
                     info: { id, name },
+                    commandPage: page,
                 },
             }
         );
@@ -145,5 +145,12 @@ export default class C extends Command {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
         }
+    }
+
+    async exec(interaction: CommandInteraction) {
+        await this.before(interaction);
+        const page = (interaction.options.get('page')?.value as number) ?? 1;
+
+        await this.run(interaction, page);
     }
 }

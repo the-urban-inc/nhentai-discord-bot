@@ -75,19 +75,9 @@ export default class extends Command {
         }
     }
 
-    async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
+    async run(interaction: CommandInteraction, page: number, external = false) {
         const query = interaction.options.get('query').value as string;
-        const page = (interaction.options.get('page')?.value as number) ?? 1;
         const sort = (interaction.options.get('sort')?.value as string) ?? 'recent';
-
-        if (/^\d+$/.test(query.replace('#', ''))) {
-            const command = this.client.commands.get('g') as Command;
-            interaction.commandName = 'g';
-            interaction.options.get('query')!.value = +query.replace('#', '');
-            return command.exec(interaction);
-        }
-
         const data =
             sort === 'recent'
                 ? await this.client.nhentai
@@ -97,10 +87,12 @@ export default class extends Command {
                       .search(query, page, sort as Sort)
                       .catch((err: Error) => this.client.logger.error(err.message));
         if (!data || !data.result || !data.result.length) {
+            if (external) return;
             throw new UserError('NO_RESULT', query);
         }
         const { result, num_pages, num_results } = data;
         if (page < 1 || page > num_pages) {
+            if (external) return;
             throw new UserError('INVALID_PAGE_INDEX', page, num_pages);
         }
 
@@ -113,6 +105,9 @@ export default class extends Command {
                 page,
                 num_pages,
                 num_results,
+                additional_options: {
+                    commandPage: page,
+                },
             }
         );
         if (rip) this.warning = true;
@@ -122,5 +117,20 @@ export default class extends Command {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
         }
+    }
+
+    async exec(interaction: CommandInteraction) {
+        await this.before(interaction);
+        const query = interaction.options.get('query').value as string;
+        const page = (interaction.options.get('page')?.value as number) ?? 1;
+
+        if (/^\d+$/.test(query.replace('#', ''))) {
+            const command = this.client.commands.get('g') as Command;
+            interaction.commandName = 'g';
+            interaction.options.get('query')!.value = +query.replace('#', '');
+            return command.exec(interaction);
+        }
+
+        await this.run(interaction, page);
     }
 }
