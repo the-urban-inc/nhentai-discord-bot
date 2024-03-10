@@ -494,7 +494,9 @@ export class Paginator {
                 )
                     return Promise.resolve(false);
                 if (this.#currentPage === 0) {
-                    if (['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)) {
+                    if (
+                        ['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)
+                    ) {
                         if (this.currentCommandPage === 1) return Promise.resolve(false);
                         if (
                             this.interaction.commandName === 'home' &&
@@ -539,7 +541,9 @@ export class Paginator {
                 )
                     return Promise.resolve(false);
                 if (this.#currentPage <= 0) {
-                    if (['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)) {
+                    if (
+                        ['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)
+                    ) {
                         if (this.currentCommandPage === 1) return Promise.resolve(false);
                         if (
                             this.interaction.commandName === 'home' &&
@@ -584,7 +588,9 @@ export class Paginator {
                 )
                     return Promise.resolve(false);
                 if (this.#currentPage >= this.pages[this.#currentView].length - 1) {
-                    if (['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)) {
+                    if (
+                        ['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)
+                    ) {
                         if (
                             this.interaction.commandName === 'home' &&
                             this.currentCommandPage == 1
@@ -628,7 +634,9 @@ export class Paginator {
                 )
                     return Promise.resolve(false);
                 if (this.#currentPage === this.pages[this.#currentView].length - 1) {
-                    if (['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)) {
+                    if (
+                        ['home', 'search', ...TAGS, 'booru'].includes(this.interaction.commandName)
+                    ) {
                         if (
                             this.interaction.commandName === 'home' &&
                             this.currentCommandPage == 1
@@ -715,7 +723,7 @@ export class Paginator {
 
                 await (this.client.commands.get('sauce') as Command).run(
                     this.interaction as CommandInteraction,
-                    (await this.interaction.fetchReply() as Message).embeds[0].image.url, // this.image,
+                    ((await this.interaction.fetchReply()) as Message).embeds[0].image.url, // this.image,
                     {
                         external: true,
                         user: interaction.user,
@@ -736,12 +744,22 @@ export class Paginator {
                 if ((id = +this.pages.info[0].galleryID) < 0) {
                     this.pages.info = await this.client.nhentai
                         .g(Math.abs(id))
-                        .then(g => this.client.embeds.getPages(g.gallery));
+                        .then(g => this.client.embeds.getPages(g.gallery))
+                        .catch(async _ =>
+                            this.client.embeds.getEduGuessPages(
+                                await this.client.db.cache.getDoujin(Math.abs(id))
+                            )
+                        );
                 }
                 if ((id = +this.pages.thumbnail[0].galleryID) < 0) {
                     this.pages.thumbnail = await this.client.nhentai
                         .g(Math.abs(id))
-                        .then(g => this.client.embeds.getPages(g.gallery));
+                        .then(g => this.client.embeds.getPages(g.gallery))
+                        .catch(async _ =>
+                            this.client.embeds.getEduGuessPages(
+                                await this.client.db.cache.getDoujin(Math.abs(id))
+                            )
+                        );
                 }
                 if (interaction.values.includes('preview')) {
                     if (!this.pages[this.#currentView][this.#currentPage].pages) {
@@ -755,7 +773,12 @@ export class Paginator {
                         this.pages[this.#currentView][this.#currentPage].pages =
                             await this.client.nhentai
                                 .g(Math.abs(id))
-                                .then(g => this.client.embeds.getPages(g.gallery));
+                                .then(g => this.client.embeds.getPages(g.gallery))
+                                .catch(async _ =>
+                                    this.client.embeds.getEduGuessPages(
+                                        await this.client.db.cache.getDoujin(Math.abs(id))
+                                    )
+                                );
                     }
                     this.goBack = {
                         previousView: this.#currentView,

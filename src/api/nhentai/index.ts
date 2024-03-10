@@ -285,6 +285,14 @@ export class Client {
         return pages;
     }
 
+    public eduGuessPages(gallery: PartialGallery) {
+        const pages: string[] = [];
+        for (let i = 0; i < gallery.num_pages; i++) {
+            pages.push(`${this.baseImageURL}/galleries/${gallery.media_id}/${i + 1}.${ImageT[gallery.images.cover.t]}`);
+        }
+        return pages;
+    }
+
     public getPagesThumbnail(gallery: Gallery) {
         const pages: string[] = [];
         gallery.images.pages.forEach((page, i) => {
