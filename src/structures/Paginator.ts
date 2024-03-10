@@ -1,4 +1,4 @@
-import { Client } from '@structures';
+import { Client, Command } from '@structures';
 import {
     Collection,
     CollectorFilter,
@@ -59,6 +59,7 @@ export interface PaginatorOptions extends InteractionCollectorOptions<MessageCom
     filter?: CollectorFilter<[MessageComponentInteraction]>;
     startView?: Views;
     startPage?: number;
+    commandPage?: number;
     image?: string;
     prompt?: string;
     jumpTimeout?: number;
@@ -131,11 +132,11 @@ export class Paginator {
         this.methodMap
             .set(
                 Interactions.First,
-                new MessageButton().setCustomId('first').setLabel('<<').setStyle('SECONDARY')
+                new MessageButton().setCustomId(this.id + ' first').setLabel('<<').setStyle('SECONDARY')
             )
             .set(
                 Interactions.Back,
-                new MessageButton().setCustomId('back').setLabel('<').setStyle('SECONDARY')
+                new MessageButton().setCustomId(this.id + ' back').setLabel('<').setStyle('SECONDARY')
             )
             .set(
                 Interactions.Jump,
@@ -146,15 +147,15 @@ export class Paginator {
             )
             .set(
                 Interactions.Forward,
-                new MessageButton().setCustomId('forward').setLabel('>').setStyle('SECONDARY')
+                new MessageButton().setCustomId(this.id + ' forward').setLabel('>').setStyle('SECONDARY')
             )
             .set(
                 Interactions.Last,
-                new MessageButton().setCustomId('last').setLabel('>>').setStyle('SECONDARY')
+                new MessageButton().setCustomId(this.id + ' last').setLabel('>>').setStyle('SECONDARY')
             )
             .set(
                 Interactions.Select,
-                new MessageSelectMenu().setCustomId('select').addOptions([
+                new MessageSelectMenu().setCustomId(this.id + ' select').addOptions([
                     {
                         label: 'Info View',
                         description: 'Switch to Info View',
@@ -173,20 +174,20 @@ export class Paginator {
             )
             .set(
                 Interactions.Love,
-                new MessageButton().setCustomId('love').setLabel('❤️').setStyle('SECONDARY')
+                new MessageButton().setCustomId(this.id + ' love').setLabel('❤️').setStyle('SECONDARY')
             )
             .set(
                 Interactions.Follow,
-                new MessageButton().setCustomId('follow').setLabel('🔖').setStyle('SECONDARY')
+                new MessageButton().setCustomId(this.id + ' follow').setLabel('🔖').setStyle('SECONDARY')
             )
             .set(
                 Interactions.Blacklist,
-                new MessageButton().setCustomId('blacklist').setLabel('🏴').setStyle('SECONDARY')
+                new MessageButton().setCustomId(this.id + ' blacklist').setLabel('🏴').setStyle('SECONDARY')
             )
             .set(
                 Interactions.Filter,
                 new MessageButton()
-                    .setCustomId('filter')
+                    .setCustomId(this.id + ' filter')
                     .setLabel(`Click here to see ${this.filterIDs.length} filtered galleries`)
                     .setEmoji('👁️')
                     .setStyle('SECONDARY')
@@ -200,12 +201,12 @@ export class Paginator {
             // )
             .set(
                 Interactions.Remove,
-                new MessageButton().setCustomId('remove').setLabel('🗑️').setStyle('DANGER')
+                new MessageButton().setCustomId(this.id + ' remove').setLabel('🗑️').setStyle('DANGER')
             )
             .set(
                 Interactions.Enqueue,
                 new MessageButton()
-                    .setCustomId('enqueue')
+                    .setCustomId(this.id + ' enqueue')
                     .setLabel('⏯️\u2000Enqueue this track to the playlist')
                     .setStyle('PRIMARY')
             );
@@ -401,10 +402,12 @@ export class Paginator {
         });
         this.collector.on('collect', async interaction => {
             if (interaction.user.bot) return;
-            const method = interaction.customId as Interactions;
-            if (!this.methodMap.has(method)) return;
-            if (method !== Interactions.Jump) await interaction.deferUpdate();
-            const rip = await this.methods.get(method)?.call(this, interaction);
+            let method = interaction.customId;
+            if (!method.startsWith(this.id)) return;
+            method = method.slice(this.id.length + 1);
+            if (!this.methodMap.has(method as Interactions)) return;
+            if (method !== Interactions.Jump && !interaction.deferred && !interaction.replied) await interaction.deferUpdate();
+            const rip = await this.methods.get(method as Interactions)?.call(this, interaction);
             if (rip) this.collector.stop();
         });
         this.collector.on('end', () => {
@@ -469,7 +472,7 @@ export class Paginator {
                     return Promise.resolve(false);
                 }
                 this.#currentPage = 0;
-                return this.update(interaction);
+                return await this.update(interaction);
             }
         )
         .set(
@@ -513,7 +516,7 @@ export class Paginator {
                     return Promise.resolve(false);
                 }
                 this.#currentPage--;
-                return this.update(interaction);
+                return await this.update(interaction);
             }
         )
         .set(
@@ -554,8 +557,9 @@ export class Paginator {
                         }
                     }
                     return Promise.resolve(false);
+                }
                 this.#currentPage++;
-                return this.update(interaction);
+                return await this.update(interaction);
             }
         )
         .set(
@@ -596,8 +600,9 @@ export class Paginator {
                         }
                     }
                     return Promise.resolve(false);
+                }
                 this.#currentPage = this.pages[this.#currentView].length - 1;
-                return this.update(interaction);
+                return await this.update(interaction);
             }
         )
         .set(
@@ -636,7 +641,7 @@ export class Paginator {
                     newPage <= this.pages[this.#currentView].length
                 ) {
                     this.#currentPage = newPage - 1;
-                    return this.update(interaction);
+                    return await this.update(interaction);
                 }
                 return Promise.resolve(false);
             }
@@ -679,7 +684,7 @@ export class Paginator {
                     this.#currentView = 'thumbnail';
                     this.#currentPage = 0;
                     this.#previewing = true;
-                    return this.update(interaction);
+                    return await this.update(interaction);
                 }
                 if (
                     ['home', 'search', 'favorite', ...TAGS].includes(
@@ -693,10 +698,10 @@ export class Paginator {
                     this.pages.thumbnail = this.goBack.pages;
                     this.goBack.pages = [];
                     this.#previewing = false;
-                    return this.update(interaction);
+                    return await this.update(interaction);
                 }
                 this.#currentView = interaction.values.includes('info') ? 'info' : 'thumbnail';
-                return this.update(interaction);
+                return await this.update(interaction);
             }
         )
         .set(
@@ -800,7 +805,7 @@ export class Paginator {
                 if (interaction.user !== this.interaction.user) return Promise.resolve(false);
                 this.pages = this.filteredPages;
                 this.filterIDs = [];
-                return this.update(interaction);
+                return await this.update(interaction);
             }
         )
         .set(

@@ -21,7 +21,12 @@ export class CommandHandler extends ApplicationCommandManager {
     constructor(client: Client) {
         super(client);
         this.client.on('interactionCreate', async interaction => {
-            if (!interaction.isCommand() && !interaction.isContextMenu() && !interaction.isAutocomplete()) return;
+            if (
+                !interaction.isCommand() &&
+                !interaction.isContextMenu() &&
+                !interaction.isAutocomplete()
+            )
+                return;
             if (
                 !(interaction.channel instanceof TextChannel) ||
                 interaction.channel instanceof ThreadChannel
