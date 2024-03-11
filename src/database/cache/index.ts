@@ -93,12 +93,12 @@ export class Cache {
                     [
                         id,
                         media_id,
-                        japanese,
-                        english,
-                        pretty,
+                        japanese ?? '',
+                        english ?? '',
+                        pretty ?? '',
                         moment.unix(upload_date).format('YYYY-MM-DD HH:mm:ss'),
-                        num_pages,
-                        num_favorites,
+                        num_pages ?? 0,
+                        num_favorites ?? 0,
                         images.cover.t,
                         images.thumbnail.t,
                     ]
