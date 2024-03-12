@@ -3,7 +3,6 @@ import { Client as C, ClientOptions, Collection, Snowflake, User, Options } from
 import { Database } from '@database/index';
 import { Client as JASMRAPI } from '@api/jasmr';
 import { Client as NhentaiAPI } from '@api/nhentai';
-import { Client as FakkuAPI } from '@api/fakku';
 import { Client as ImageAPI } from '@api/images';
 const { DISCORD_TOKEN } = process.env;
 
@@ -18,7 +17,6 @@ export class Client extends C {
     db: Database;
     jasmr: JASMRAPI;
     nhentai: NhentaiAPI;
-    fakku: FakkuAPI;
     images: ImageAPI;
     embeds: Embeds;
     notifier: Notifier;
@@ -58,7 +56,6 @@ export class Client extends C {
         this.logger = new Logger(this);
         this.jasmr = new JASMRAPI();
         this.nhentai = new NhentaiAPI();
-        this.fakku = new FakkuAPI();
         this.images = new ImageAPI();
         this.subscriptions = new Collection<Snowflake, MusicSubscription>();
     }
