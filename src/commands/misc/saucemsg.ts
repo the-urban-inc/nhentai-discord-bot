@@ -15,7 +15,7 @@ export default class extends ContextMenuCommand {
 
     checkforImage(message: Message) {
         return Array.from(message.attachments.values()).filter(a =>
-            ['png', 'gif', 'jpg', 'jpeg', 'webp'].includes(a.url.split('.').reverse()[0])
+            a.contentType.startsWith('image')
         );
     }
 
@@ -61,33 +61,37 @@ export default class extends ContextMenuCommand {
                 .setURL(url)
                 .setDescription(`[Original Image](${imageURL})`)
                 .setThumbnail(encodeURI(thumbnail))
-                .addField('Similarity', `${similarity}%`);
+                .addFields([{ name: 'Similarity', value: `${similarity}%` }]);
             if (data.pixiv_id) {
-                info.addField(
-                    'Pixiv ID',
-                    `[${data.pixiv_id}](https://www.pixiv.net/en/artworks/${data.pixiv_id})`
-                );
+                info.addFields({
+                    name: 'Pixiv ID',
+                    value: `[${data.pixiv_id}](https://www.pixiv.net/en/artworks/${data.pixiv_id})`
+                });
             }
             if (data.pawoo_id) {
-                info.addField(
-                    'Pawoo ID',
-                    (data as any).pawoo_user_acct
-                        ? `[${data.pawoo_id}](https://pawoo.net/@${(data as any).pawoo_user_acct}/${
-                              data.pawoo_id
-                          })`
-                        : data.pawoo_id
+                info.addFields(
+                    {
+                        name: 'Pawoo ID',
+                        value: (data as any).pawoo_user_acct
+                            ? `[${data.pawoo_id}](https://pawoo.net/@${(data as any).pawoo_user_acct}/${data.pawoo_id})`
+                            : data.pawoo_id
+                    }
                 );
             }
             if (data.nijie_id) {
-                info.addField(
-                    'Nijie ID',
-                    `[${data.nijie_id}](https://nijie.info/view.php?id=${data.nijie_id})`
+                info.addFields(
+                    {
+                        name: 'Nijie ID',
+                        value: `[${data.nijie_id}](https://nijie.info/view.php?id=${data.nijie_id})`
+                    }
                 );
             }
             if (data.da_id) {
-                info.addField(
-                    'dA ID',
-                    `[${data.da_id}](https://deviantart.com/view/${data.da_id})`
+                info.addFields(
+                    {
+                        name: 'dA ID',
+                        value: `[${data.da_id}](https://deviantart.com/view/${data.da_id})`
+                    }
                 );
             }
             let author =
@@ -117,19 +121,25 @@ export default class extends ContextMenuCommand {
                         author = `@${(data as any).pawoo_user_username}` ?? author;
                         break;
                 }
-                info.addField(field, author.length ? author : 'Unknown');
+                info.addFields({ name: field, value: author.length ? author : 'Unknown' });
             }
             if (data.source && data.source.length) {
-                info.addField('Source', data.source ?? 'Unknown');
+                info.addFields({ name: 'Source', value: data.source ?? 'Unknown' });
             }
             if ((data as any).material && (data as any).material.length) {
-                info.addField('Material', (data as any).material ?? 'Unknown');
+                info.addFields({ name: 'Material', value: (data as any).material ?? 'Unknown' });
             }
             if ((data as any).characters && (data as any).characters.length) {
-                info.addField('Characters', (data as any).characters ?? 'Unknown');
+                info.addFields({ name: 'Characters', value: (data as any).characters ?? 'Unknown' });
             }
             if ((data as any).est_time && (data as any).est_time.length) {
-                info.addField('Est Time', (data as any).est_time ?? 'Unknown');
+                info.addFields({ name: 'Est Time', value: (data as any).est_time ?? 'Unknown' });
+            }
+            if ((data as any).characters && (data as any).characters.length) {
+                info.addFields([{ name: 'Characters', value: (data as any).characters ?? 'Unknown' }]);
+            }
+            if ((data as any).est_time && (data as any).est_time.length) {
+                info.addFields([{ name: 'Est Time', value: (data as any).est_time ?? 'Unknown' }]);
             }
             display.addPage('thumbnail', { embed: info });
         }
