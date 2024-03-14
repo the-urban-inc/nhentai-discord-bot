@@ -349,15 +349,15 @@ export class Paginator {
             (this.image && this.priorityUser)
         ) {
             const imageURL = this.image;
-            const googleURL = `https://lens.google.com/uploadbyurl?url=${imageURL}&safe=off`,
-                tineyeURL = `https://tineye.com/search/?url=${imageURL}`,
-                ascii2dURL = `https://ascii2d.net/search/url/${imageURL}`,
-                yandexURL = `https://yandex.com/images/search?url=${imageURL}&rpt=imageview`;
+            const googleURL = `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(imageURL)}&safe=off`,
+                tineyeURL = `https://tineye.com/search/?url=${encodeURIComponent(imageURL)}`,
+                ascii2dURL = `https://ascii2d.net/search/url/${encodeURIComponent(imageURL)}`,
+                yandexURL = `https://yandex.com/images/search?url=${encodeURIComponent(imageURL)}&rpt=imageview`;
             const others = [
                 new MessageButton().setLabel('Google Lens').setStyle('LINK').setURL(googleURL),
                 new MessageButton().setLabel('TinEye').setStyle('LINK').setURL(tineyeURL),
                 new MessageButton().setLabel('ascii2d').setStyle('LINK').setURL(ascii2dURL),
-                // new MessageButton().setLabel('Yandex').setStyle('LINK').setURL(yandexURL),
+                new MessageButton().setLabel('Yandex').setStyle('LINK').setURL(yandexURL),
                 this.methodMap.get(Interactions.Remove),
             ];
             return [
