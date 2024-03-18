@@ -114,3 +114,5 @@ package-lock.json
 
 # Never ignore src files
 !src/**/*
+
+.idea/
