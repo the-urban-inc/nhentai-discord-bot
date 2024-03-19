@@ -148,7 +148,7 @@ export class Paginator {
             .set(
                 Interactions.Jump,
                 new MessageButton()
-                    .setCustomId('jump')
+                    .setCustomId(this.id + ' jump')
                     .setLabel(`${this.#currentPage + 1} of ${this.pages.thumbnail.length}`)
                     .setStyle('SECONDARY')
             )
