@@ -69,6 +69,8 @@ export class Cache {
     }
 
     async addDoujin(doujin: Gallery) {
+        // If the doujin was uploaded within the last 24 hours, don't add it to the cache yet
+        if (Date.now() - doujin.upload_date * 1000 < 1000 * 60 * 60 * 24) return;
         let conn: mariadb.PoolConnection;
         try {
             conn = await this.pool.getConnection();
