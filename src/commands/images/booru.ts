@@ -120,7 +120,7 @@ export default class extends Command {
                         tags.map((x: string) => `\`${x}\``),
                         '\u2000',
                         2048
-                    )}\n\n[Original post](${original})\u2000•\u2000[Source](${source})\u2000•\u2000[Click here if image failed to load](${image})`
+                    )}\n\n[Original post](${original})${ source ? `\u2000•\u2000[Source](${source})` : ''}\u2000•\u2000[Click here if image failed to load](${image})`
                 )
                 .setFooter({
                     text: `Page ${page} of ?`,
