@@ -49,10 +49,8 @@ export class CommandHandler extends ApplicationCommandManager {
                     }
                     const privateCommand = server.settings.private;
                     await interaction.deferReply({
-                        ephemeral: privateCommand || (interaction.options.get('private')?.value as boolean ?? false),
-                        fetchReply: !(
-                            privateCommand || (interaction.options.get('private')?.value as boolean ?? false)
-                        ),
+                        ephemeral: interaction.options.get('private')?.value as boolean ?? privateCommand,
+                        fetchReply: !(interaction.options.get('private')?.value as boolean ?? privateCommand),
                     });
                     const { name, permissions, cooldown, nsfw, owner } = command.data;
 
