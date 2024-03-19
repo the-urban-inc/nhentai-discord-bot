@@ -18,18 +18,18 @@ export default class extends Command {
         });
     }
 
-    update(anonymous: boolean, danger: boolean | null) {
+    update(anonymous: boolean, danger: boolean | null, privateCommand: boolean | null) {
         const y = '✅',
             n = '❌';
         const settings = this.client.embeds
             .default()
             .setTitle('⚙️\u2000General Settings')
-            .addField(
-                'User Settings',
-                `${
+            .addFields([{
+                name: 'User Settings',
+                value: `${
                     anonymous ? y : n
                 }\u2000**Anonymous**\n• Disallow logging command calls to the database (hiding your calls from the \`recent\` command).\n• You won't receive XP from \`g\` command.`
-            );
+            }]);
         const menu = new MessageSelectMenu()
             .setCustomId('select')
             .setPlaceholder('⚙️\u2000Toggle settings')
@@ -40,18 +40,26 @@ export default class extends Command {
                     emoji: anonymous ? n : y,
                 },
             ]);
-        if (danger !== null) {
-            settings.addField(
-                'Server Settings',
-                `${
+        if (danger !== null && privateCommand !== null) {
+            settings.addFields([{
+                name: 'Server Settings',
+                value: `${
                     danger ? y : n
-                }\u2000**Danger**\n• Start showing images relating to banned content stated in [Discord Community Guidelines](https://discord.com/guidelines). The bot owner will not take responsibilities if this caused your server to get banned.`
-            );
+                }\u2000**Danger**\n• Start showing images relating to banned content stated in [Discord Community Guidelines](https://discord.com/guidelines). The bot owner will not take responsibilities if this caused your server to get banned.\n` +
+                `${
+                    privateCommand ? y : n
+                }\u2000**Private**\n• Hide ALL commands by default.`
+            }]);
             menu.spliceOptions(1, 0, [
                 {
                     label: 'Danger',
                     value: 'danger',
                     emoji: danger ? n : y,
+                },
+                {
+                    label: 'Private',
+                    value: 'private',
+                    emoji: privateCommand ? n : y,
                 },
             ]);
         }
@@ -72,19 +80,20 @@ export default class extends Command {
             }).save();
         }
         let anonymous = user.anonymous,
-            danger = null;
+            danger = null, privateCommand = null;
         if (member.permissions.has('MANAGE_GUILD')) {
             let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
                     serverID: interaction.guild.id,
-                    settings: { danger: false },
+                    settings: { danger: false, private: false },
                 }).save();
             }
             danger = server.settings.danger;
+            privateCommand = server.settings.private;
         }
         const message = (await interaction.editReply(
-            this.update(anonymous, danger)
+            this.update(anonymous, danger, privateCommand)
         )) as Message;
         const collector = message.createMessageComponentCollector({
             filter: i => i.user.id === member.id,
@@ -97,7 +106,9 @@ export default class extends Command {
                 anonymous = await this.client.db.user.anonymous(member.id);
             if (i.values.includes('danger'))
                 danger = await this.client.db.server.danger(interaction.guild.id);
-            await interaction.editReply(this.update(anonymous, danger));
+            if (i.values.includes('private'))
+                privateCommand = await this.client.db.server.private(interaction.guild.id);
+            await interaction.editReply(this.update(anonymous, danger, privateCommand));
         });
     }
 }

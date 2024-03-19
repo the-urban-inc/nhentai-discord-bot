@@ -433,7 +433,7 @@ export class Paginator {
                 ),
             };
         }
-        this.ephemeral = (interaction.options.get('private')?.value as boolean) ?? false;
+        this.ephemeral = this.interaction.ephemeral ?? false;
         const c = {
             content: content.length ? content : null,
             embeds: this.pages[this.#currentView].length

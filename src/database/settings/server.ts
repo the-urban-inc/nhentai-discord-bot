@@ -40,4 +40,19 @@ export class Server {
             return server.settings.url;
         }
     }
+
+    async private(serverID: Guild['id']) {
+        let server = await S.findOne({ serverID }).exec();
+        if (!server) {
+            await new S({
+                serverID,
+                settings: { private: true },
+            }).save();
+            return true;
+        } else {
+            server.settings.private = !server.settings.private;
+            await server.save();
+            return server.settings.private;
+        }
+    }
 }

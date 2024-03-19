@@ -13,6 +13,7 @@ import {
 } from 'discord.js';
 import { readdirSync } from 'fs';
 import { ContextMenuCommand } from '@structures';
+import { Server } from '@database/models';
 import axios from 'axios';
 
 let startCooldown: () => void;
@@ -39,10 +40,18 @@ export class CommandHandler extends ApplicationCommandManager {
                     if (interaction.isAutocomplete()) {
                         return await (command as Command).autocomplete(interaction);
                     }
+                    let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
+                    if (!server) {
+                        server = await new Server({
+                            serverID: interaction.guild.id,
+                            settings: { private: false },
+                        }).save();
+                    }
+                    const privateCommand = server.settings.private;
                     await interaction.deferReply({
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ephemeral: privateCommand || (interaction.options.get('private')?.value as boolean ?? false),
                         fetchReply: !(
-                            (interaction.options.get('private')?.value as boolean) ?? false
+                            privateCommand || (interaction.options.get('private')?.value as boolean ?? false)
                         ),
                     });
                     const { name, permissions, cooldown, nsfw, owner } = command.data;

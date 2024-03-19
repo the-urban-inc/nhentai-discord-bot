@@ -2,19 +2,10 @@ import { model, Document, Schema } from 'mongoose';
 import { History } from './tag';
 import { User } from './user';
 
-export interface Prefix {
-    id: string;
-    author: string;
-    date: number;
-}
-
 export interface ServerSettings {
-    prefixes: {
-        nsfw: Prefix[];
-        sfw: Prefix[];
-    };
     danger: boolean;
     url: boolean;
+    private: boolean;
 }
 
 interface User {
@@ -53,23 +44,15 @@ const serverSchema = new Schema(
             },
         ],
         settings: {
-            prefixes: {
-                nsfw: [{
-                    id: String,
-                    author: String,
-                    date: Number,
-                }],
-                sfw: [{
-                    id: String,
-                    author: String,
-                    date: Number,
-                }]
-            },
             danger: {
                 $type: Boolean,
                 default: false,
             },
             url: {
+                $type: Boolean,
+                default: false,
+            },
+            private: {
                 $type: Boolean,
                 default: false,
             },
