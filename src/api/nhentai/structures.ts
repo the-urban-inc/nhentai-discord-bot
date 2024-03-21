@@ -28,6 +28,7 @@ export enum TagType {
     Tag = 'tag',
     Artist = 'artist',
     Character = 'character',
+    Category = 'category',
     Group = 'group',
     Parody = 'parody',
     Language = 'language',
