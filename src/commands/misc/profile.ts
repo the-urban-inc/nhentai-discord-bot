@@ -72,7 +72,11 @@ export default class extends Command {
                 embeds: [
                     this.client.embeds
                         .default()
-                        .setAuthor(`nhentai profile`, ICON, 'https://nhentai.net')
+                        .setAuthor({
+                            name: `nhentai profile`,
+                            iconURL: ICON,
+                            url: 'https://nhentai.net',
+                        })
                         .setTitle(`${member.displayName} [${member.user.tag}]`)
                         .setColor(member.displayHexColor)
                         .setThumbnail(member.user.displayAvatarURL())
@@ -113,15 +117,15 @@ export default class extends Command {
                 .paginator(this.client, {
                     collectorTimeout: 180000,
                 })
-                .addPage('info', { embed });
+                .addPage('thumbnail', { embed });
 
             if (user.favorites.length) {
-                display.addPage('info', {
+                display.addPage('thumbnail', {
                     embed: this.client.embeds
                         .default()
                         .setTitle('Favorites')
                         .setThumbnail(member.user.displayAvatarURL())
-                        .setDescription(user.favorites.map(x => `• ${x}`).join('\n')),
+                        .setDescription(this.client.util.gshorten(user.favorites.map(x => `\`${x}\``), '\u2000', 1024)),
                 });
             }
 
@@ -130,13 +134,13 @@ export default class extends Command {
                     .default()
                     .setTitle('Recent calls')
                     .setThumbnail(member.user.displayAvatarURL());
-                let history = user.history.reverse().slice(0, 10);
-                history.forEach(x => {
+                const history = user.history.reverse().slice(0, 10).map(x => {
                     const { id, type, name, date } = x;
                     const title = type === 'g' ? id : name;
-                    embed.addField(`${title} [${type}]`, moment(date).fromNow());
+                    return `[\`${type}\`] **\`${title}\`** (<t:${moment(date).unix()}:R>)`
                 });
-                display.addPage('info', { embed });
+                embed.setDescription(history.join('\n'));
+                display.addPage('thumbnail', { embed });
             }
             return display.run(interaction, `> **Viewing profile of** **\`${u.tag}\`**`);
         }

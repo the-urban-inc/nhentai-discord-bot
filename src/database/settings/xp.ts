@@ -1,6 +1,6 @@
 import { User as DUser, Guild } from 'discord.js';
 import { User } from '../models/user';
-import { Server } from '../models/server';
+import { IServer, Server } from '../models/server';
 
 function recalculate(op: 'add' | 'sub' | 'set', before: number, amount: number) {
     switch (op) {
@@ -67,6 +67,10 @@ export class XP {
         user.level = _ ? this.expToLevel(newEXP) : newLevel;
         globalUser.level = _ ? this.expToLevel(newGlobalEXP) : newGlobalLevel;
 
+        // Recalculate global EXP
+        globalUser.points = await this.accumulatedEXP(userID);
+        globalUser.level = this.expToLevel(globalUser.points);
+
         // For some reason it didn't fucking update unless it's a new entry
         server.users.delete(userID);
         server.users.set(userID, user);
@@ -74,6 +78,26 @@ export class XP {
         await globalUser.save();
 
         return currentLevel < user.level;
+    }
+
+    async accumulatedEXP(userID: DUser['id']) {
+        let servers: IServer[] = await Server.aggregate([
+            {
+                $addFields: { usersConverted: { $objectToArray: "$users" } }
+            },
+            {
+                $match: {
+                    "usersConverted.k": { $all: [userID] }
+                }
+            },
+            {
+                $project: {
+                    usersConverted: 0
+                }
+            }
+        ]);
+        if (!servers) return 0;
+        return servers.reduce((acc, current) => acc + current.users[userID].points, 0);
     }
 
     async getServerRanking(userID: DUser['id'], serverID: Guild['id']) {

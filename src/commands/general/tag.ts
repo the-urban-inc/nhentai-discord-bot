@@ -114,7 +114,7 @@ export default class C extends Command {
         if (!this.anonymous) {
             await this.client.db.user.history(interaction.user.id, {
                 id,
-                type: tag,
+                type,
                 name,
                 author: interaction.user.id,
                 guild: interaction.guild.id,
