@@ -4,7 +4,6 @@ import { Server } from '@database/models';
 import { search } from 'booru';
 import { decode } from 'he';
 import { BANNED_TAGS_TEXT } from '@constants';
-import SearchResults from 'booru/dist/structures/SearchResults';
 
 const SITES = [
     'e621.net',
@@ -113,6 +112,7 @@ export default class extends Command {
             tags = tags.map(x => decode(x).replace(/_/g, ' '));
             const prip = this.client.util.hasCommon(tags, BANNED_TAGS_TEXT);
             if (prip) this.warning = true;
+            const src = source ? (typeof source === 'string' ? source : source[0]) : null;
             const embed = this.client.embeds
                 .default()
                 .setDescription(
@@ -120,7 +120,13 @@ export default class extends Command {
                         tags.map((x: string) => `\`${x}\``),
                         '\u2000',
                         2048
-                    )}\n\n[Original post](${original})${ source ? `\u2000•\u2000[Source](${source})` : ''}\u2000•\u2000[Click here if image failed to load](${image})`
+                    )}\n\n[Original post](${original})${
+                        src
+                            ? this.client.util.isUrl(src)
+                                ? `\u2000•\u2000[Source](${source})`
+                                : src
+                            : ''
+                    }\u2000•\u2000[Click here if image failed to load](${image})`
                 )
                 .setFooter({
                     text: `Page ${page} of ?`,
