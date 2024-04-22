@@ -23,6 +23,7 @@ export class Client extends C {
     util: Util;
     logger: Logger;
     subscriptions: Collection<Snowflake, MusicSubscription>;
+    tags: Collection<string, string[]>;
 
     constructor(options?: ClientOptions) {
         super({
@@ -58,6 +59,7 @@ export class Client extends C {
         this.nhentai = new NhentaiAPI();
         this.images = new ImageAPI();
         this.subscriptions = new Collection<Snowflake, MusicSubscription>();
+        this.tags = new Collection<string, string[]>();
     }
 
     async start(): Promise<void> {

@@ -1,7 +1,8 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { AutocompleteInteraction, CommandInteraction } from 'discord.js';
 import { Sort } from '@api/nhentai';
 import { User, Server, Blacklist, Language } from '@database/models';
+import Fuse from 'fuse.js';
 
 export default class C extends Command {
     constructor(client: Client) {
@@ -21,6 +22,7 @@ export default class C extends Command {
                     type: 'STRING',
                     description: 'The tag to search for on nhentai',
                     required: true,
+                    autocomplete: true,
                 },
                 {
                     name: 'page',
@@ -51,6 +53,23 @@ export default class C extends Command {
     warning = false;
     blacklists: Blacklist[] = [];
     language: Language = { preferred: [], query: false, follow: false };
+
+    async autocomplete(interaction: AutocompleteInteraction) {
+        if (!this.client.tags.has(interaction.commandName)) return;
+        await interaction.respond(
+            new Fuse(this.client.tags.get(interaction.commandName), {
+                includeScore: true,
+                threshold: 0.1,
+            })
+                .search(interaction.options.getFocused(), { limit: 5 })
+                .map(f => {
+                    return {
+                        name: f.item,
+                        value: f.item,
+                    };
+                })
+        );
+    }
 
     async before(interaction: CommandInteraction) {
         try {

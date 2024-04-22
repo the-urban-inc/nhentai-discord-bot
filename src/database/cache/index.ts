@@ -34,6 +34,10 @@ export class Cache {
         );
     }
 
+    async getDoujinTags() {
+        return await this.pool.execute<{ name: string, type: string }[]>('SELECT name, type FROM tag');
+    }
+
     async getDoujin(id: number): Promise<PartialGallery | null> {
         const rows = await this.doujinBase(id);
         if (!rows.length) return null;

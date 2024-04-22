@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 config();
 import { createServer } from 'http';
 createServer().listen(process.env.PORT || 8080);
-import { Snowflake, TextChannel } from 'discord.js';
+import { Collection, Snowflake, TextChannel } from 'discord.js';
 const { LOGGING_CHANNEL } = process.env;
 import axios from 'axios';
 import { Client } from './structures/Client';
@@ -36,6 +36,13 @@ async function changePresence() {
         ][cur],
     });
     cur = (cur + 1) % 3;
+    let a = new Collection<string, string[]>();
+    const tags = await client.db.cache.getDoujinTags();
+    for (const { name, type } of tags) {
+        if (!a.has(type)) a.set(type, []);
+        a.get(type)?.push(name);
+    }
+    client.tags = a;
     setTimeout(changePresence, 300000);
 }
 
