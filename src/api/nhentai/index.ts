@@ -33,7 +33,7 @@ export interface TagResult {
 }
 
 export class Client {
-    public baseURL = process.env.NHENTAI_URL || 'https://nhentai.net';
+    public baseURL = 'https://nhentai.net';
     public baseImageURL = 'https://i.nhentai.net';
     public baseThumbnailURL = 'https://t.nhentai.net';
 
