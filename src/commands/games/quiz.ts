@@ -47,7 +47,12 @@ export default class extends Command {
     }
 
     async fetchRandomDoujin() {
-        return await this.client.db.cache.safeRandom(this.danger, this.blacklists.map(bl => bl.id));
+        return await this.client.db.cache
+            .safeRandom(
+                this.danger,
+                this.blacklists.map(bl => bl.id)
+            )
+            .catch(err => this.client.logger.error(err.message));
     }
 
     async exec(interaction: CommandInteraction) {
@@ -68,11 +73,14 @@ export default class extends Command {
                 'Use buttons to select an option within 30 seconds. Your first choice will be your final choice. No cheating!'
             )
             .setImage(page)
-            .setFooter({ text: 'Only the person who started the quiz can answer\u2000•\u2000Each answer will give you 50-100 xp' })
+            .setFooter({
+                text: 'Only the person who started the quiz can answer\u2000•\u2000Each answer will give you 50-100 xp',
+            })
             .setTimestamp();
         const choices = this.client.util
-            .shuffle(this.client.util.shuffle(gallery.related)
-                .slice(0, 3).concat([gallery.gallery]))
+            .shuffle(
+                this.client.util.shuffle(gallery.related).slice(0, 3).concat([gallery.gallery])
+            )
             .map(({ id, title: { english }, tags }) => {
                 const title = decode(english);
                 const t = new Map();
@@ -80,8 +88,9 @@ export default class extends Command {
                 tags.forEach(tag => {
                     const { id, type, name, count } = tag;
                     const a = t.get(type) || [];
-                    let s = `**\`${name}\`**\u2009\`(${count >= 1000 ? `${Math.floor(count / 1000)}K` : count
-                        })\``;
+                    let s = `**\`${name}\`**\u2009\`(${
+                        count >= 1000 ? `${Math.floor(count / 1000)}K` : count
+                    })\``;
                     // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
                     if (this.blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
                     a.push(s);
@@ -100,7 +109,7 @@ export default class extends Command {
         choices.forEach((c, i) => {
             quiz.addFields({
                 name: `[${abcd[i]}] ${c.title}`,
-                value: `Artists: ${c.artist}`
+                value: `Artists: ${c.artist}`,
             });
         });
         const message = (await interaction.editReply({
@@ -128,7 +137,8 @@ export default class extends Command {
         message
             .awaitMessageComponent({
                 filter: i =>
-                    ['0', '1', '2', '3', 'cancel'].includes(i.customId) && i.user.id === interaction.user.id,
+                    ['0', '1', '2', '3', 'cancel'].includes(i.customId) &&
+                    i.user.id === interaction.user.id,
                 time: 30000,
             })
             .then(async i => {
@@ -167,7 +177,9 @@ export default class extends Command {
                                 .setDescription(
                                     `Congratulations! You got it right!\nThe correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
                                 )
-                                .setFooter({ text: `Received ${inc} xp\u2000•\u2000Quiz session ended` }),
+                                .setFooter({
+                                    text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
+                                }),
                         ],
                         ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
                     });
@@ -181,7 +193,8 @@ export default class extends Command {
                     if (leveledUp) {
                         await interaction.followUp({
                             content: 'Congratulations! You have leveled up!',
-                            ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                            ephemeral:
+                                (interaction.options.get('private')?.value as boolean) ?? false,
                         });
                     }
                     return;

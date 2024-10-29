@@ -103,20 +103,24 @@ export default class extends Command {
         const delay = (ms = 500) => new Promise(r => setTimeout(r, ms));
         for (const [i, code] of user.favorites.entries()) {
             await delay();
-            let gallery = await this.client.db.cache.getDoujin(+code);
+            let gallery = await this.client.db.cache
+                .getDoujin(+code)
+                .catch(err => this.client.logger.error(err.message));
+            if (!gallery) {
+                gallery = (await this.client.nhentai.g(+code))?.gallery;
+            }
             const progress = Math.floor((i / user.favorites.length) * 100);
             const totalBar = '░░░░░░░░░░░░░░░░';
             const progressBar = '▒'; // ░░░░░
             await interaction.editReply(
-                `Fetching favorites list ${'.'.repeat(i % 3 + 1)} It may take a while${gallery ? '' : `\nNo result found for ${code}. Skipping...`}\n[${
+                `Fetching favorites list ${'.'.repeat((i % 3) + 1)} It may take a while${
+                    gallery ? '' : `\nNo result found for ${code}. Skipping...`
+                }\n[${
                     progressBar.repeat((totalBar.length / 100) * progress) +
                     totalBar.substring((totalBar.length / 100) * progress + 1)
                 }] [${progress}%]`
             );
-            if (!gallery) {
-                gallery = (await this.client.nhentai.g(+code))?.gallery;
-                if (!gallery) continue;
-            }
+            if (!gallery) continue;
             result.push(gallery);
         }
         const { displayList, rip } = this.client.embeds.displayLazyGalleryList(

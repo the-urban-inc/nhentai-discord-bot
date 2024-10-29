@@ -12,7 +12,11 @@ client.start();
 let cur = 0;
 
 async function getRandomCode() {
-    return String(await client.db.cache.random()) ?? '177013';
+    return (
+        String(
+            await client.db.cache.random().catch(err => this.client.logger.error(err.message))
+        ) ?? '177013'
+    );
 }
 
 async function changePresence() {
@@ -37,7 +41,9 @@ async function changePresence() {
     });
     cur = (cur + 1) % 3;
     let a = new Collection<string, string[]>();
-    const tags = await client.db.cache.getDoujinTags();
+    const tags = await client.db.cache
+        .getDoujinTags()
+        .catch(err => this.client.logger.error(err.message));
     for (const { name, type } of tags) {
         if (!a.has(type)) a.set(type, []);
         a.get(type)?.push(name);
@@ -85,9 +91,9 @@ client.on('error', err => {
 client.on('disconnect', () => client.logger.warn('[EVENT] Disconnecting...'));
 process.on('uncaughtException', err => {
     if (axios.isAxiosError(err)) client.logger.error(err.message);
-    else client.logger.stackTrace(err)
+    else client.logger.stackTrace(err);
 });
 process.on('unhandledRejection', err => {
     if (axios.isAxiosError(err)) client.logger.error(err.message);
-    else client.logger.stackTrace(err)
+    else client.logger.stackTrace(err);
 });
