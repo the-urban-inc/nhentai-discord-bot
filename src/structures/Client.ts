@@ -34,6 +34,7 @@ export class Client extends C {
                 'GUILD_MESSAGES',
                 'GUILD_VOICE_STATES',
             ],
+            shards: 'auto',
             makeCache: Options.cacheWithLimits({
                 MessageManager: 0,
                 GuildBanManager: 0,
