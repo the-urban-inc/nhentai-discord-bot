@@ -14,8 +14,8 @@ let cur = 0;
 async function getRandomCode() {
     return (
         String(
-            await client.db.cache.random().catch(err => this.client.logger.error(err.message))
-        ) ?? '177013'
+            await client.db.cache.random().catch(err => client.logger.error(err.message)) ?? '177013'
+        ) 
     );
 }
 
@@ -43,12 +43,14 @@ async function changePresence() {
     let a = new Collection<string, string[]>();
     const tags = await client.db.cache
         .getDoujinTags()
-        .catch(err => this.client.logger.error(err.message));
-    for (const { name, type } of tags) {
-        if (!a.has(type)) a.set(type, []);
-        a.get(type)?.push(name);
+        .catch(err => client.logger.error(err.message));
+    if (tags) {
+        for (const { name, type } of tags) {
+            if (!a.has(type)) a.set(type, []);
+            a.get(type)?.push(name);
+        }
+        client.tags = a;
     }
-    client.tags = a;
     setTimeout(changePresence, 300000);
 }
 
