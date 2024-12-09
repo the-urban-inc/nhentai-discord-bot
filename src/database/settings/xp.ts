@@ -21,7 +21,7 @@ export class XP {
     }
 
     expToLevel(exp: number) {
-        return Math.floor(0.1 * Math.sqrt(exp));
+        return Math.floor(0.01 * Math.sqrt(exp));
     }
 
     async save(op: 'add' | 'sub' | 'set', type: 'exp' | 'level', userID: DUser['id'], serverID: Guild['id'], amount: number) {
