@@ -1,6 +1,6 @@
 
 export interface Image {
-    t: 'j' | 'p' | 'g' | 'n';
+    t: 'j' | 'p' | 'g' | 'w' | 'n';
     w: number;
     h: number;
 }
@@ -9,12 +9,14 @@ enum ImageType {
     JPG = 'jpg',
     PNG = 'png',
     GIF = 'gif',
+    WEBP = 'webp',
 }
 
 export const ImageT = {
     'j': ImageType.JPG,
     'p': ImageType.PNG,
     'g': ImageType.GIF,
+    'w': ImageType.WEBP,
     'n': null
 }
 
