@@ -34,8 +34,8 @@ export interface TagResult {
 
 export class Client {
     public baseURL = 'https://nhentai.net';
-    public baseImageURL = 'https://i.nhentai.net';
-    public baseThumbnailURL = 'https://t.nhentai.net';
+    public baseImageURL = () => `https://i${Math.floor(Math.random() * 4) + 1}.nhentai.net`;
+    public baseThumbnailURL = () => `https://t${Math.floor(Math.random() * 4) + 1}.nhentai.net`;
 
     private async fetch<T>(path: string, query?: SearchQuery): Promise<AxiosResponse<T>> {
         const q = qs.stringify(query);
@@ -279,7 +279,7 @@ export class Client {
         const pages: string[] = [];
         gallery.images.pages.forEach((page, i) => {
             pages.push(
-                `${this.baseImageURL}/galleries/${gallery.media_id}/${i + 1}.${ImageT[page.t]}`
+                `${this.baseImageURL()}/galleries/${gallery.media_id}/${i + 1}.${ImageT[page.t]}`
             );
         });
         return pages;
@@ -288,7 +288,7 @@ export class Client {
     public eduGuessPages(gallery: PartialGallery) {
         const pages: string[] = [];
         for (let i = 0; i < gallery.num_pages; i++) {
-            pages.push(`${this.baseImageURL}/galleries/${gallery.media_id}/${i + 1}.${ImageT[gallery.images.cover.t]}`);
+            pages.push(`${this.baseImageURL()}/galleries/${gallery.media_id}/${i + 1}.${ImageT[gallery.images.cover.t]}`);
         }
         return pages;
     }
@@ -297,20 +297,20 @@ export class Client {
         const pages: string[] = [];
         gallery.images.pages.forEach((page, i) => {
             pages.push(
-                `${this.baseThumbnailURL}/galleries/${gallery.media_id}/${i + 1}t.${ImageT[page.t]}`
+                `${this.baseThumbnailURL()}/galleries/${gallery.media_id}/${i + 1}t.${ImageT[page.t]}`
             );
         });
         return pages;
     }
 
     public getCover(gallery: PartialGallery | Gallery) {
-        return `${this.baseThumbnailURL}/galleries/${gallery.media_id}/cover.${
+        return `${this.baseThumbnailURL()}/galleries/${gallery.media_id}/cover.${
             ImageT[gallery.images.cover.t]
         }`;
     }
 
     public getCoverThumbnail(gallery: PartialGallery | Gallery) {
-        return `${this.baseThumbnailURL}/galleries/${gallery.media_id}/thumb.${
+        return `${this.baseThumbnailURL()}/galleries/${gallery.media_id}/thumb.${
             ImageT[gallery.images.thumbnail.t === 'n' ? gallery.images.cover.t : gallery.images.thumbnail.t]
         }`;
     }
