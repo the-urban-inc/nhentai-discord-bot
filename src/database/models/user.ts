@@ -1,4 +1,4 @@
-import { model, Document, Schema } from 'mongoose';
+import { model, Document, Schema, SchemaType } from 'mongoose';
 import { History, Blacklist, Language } from './tag';
 
 export interface IUser extends Document {
@@ -36,7 +36,8 @@ const userSchema = new Schema(
             },
         ],
         anonymous: { $type: Boolean, default: true },
-        language: { 
+        language: {
+            $type: Schema.Types.Mixed, 
             preferred: [{
                 id: String,
                 name: String,

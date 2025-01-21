@@ -23,12 +23,7 @@ export class Database {
         await mongoose
             .connect(process.env.MONGODB_URI, {
                 family: 4,
-                useNewUrlParser: true,
                 autoIndex: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-                keepAlive: true,
-                keepAliveInitialDelay: 300000,
                 serverSelectionTimeoutMS: 5000,
             })
             .then(async () => {
