@@ -113,7 +113,7 @@ export default class extends Command {
                 )
                 .addFields([{
                     name: 'Commands',
-                    value: commands.map(c => `${c.nsfw ? '`🔞`' : ''}\`${c.name}\``).join(' ')
+                    value: commands.map(c => `${c.nsfw ? '`🔞 ' : '`'}${c.name}\``).join(' ')
                 }, {
                     name: 'Confused?',
                     value: `Check out the QNA page!\nIf you still have questions, [join the support server](${SUPPORT_SERVER})`
