@@ -114,7 +114,7 @@ export default class extends Command {
                         break;
                     case 35:
                         field = 'Author';
-                        author = `@${(data as any).pawoo_user_username}` ?? author;
+                        author = (data as any).pawoo_user_username ? `@${(data as any).pawoo_user_username}` : author;
                         break;
                 }
                 info.addFields({ name: field, value: author.length ? author : 'Unknown' });
