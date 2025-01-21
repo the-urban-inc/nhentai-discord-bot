@@ -107,7 +107,7 @@ export default class extends Command {
                 .getDoujin(+code)
                 .catch(err => this.client.logger.error(err.message));
             if (!gallery) {
-                gallery = (await this.client.nhentai.g(+code))?.gallery;
+                gallery = await this.client.nhentai.g(+code).then(res => res.gallery).catch(() => null);
             }
             const progress = Math.floor((i / user.favorites.length) * 100);
             const totalBar = '░░░░░░░░░░░░░░░░';
