@@ -87,15 +87,12 @@ client.on('guildCreate', async guild => {
 });
 
 client.on('error', err => {
-    if (axios.isAxiosError(err)) client.logger.error(err.message);
-    else client.logger.error(err);
+    client.logger.error(err);
 });
 client.on('disconnect', () => client.logger.warn('[EVENT] Disconnecting...'));
 process.on('uncaughtException', err => {
-    if (axios.isAxiosError(err)) client.logger.error(err.message);
-    else client.logger.stackTrace(err);
+    client.logger.stackTrace(err);
 });
 process.on('unhandledRejection', err => {
-    if (axios.isAxiosError(err)) client.logger.error(err.message);
-    else client.logger.stackTrace(err);
+    client.logger.stackTrace(err);
 });
