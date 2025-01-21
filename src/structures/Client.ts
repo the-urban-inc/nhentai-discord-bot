@@ -24,6 +24,7 @@ export class Client extends C {
     logger: Logger;
     subscriptions: Collection<Snowflake, MusicSubscription>;
     tags: Collection<string, string[]>;
+    asmrTags: string[];
 
     constructor(options?: ClientOptions) {
         super({
@@ -61,6 +62,7 @@ export class Client extends C {
         this.images = new ImageAPI();
         this.subscriptions = new Collection<Snowflake, MusicSubscription>();
         this.tags = new Collection<string, string[]>();
+        this.asmrTags = [];
     }
 
     async start(): Promise<void> {

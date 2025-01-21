@@ -27,36 +27,40 @@ export default class extends Command {
                     .setDescription(
                         "I'm an open source nhentai Discord bot powered by [TypeScript](https://www.typescriptlang.org/) with [discord.js](https://discord.js.org/#/)"
                     )
-                    .addField(
-                        '❯ Discord',
-                        `• **Guilds** : ${this.client.guilds.cache.size}\n` +
-                            `• **Channels** : ${this.client.channels.cache.size}\n` +
-                            `• **Users** : ${await User.estimatedDocumentCount({}).exec()}\n` +
-                            `• **Invite Link** : [Click here](${this.client.generateInvite({
-                                scopes: ['bot', 'applications.commands'],
-                                permissions: PERMISSIONS,
-                            })})`
-                    )
-                    .addField(
-                        '❯ Technical',
-                        `• **Uptime** : ${
-                            this.client.uptime
-                                ? this.client.util.formatMilliseconds(this.client.uptime)
-                                : 'N/A'
-                        }\n` +
-                            `• **Version** : ${npm_package_version}\n` +
-                            `• **Memory Usage** : ${(
-                                process.memoryUsage().heapUsed /
-                                1024 /
-                                1024
-                            ).toFixed(2)} MB\n` +
-                            `• **Node.js** : ${process.version}\n` +
-                            `• **Discord.js** : v${DiscordVersion}\n` +
-                            `• **Github** : [Click here](https://github.com/${owner}/${repo.replace(
-                                '.git',
-                                ''
-                            )})`
-                    ),
+                    .addFields([
+                        {
+                            name: 'Discord',
+                            value:
+                                `• **Guilds** : ${this.client.guilds.cache.size}\n` +
+                                `• **Channels** : ${this.client.channels.cache.size}\n` +
+                                `• **Users** : ${await User.estimatedDocumentCount({}).exec()}\n` +
+                                `• **Invite Link** : [Click here](${this.client.generateInvite({
+                                    scopes: ['bot', 'applications.commands'],
+                                    permissions: PERMISSIONS,
+                                })})`,
+                        },
+                        {
+                            name: 'Technical',
+                            value:
+                                `• **Uptime** : ${
+                                    this.client.uptime
+                                        ? this.client.util.formatMilliseconds(this.client.uptime)
+                                        : 'N/A'
+                                }\n` +
+                                `• **Version** : ${npm_package_version}\n` +
+                                `• **Memory Usage** : ${(
+                                    process.memoryUsage().heapUsed /
+                                    1024 /
+                                    1024
+                                ).toFixed(2)} MB\n` +
+                                `• **Node.js** : ${process.version}\n` +
+                                `• **Discord.js** : v${DiscordVersion}\n` +
+                                `• **Github** : [Click here](https://github.com/${owner}/${repo.replace(
+                                    '.git',
+                                    ''
+                                )})`,
+                        },
+                    ]),
             ],
         });
     }

@@ -4,7 +4,6 @@ import { createServer } from 'http';
 createServer().listen(process.env.PORT || 8080);
 import { Collection, Snowflake, TextChannel } from 'discord.js';
 const { LOGGING_CHANNEL } = process.env;
-import axios from 'axios';
 import { Client } from './structures/Client';
 const client = new Client();
 client.start();
@@ -62,6 +61,7 @@ client.once('ready', async () => {
     client.logger.info(`[READY] Logged in as ${client.user.tag}! ID: ${client.user.id}.`);
     await client.db.init();
     await client.commandHandler.loadCommands();
+    client.asmrTags = await client.jasmr.tagList();
     await changePresence();
 });
 

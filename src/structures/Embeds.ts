@@ -419,16 +419,36 @@ export class Embeds {
         const displayASMR = this.paginator(this.client, {
             collectorTimeout: 180000,
         });
-        for (const { circle, title, url, tags, image, duration } of asmr) {
+        for (const {
+            language,
+            rating,
+            circle,
+            title,
+            url,
+            tags,
+            image,
+            duration,
+            views,
+            likes,
+        } of asmr) {
             displayASMR.addPage('thumbnail', {
                 embed: this.default()
                     .setTitle(title)
                     .setURL(url)
-                    .setDescription(
-                        `Duration: \`${duration}\`\nTags: ${
-                            tags.length ? tags.map(t => `\`${t.trim()}\``).join(' ') : 'N/A'
-                        }`
-                    )
+                    .addFields([
+                        {
+                            name: 'Metadata',
+                            value:
+                            `• **Language** : ${language}\n` + `• **Rating** : ${rating}\n` +
+                                `• **Duration** : ${duration}\n` +
+                                `• **Views** : ${views}\n` +
+                                `• **Likes** : ${likes}`,
+                        },
+                        {
+                            name: 'Tags',
+                            value: tags.length ? tags.map(t => `\`${t.trim()}\``).join(' ') : 'N/A',
+                        },
+                    ])
                     .setThumbnail(image)
                     .setFooter({ text: `Circle: ${circle}` }),
             });

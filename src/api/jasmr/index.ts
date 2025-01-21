@@ -10,12 +10,16 @@ export enum Sort {
     Rating = 'rating',
 }
 export interface SearchResult {
+    language: string;
+    rating: string;
     circle: string;
     title: string;
     url: string;
     tags: string[];
     image: string;
     duration: string;
+    views: string;
+    likes: string;
 }
 
 export class Client {
@@ -35,20 +39,24 @@ export class Client {
     }
 
     private getVideos($: Root): SearchResult[] {
-        return $('.recent-item')
+        return $('.video-item')
             .toArray()
             .map(e => {
                 return {
-                    circle: $(e).find('.popular-item-circle').text(),
-                    title: $(e).find('.popular-item-title').text(),
-                    url: `${this.baseURL}/${$(e).find('.popular-item-title').parent('a').attr('href')}`,
+                    language: $(e).find('.video-item-badge.video-item-language').text().trim(),
+                    rating: $(e).find('.video-item-badge.video-item-agerating').text().trim(),
+                    circle: $(e).find('.video-item-circle').text().trim(),
+                    title: $(e).find('.video-item-title-container').find('a').attr('aria-label').trim(),
+                    url: `${this.baseURL}/${$(e).find('.video-item-title-container').find('a').attr('href')}`,
                     tags:
                         ($(e)
-                            .find('.popular-item-tag')
+                            .find('.video-item-tag')
                             .toArray()
                             .map(e => decode($(e).text()))) ?? [],
-                    image: `${$(e).find('img').attr('src')}`,
-                    duration: `${$(e).find('.popular-item-duration').text()}`,
+                    image: $(e).find('img').attr('src'),
+                    duration: $(e).find('.video-item-duration').text().trim(),
+                    views: $(e).find('.video-item-clicks').text().trim(),
+                    likes: $(e).find('.video-item-likes').text().trim(),
                 };
             });
     }
@@ -66,7 +74,7 @@ export class Client {
     }
 
     public async search(query: string, page?: number, sort?: string): Promise<SearchResult[]> {
-        const url = `${this.baseURL}/s?page=${page}&q=${query.replace(/ /g, '+')}&sort=${sort}&min=none&max=none&age=none&upload=alltime`;
+        const url = `${this.baseURL}/search?q=${query.replace(/ /g, '+')}&page=${page}&sort=${sort}`;
         const result = await this.fetch<string>(url).then(async res => {
             const $ = load(<string>res.data, {
                 decodeEntities: false,
@@ -84,6 +92,25 @@ export class Client {
                 xmlMode: false,
             });
             return $('source').attr('src');
+        });
+        return result;
+    }
+
+    public async tagList(): Promise<string[]> {
+        const url = `${this.baseURL}/categories`;
+        const result = await this.fetch<string>(url).then(async res => {
+            const $ = load(<string>res.data, {
+                decodeEntities: false,
+                xmlMode: false,
+            });
+            let tags: string[] = [];
+            for (const e of $('.categories-section.categories-section').toArray()) {
+                const rawTagList = $(e).find('.categories-item.button.button-tag').toArray();
+                const tagList = rawTagList.map(e => e.attribs['tag']);
+                if (tagList.includes('Rape')) continue; // Skip extreme catergory
+                tags.push(...tagList);
+            }
+            return tags;
         });
         return result;
     }

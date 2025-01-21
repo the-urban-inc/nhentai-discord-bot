@@ -9,9 +9,7 @@ import {
 import { AutocompleteInteraction, CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 import { entersState, joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
 import { Sort } from '@api/jasmr';
-import axios from 'axios';
 import Fuse from 'fuse.js';
-import { ASMR_TAGS } from '@constants';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -51,7 +49,7 @@ export default class extends Command {
 
     async autocomplete(interaction: AutocompleteInteraction) {
         await interaction.respond(
-            new Fuse(ASMR_TAGS, {
+            new Fuse(this.client.asmrTags, {
                 includeScore: true,
                 threshold: 0.1,
             }).search(interaction.options.getFocused(), { limit: 25 }).map(f => {
@@ -118,33 +116,9 @@ export default class extends Command {
             this.client.logger.error(error);
             throw new UserError('FAILED_TO_JOIN_VC');
         }
-
-        // cheesing it
-        const videoID = title.match(/RJ\d+/g)[0]; // await this.client.jasmr.video(encodeURI(url));
-        if (!videoID) {
-            throw new UserError('NO_RESULT', query);
-        }
-
-        // double cheese
-        async function getStatus(url: string) {
-            return new Promise((resolve, reject) => {
-                axios
-                    .head(url)
-                    .then(r => resolve(r.status))
-                    .catch(e => resolve(e.response.status));
-            });
-        }
-        let testURL = [
-            `https://server.jasmr.net/api/uploads/${videoID}.mp3`,
-            `https://server.jasmr.net/api/uploads/${videoID}.m4a`,
-            `https://server.jasmr.net/content/rereleases/${videoID}.mp4`,
-            `https://server.jasmr.net/content/rereleases/${videoID}.m4a`,
-        ].map(async url => { return getStatus(url).then(r => r == 200 ? url : null) });
-        const videos = (await Promise.all(testURL)).filter(Boolean);
-        if (!videos.length) {
-            throw new UserError('NO_RESULT', query);
-        }
         
+        const videoURL = await this.client.jasmr.video(url);
+    
         const np = this.client.embeds
             .default()
             .setTitle('▶️\u2000Now Playing')
@@ -168,7 +142,7 @@ export default class extends Command {
         try {
             const track = await Track.from(
                 encodeURI(url),
-                encodeURI(videos[0]),
+                encodeURI(videoURL),
                 image,
                 title,
                 circle,
