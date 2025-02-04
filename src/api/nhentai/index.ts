@@ -33,7 +33,7 @@ export interface TagResult {
 }
 
 export class Client {
-    public baseURL = 'https://nhentai.net';
+    public baseURL = process.env.NHENTAI_URL || 'https://nhentai.net';
     public baseImageURL = () => `https://i${Math.floor(Math.random() * 4) + 1}.nhentai.net`;
     public baseThumbnailURL = () => `https://t${Math.floor(Math.random() * 4) + 1}.nhentai.net`;
 
