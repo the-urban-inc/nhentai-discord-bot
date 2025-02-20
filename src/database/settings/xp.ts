@@ -44,7 +44,7 @@ export class XP {
             server.users.set(userID, newUser);
             await server.save();
             if (!globalUser) {
-                await new User(newUser).save();
+                await new User({ userID, ...newUser }).save();
             } else {
                 globalUser.points = exp;
                 globalUser.level = levels;

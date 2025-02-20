@@ -25,24 +25,26 @@ export default class extends Command {
         const settings = this.client.embeds
             .default()
             .setTitle('⚙️\u2000Preferred Languages')
-            .addField(
-                'Preferred Languages',
-                preferred.length
-                    ? preferred.map(x => `\`${this.client.util.capitalize(x)}\``).join(', ')
-                    : 'None'
-            )
-            .addField(
-                'Apply to queries?',
-                `${
-                    query ? y : n
-                }\u2000**Query**\n• Filter preferred languages in your nhentai command calls (commands in the \`general\` category).\n• Note: **It only filters per nhentai page.**`
-            )
-            .addField(
-                'Apply to notifier?',
-                `${
-                    follow ? y : n
-                }\u2000**Notifier**\n• Filter preferred languages in your notifies (for more info visit the QNA tab of the \`help\` command).`
-            );
+            .addFields([
+                {
+                    name: 'Preferred Languages',
+                    value: preferred.length
+                        ? preferred.map(x => `\`${this.client.util.capitalize(x)}\``).join(', ')
+                        : 'None',
+                },
+                {
+                    name: 'Apply to queries?',
+                    value: `${
+                        query ? y : n
+                    }\u2000**Query**\n• Filter preferred languages in your nhentai command calls (commands in the \`general\` category).\n• Note: **It only filters per nhentai page.**`,
+                },
+                {
+                    name: 'Apply to notifier?',
+                    value: `${
+                        follow ? y : n
+                    }\u2000**Notifier**\n• Filter preferred languages in your notifies (for more info visit the QNA tab of the \`help\` command).`,
+                },
+            ]);
         const language = new MessageSelectMenu()
             .setCustomId('language')
             .setPlaceholder('⚙️\u2000Select language')
@@ -94,9 +96,10 @@ export default class extends Command {
     async exec(interaction: CommandInteraction) {
         const member = await interaction.guild.members.fetch(interaction.user.id);
         let user = await User.findOne({ userID: member.id }).exec();
-        if (!user) {
+        if (!user || !user.language) {
             user = await new User({
                 userID: member.id,
+                blacklists: [],
                 language: {
                     preferred: [],
                     query: false,

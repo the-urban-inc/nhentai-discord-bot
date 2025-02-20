@@ -42,8 +42,8 @@ const userSchema = new Schema(
                 id: String,
                 name: String,
             }],
-            query: Boolean,
-            follow: Boolean,
+            query: { $type: Boolean, default: false },
+            follow: { $type: Boolean, default: false },     
         }
     },
     { typeKey: '$type' }

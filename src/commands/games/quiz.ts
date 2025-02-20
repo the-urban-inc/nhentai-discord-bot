@@ -27,6 +27,11 @@ export default class extends Command {
                 user = await new User({
                     userID: interaction.user.id,
                     blacklists: [],
+                    language: {
+                        preferred: [],
+                        query: false,
+                        follow: false,
+                    },
                 }).save();
             }
             this.blacklists = user.blacklists;

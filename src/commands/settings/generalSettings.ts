@@ -76,7 +76,11 @@ export default class extends Command {
             user = await new User({
                 userID: member.id,
                 blacklists: [],
-                anonymous: true,
+                language: {
+                    preferred: [],
+                    query: false,
+                    follow: false,
+                },
             }).save();
         }
         let anonymous = user.anonymous,
