@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 config();
 import { createServer } from 'http';
 createServer().listen(process.env.PORT || 8080);
-import { Collection, Snowflake, TextChannel } from 'discord.js';
+import { ActivityType, Collection, Snowflake, TextChannel } from 'discord.js';
 const { LOGGING_CHANNEL } = process.env;
 import { Client } from './structures/Client';
 const client = new Client();
@@ -29,11 +29,11 @@ async function changePresence() {
                     ][Math.round(Math.random())],
                 },
             ],
-            [{ name: await getRandomCode(), type: <const>'WATCHING' }],
+            [{ name: await getRandomCode(), type: ActivityType.Streaming }],
             [
                 {
                     name: 'your commands',
-                    type: <const>'LISTENING',
+                    type: ActivityType.Listening,
                 },
             ],
         ][cur],

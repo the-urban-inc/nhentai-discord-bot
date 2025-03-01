@@ -1,11 +1,11 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction } from 'discord.js';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'resume',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Resumes playback of the current ASMR file',
             cooldown: 10000,
             nsfw: true,

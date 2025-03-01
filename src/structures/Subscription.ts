@@ -1,4 +1,4 @@
-import { Snowflake, Client, Guild, VoiceBasedChannel, Constants } from 'discord.js';
+import { Snowflake, Client, Guild, VoiceBasedChannel, Constants, Events, Status } from 'discord.js';
 import {
     AudioPlayer,
     AudioPlayerError,
@@ -38,7 +38,7 @@ function trackClient(client: Client) {
 			adapters.get(payload.guild_id)?.onVoiceStateUpdate(payload);
 		}
 	});
-	client.on(Constants.Events.SHARD_DISCONNECT, (_, shardId) => {
+	client.on(Events.ShardDisconnect, (_, shardId) => {
 		const guilds = trackedShards.get(shardId);
 		if (guilds) {
 			for (const guildID of guilds.values()) {
@@ -65,7 +65,7 @@ export function createDiscordJSAdapter(channel: VoiceBasedChannel): DiscordGatew
 		trackGuild(channel.guild);
 		return {
 			sendPayload(data) {
-				if (channel.guild.shard.status === Constants.Status.READY) {
+				if (channel.guild.shard.status === Status.Ready) {
 					channel.guild.shard.send(data);
 					return true;
 				}

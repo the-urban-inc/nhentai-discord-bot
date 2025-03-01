@@ -6,35 +6,36 @@ import {
     UserError,
     createDiscordJSAdapter,
 } from '@structures';
-import { AutocompleteInteraction, CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
+import { ApplicationCommandType, ApplicationCommandOptionType, AutocompleteInteraction, CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 import { entersState, joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
 import { Sort } from '@api/jasmr';
 import Fuse from 'fuse.js';
+import { application } from 'express';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'play',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Plays a random ASMR file with specified query',
             cooldown: 10000,
             nsfw: true,
             options: [
                 {
                     name: 'query',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'The query to search for',
                     autocomplete: true,
                     required: true,
                 },
                 {
                     name: 'page',
-                    type: 'INTEGER',
+                    type: ApplicationCommandOptionType.Integer,
                     description: 'Page number (default: 1)',
                 },
                 {
                     name: 'sort',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'ASMR sort method (default: relevance)',
                     choices: Object.keys(Sort).map(k => {
                         return {

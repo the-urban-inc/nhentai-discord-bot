@@ -1,22 +1,24 @@
 import { Client, Command, UserError } from '@structures';
 import {
+    ActionRowBuilder,
+    ApplicationCommandType,
+    ButtonBuilder,
+    ButtonStyle,
     CommandInteraction,
     Message,
-    MessageActionRow,
-    MessageButton,
-    Modal,
-    ModalActionRowComponent,
-    TextInputComponent,
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
 import { User, Server, Blacklist } from '@database/models';
-import { Gallery, GalleryResult } from '@api/nhentai';
-import { BANNED_TAGS } from '@constants';
+import { Gallery } from '@api/nhentai';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'guessthecode',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description:
                 'Starts a "Guess the code" session: try to guess the code of the displayed doujin thumbnail.',
             cooldown: 30000,
@@ -83,6 +85,7 @@ export default class extends Command {
             throw new UserError('NO_RESULT');
         }
         const page = this.client.nhentai.getCover(gallery);
+        console.log(page);
         const quiz = this.client.embeds
             .default()
             .setTitle(`Guess the code this doujin is from!`)
@@ -97,13 +100,16 @@ export default class extends Command {
         const message = (await interaction.editReply({
             embeds: [quiz],
             components: [
-                new MessageActionRow().addComponents([
-                    new MessageButton()
+                new ActionRowBuilder<ButtonBuilder>().addComponents(
+                    new ButtonBuilder()
                         .setCustomId('guess')
                         .setLabel('Guess')
-                        .setStyle('SECONDARY'),
-                    new MessageButton().setCustomId('cancel').setLabel('Skip').setStyle('DANGER'),
-                ]),
+                        .setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                        .setCustomId('cancel')
+                        .setLabel('Skip')
+                        .setStyle(ButtonStyle.Danger)
+                ),
             ],
         })) as Message;
         const answer = +gallery.id;
@@ -119,11 +125,11 @@ export default class extends Command {
                     await interaction.editReply({
                         embeds: [quiz],
                         components: [
-                            new MessageActionRow().addComponents([
-                                new MessageButton()
+                            new ActionRowBuilder<ButtonBuilder>().addComponents([
+                                new ButtonBuilder()
                                     .setCustomId('guess')
                                     .setLabel('Guess')
-                                    .setStyle('SECONDARY')
+                                    .setStyle(ButtonStyle.Secondary)
                                     .setDisabled(true),
                             ]),
                         ],
@@ -137,19 +143,20 @@ export default class extends Command {
                                     `Quiz skipped. The correct answer was \`${answer}\`.`
                                 ),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                 }
-                const modal = new Modal()
+                const modal = new ModalBuilder()
                     .setCustomId(String(gallery.id))
                     .setTitle(this.client.user.username);
-                const pageInput = new TextInputComponent()
+                const pageInput = new TextInputBuilder()
                     .setCustomId('pageInput')
                     .setLabel('Input your guess!')
-                    .setStyle('SHORT')
+                    .setStyle(TextInputStyle.Short)
                     .setRequired(true);
-                const firstActionRow =
-                    new MessageActionRow<ModalActionRowComponent>().addComponents(pageInput);
+                const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+                    pageInput
+                );
                 modal.addComponents(firstActionRow);
                 await i.showModal(modal);
                 const response = await i.awaitModalSubmit({
@@ -162,11 +169,11 @@ export default class extends Command {
                 await interaction.editReply({
                     embeds: [quiz],
                     components: [
-                        new MessageActionRow().addComponents([
-                            new MessageButton()
+                        new ActionRowBuilder<ButtonBuilder>().addComponents([
+                            new ButtonBuilder()
                                 .setCustomId('guess')
                                 .setLabel('Guess')
-                                .setStyle('SECONDARY')
+                                .setStyle(ButtonStyle.Secondary)
                                 .setDisabled(true),
                         ]),
                     ],
@@ -181,7 +188,7 @@ export default class extends Command {
                                     `That's not a number. Are you even trying??? The correct answer was \`${answer}\`.`
                                 ),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                     return;
                 }
@@ -202,7 +209,7 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                 } else if (
                     this.client.util.isBetween(choice, answer - 10, answer) ||
@@ -220,7 +227,7 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                 } else if (
                     this.client.util.isBetween(choice, answer - 100, answer) ||
@@ -238,7 +245,7 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                 } else if (
                     this.client.util.isBetween(choice, answer - 1000, answer) ||
@@ -258,7 +265,7 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                 } else if (
                     this.client.util.isBetween(choice, answer - 10000, answer) ||
@@ -278,7 +285,7 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                 } else if (
                     this.client.util.isBetween(choice, answer - 100000, answer) ||
@@ -298,7 +305,7 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                 } else {
                     interaction.followUp({
@@ -313,7 +320,7 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                 }
                 if (inc > 0) {
@@ -327,8 +334,7 @@ export default class extends Command {
                     if (leveledUp) {
                         await interaction.followUp({
                             content: 'Congratulations! You have leveled up!',
-                            ephemeral:
-                                (interaction.options.get('private')?.value as boolean) ?? false,
+                            ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                         });
                     }
                 }
@@ -344,7 +350,7 @@ export default class extends Command {
                                 `The session timed out as you did not answer within 30 seconds. The correct answer was \`${answer}\`.`
                             ),
                     ],
-                    ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                    ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                 });
             });
     }

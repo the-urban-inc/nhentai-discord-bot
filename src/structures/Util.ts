@@ -1,5 +1,5 @@
 import { Client } from './Client';
-import { MessageActionRow, MessageButton } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
 import { BLOCKED_MESSAGE } from '@constants';
 
 const PROTOCOL_AND_DOMAIN_RE = /^(?:\w+:)?\/\/(\S+)$/;
@@ -46,7 +46,7 @@ export class Util {
 
     capitalize(text: string) {
         return text.replace(/([^\W_]+[^\s-]*) */g, function (txt) {
-            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
         });
     }
 
@@ -54,14 +54,14 @@ export class Util {
         return {
             content: BLOCKED_MESSAGE,
             components: [
-                new MessageActionRow().addComponents(
-                    new MessageButton()
+                new ActionRowBuilder<ButtonBuilder>().addComponents(
+                    new ButtonBuilder()
                         .setLabel('Discord Community Guidelines')
                         .setURL('https://discord.com/guidelines')
-                        .setStyle('LINK')
+                        .setStyle(ButtonStyle.Link)
                 ),
             ],
-            ephemeral: true,
+            flags: 64, // MessageFlags.Ephemeral,
         };
     }
 
@@ -111,7 +111,7 @@ export class Util {
      * https://github.com/rigoneri/indefinite-article.js
      * @author: Rodrigo Neri (rigoneri)
      */
-     indefiniteArticle(phrase: string) {
+    indefiniteArticle(phrase: string) {
         // Getting the first word
         const match = /\w+/.exec(phrase);
         let word = 'an';
@@ -209,16 +209,19 @@ export class Util {
     }
 
     splitWithQuotes(text: string) {
-        return text.match(/\\?.|^$/g).reduce((p, c) => {
-            if (c === '"') {
-                p.quote ^= 1;
-            } else if (!p.quote && c === ' ') {
-                p.a.push('');
-            } else {
-                p.a[p.a.length - 1] += c.replace(/\\(.)/, '$1');
-            }
-            return p;
-        }, { a: [''], quote: 0 }).a;
+        return text.match(/\\?.|^$/g).reduce(
+            (p, c) => {
+                if (c === '"') {
+                    p.quote ^= 1;
+                } else if (!p.quote && c === ' ') {
+                    p.a.push('');
+                } else {
+                    p.a[p.a.length - 1] += c.replace(/\\(.)/, '$1');
+                }
+                return p;
+            },
+            { a: [''], quote: 0 }
+        ).a;
     }
 
     resolvePerm(text: string) {

@@ -1,5 +1,5 @@
 import { Client, ContextMenuCommand, UserError } from '@structures';
-import { ContextMenuInteraction, Message } from 'discord.js';
+import { ApplicationCommandType, APIContextMenuInteraction, Message, APIMessageApplicationCommandInteraction, MessageContextMenuCommandInteraction } from 'discord.js';
 import sagiri from 'sagiri';
 const sauceNAO = sagiri(process.env.SAUCENAO_TOKEN);
 
@@ -7,7 +7,7 @@ export default class extends ContextMenuCommand {
     constructor(client: Client) {
         super(client, {
             name: 'saucenao',
-            type: 'MESSAGE',
+            type: ApplicationCommandType.Message,
             cooldown: 10000,
             nsfw: true,
         });
@@ -23,7 +23,7 @@ export default class extends ContextMenuCommand {
         return message.embeds.filter(e => e.image || e.thumbnail).map(e => e.image ?? e.thumbnail);
     }
 
-    async exec(interaction: ContextMenuInteraction) {
+    async exec(interaction: MessageContextMenuCommandInteraction) {
         const message = interaction.options.getMessage('message') as Message;
         if (!message.content && !message.attachments.size) {
             throw new UserError('NO_IMAGE');

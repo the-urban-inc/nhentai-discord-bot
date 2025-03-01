@@ -1,11 +1,11 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction } from 'discord.js';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'uptime',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Shows bot uptime',
         });
     }

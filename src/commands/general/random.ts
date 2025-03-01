@@ -1,24 +1,24 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction, Message } from 'discord.js';
+import { ApplicationCommandType, ApplicationCommandOptionType, CommandInteraction } from 'discord.js';
 import { User, Server, Blacklist } from '@database/models';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'random',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Shows a random gallery',
             cooldown: 5000,
             nsfw: true,
             options: [
                 {
                     name: 'page',
-                    type: 'INTEGER',
+                    type: ApplicationCommandOptionType.Integer,
                     description: 'Starting page number (default: 1)',
                 },
                 {
                     name: 'more',
-                    type: 'BOOLEAN',
+                    type: ApplicationCommandOptionType.Boolean,
                     description: 'Views more info about the doujin (default: false)',
                 },
             ],

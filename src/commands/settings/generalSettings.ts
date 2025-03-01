@@ -1,9 +1,14 @@
 import { Client, Command } from '@structures';
 import {
+    ApplicationCommandType,
     CommandInteraction,
     Message,
-    MessageActionRow,
-    MessageSelectMenu,
+    ActionRowBuilder,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    PermissionFlagsBits,
+    Component,
+    ComponentType,
 } from 'discord.js';
 import { User, Server } from '@database/models';
 
@@ -11,7 +16,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'general-settings',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Configure user (and server) settings',
             cooldown: 10000,
             nsfw: true,
@@ -30,7 +35,7 @@ export default class extends Command {
                     anonymous ? y : n
                 }\u2000**Anonymous**\n• Disallow logging command calls to the database (hiding your calls from the \`recent\` command).\n• You won't receive XP from \`g\` command.`
             }]);
-        const menu = new MessageSelectMenu()
+        const menu = new StringSelectMenuBuilder()
             .setCustomId('select')
             .setPlaceholder('⚙️\u2000Toggle settings')
             .addOptions([
@@ -50,22 +55,20 @@ export default class extends Command {
                     privateCommand ? y : n
                 }\u2000**Private**\n• Hide ALL commands by default.`
             }]);
-            menu.spliceOptions(1, 0, [
-                {
-                    label: 'Danger',
-                    value: 'danger',
-                    emoji: danger ? n : y,
-                },
-                {
-                    label: 'Private',
-                    value: 'private',
-                    emoji: privateCommand ? n : y,
-                },
-            ]);
+            menu.spliceOptions(1, 0, 
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Danger')
+                    .setValue('danger')
+                    .setEmoji(danger ? n : y),
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Private')
+                    .setValue('private')
+                    .setEmoji(privateCommand ? n : y)
+            );
         }
         return {
             embeds: [settings],
-            components: [new MessageActionRow().addComponents(menu)],
+            components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
         };
     }
 
@@ -85,7 +88,7 @@ export default class extends Command {
         }
         let anonymous = user.anonymous,
             danger = null, privateCommand = null;
-        if (member.permissions.has('MANAGE_GUILD')) {
+        if (member.permissions.has(PermissionFlagsBits.ManageGuild)) {
             let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
             if (!server) {
                 server = await new Server({
@@ -100,11 +103,11 @@ export default class extends Command {
             this.update(anonymous, danger, privateCommand)
         )) as Message;
         const collector = message.createMessageComponentCollector({
+            componentType: ComponentType.StringSelect,
             filter: i => i.user.id === member.id,
             time: 300000,
         });
         collector.on('collect', async i => {
-            if (!i.isSelectMenu()) return;
             await i.deferUpdate();
             if (i.values.includes('anon'))
                 anonymous = await this.client.db.user.anonymous(member.id);

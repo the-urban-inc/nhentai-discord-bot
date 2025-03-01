@@ -1,20 +1,20 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction, User as DiscordUser } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction, User as DiscordUser } from 'discord.js';
 import { User, Server, Blacklist } from '@database/models';
-import { GalleryResult, PartialGallery } from '@api/nhentai';
+import { PartialGallery } from '@api/nhentai';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'favorite',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: "Shows your (or your friend's) favorite",
             cooldown: 10000,
             nsfw: true,
             options: [
                 {
                     name: 'user',
-                    type: 'USER',
+                    type: ApplicationCommandOptionType.User,
                     description: 'The user to search for',
                 },
             ],

@@ -1,5 +1,5 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction, MessageFlags } from 'discord.js';
 import { decode } from 'he';
 import { User, Server, Blacklist } from '@database/models';
 import { Gallery, PartialGallery } from '@api/nhentai';
@@ -8,25 +8,25 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'g',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Searches nhentai for specified code',
             cooldown: 5000,
             nsfw: true,
             options: [
                 {
                     name: 'query',
-                    type: 'INTEGER',
+                    type: ApplicationCommandOptionType.Integer,
                     description: 'The code to search for on nhentai',
                     required: true,
                 },
                 {
                     name: 'page',
-                    type: 'INTEGER',
+                    type: ApplicationCommandOptionType.Integer,
                     description: 'Starting page number (default: 1)',
                 },
                 {
                     name: 'more',
-                    type: 'BOOLEAN',
+                    type: ApplicationCommandOptionType.Boolean,
                     description: 'Views more info about the doujin (default: false)',
                 },
             ],
@@ -100,7 +100,7 @@ export default class extends Command {
             if (leveledUp) {
                 await interaction.followUp({
                     content: 'Congratulations! You have leveled up!',
-                    ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                    ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                 });
             }
         }

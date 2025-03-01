@@ -3,23 +3,32 @@ import {
     Collection,
     CollectorFilter,
     CommandInteraction,
-    ContextMenuInteraction,
     InteractionCollector,
     InteractionCollectorOptions,
     Message,
-    MessageActionRow,
-    MessageButton,
+    ActionRowBuilder,
+    ButtonBuilder,
     MessageComponentInteraction,
-    MessageEmbed,
-    MessageSelectMenu,
-    MessageSelectOptionData,
-    Modal,
     ModalActionRowComponent,
     Snowflake,
     SnowflakeUtil,
     TextChannel,
     TextInputComponent,
     User,
+    Embed,
+    CollectedInteraction,
+    ContextMenuCommandInteraction,
+    BaseSelectMenuBuilder,
+    StringSelectMenuBuilder,
+    EmbedBuilder,
+    ButtonStyle,
+    StringSelectMenuComponentData,
+    StringSelectMenuOptionBuilder,
+    PermissionFlagsBits,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    MessageFlags,
 } from 'discord.js';
 import { Gallery } from '@api/nhentai';
 
@@ -51,13 +60,13 @@ export interface Info {
 
 interface Page {
     galleryID?: Gallery['id'];
-    embed: MessageEmbed;
+    embed: EmbedBuilder;
     pages?: Page[];
 }
 
-export interface PaginatorOptions extends InteractionCollectorOptions<MessageComponentInteraction> {
+export interface PaginatorOptions extends InteractionCollectorOptions<CollectedInteraction> {
     info?: Info;
-    filter?: CollectorFilter<[MessageComponentInteraction]>;
+    filter?: CollectorFilter<[CollectedInteraction]>;
     startView?: Views;
     startPage?: number;
     commandPage?: number;
@@ -73,19 +82,19 @@ const TAGS = ['tag', 'artist', 'character', 'category', 'group', 'parody', 'lang
 
 export class Paginator {
     readonly client: Client;
-    private readonly id: Snowflake;
-    interaction: CommandInteraction | ContextMenuInteraction;
-    collector: InteractionCollector<MessageComponentInteraction>;
+    private readonly id: bigint;
+    interaction: CommandInteraction | ContextMenuCommandInteraction;
+    collector: InteractionCollector<CollectedInteraction>;
     pages: Record<Views, Page[]>;
     filteredPages: Record<Views, Page[]>;
     private followedUp: boolean;
     selection: Promise<number | null>;
     private goBack: { previousView: 'info' | 'thumbnail'; previousPage: number; pages: Page[] };
-    private readonly methodMap: Collection<Interactions, MessageButton | MessageSelectMenu>;
+    private readonly methodMap: Collection<Interactions, ButtonBuilder | StringSelectMenuBuilder>;
     private readonly priorityUser: User | null;
     private filterIDs: number[];
     private readonly info: Info;
-    private readonly filter: CollectorFilter<[MessageComponentInteraction]>;
+    private readonly filter: CollectorFilter<[CollectedInteraction]>;
     private image: string | null;
     private ephemeral: boolean;
     private readonly prompt: string;
@@ -107,7 +116,7 @@ export class Paginator {
         this.pages = { info: [], thumbnail: [] };
         this.filteredPages = { info: [], thumbnail: [] };
         this.followedUp = false;
-        this.methodMap = new Collection<Interactions, MessageButton | MessageSelectMenu>();
+        this.methodMap = new Collection<Interactions, ButtonBuilder | StringSelectMenuBuilder>();
         this.priorityUser = options.priorityUser;
         this.filterIDs = options.filterIDs ?? [];
         this.info = options.info ?? { id: '', name: '' };
@@ -133,49 +142,49 @@ export class Paginator {
         this.methodMap
             .set(
                 Interactions.First,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' first')
                     .setLabel('<<')
-                    .setStyle('SECONDARY')
+                    .setStyle(ButtonStyle.Secondary)
             )
             .set(
                 Interactions.Back,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' back')
                     .setLabel('<')
-                    .setStyle('SECONDARY')
+                    .setStyle(ButtonStyle.Secondary)
             )
             .set(
                 Interactions.Jump,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' jump')
                     .setLabel(`${this.#currentPage + 1} of ${this.pages.thumbnail.length}`)
-                    .setStyle('SECONDARY')
+                    .setStyle(ButtonStyle.Secondary)
             )
             .set(
                 Interactions.Forward,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' forward')
                     .setLabel('>')
-                    .setStyle('SECONDARY')
+                    .setStyle(ButtonStyle.Secondary)
             )
             .set(
                 Interactions.Last,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' last')
                     .setLabel('>>')
-                    .setStyle('SECONDARY')
+                    .setStyle(ButtonStyle.Secondary)
             )
             .set(
                 Interactions.Info,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' info')
                     .setLabel('Sauce?')
-                    .setStyle('PRIMARY')
+                    .setStyle(ButtonStyle.Primary)
             )
             .set(
                 Interactions.Select,
-                new MessageSelectMenu().setCustomId(this.id + ' select').addOptions([
+                new StringSelectMenuBuilder().setCustomId(this.id + ' select').addOptions([
                     {
                         label: 'Info View',
                         description: 'Switch to Info View',
@@ -194,53 +203,53 @@ export class Paginator {
             )
             .set(
                 Interactions.Love,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' love')
                     .setLabel('❤️')
-                    .setStyle('SECONDARY')
+                    .setStyle(ButtonStyle.Secondary)
             )
             .set(
                 Interactions.Follow,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' follow')
                     .setLabel('🔖')
-                    .setStyle('SECONDARY')
+                    .setStyle(ButtonStyle.Secondary)
             )
             .set(
                 Interactions.Blacklist,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' blacklist')
                     .setLabel('🏴')
-                    .setStyle('SECONDARY')
+                    .setStyle(ButtonStyle.Secondary)
             )
             .set(
                 Interactions.Filter,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' filter')
                     .setLabel(`Click here to see ${this.filterIDs.length} filtered galleries`)
                     .setEmoji('👁️')
-                    .setStyle('SECONDARY')
+                    .setStyle(ButtonStyle.Secondary)
             )
             // .set(
             //     Interactions.Download,
-            //     new MessageButton()
+            //     new ButtonBuilder()
             //         .setLabel('📥')
-            //         .setStyle('LINK')
+            //         .setStyle(ButtonStyle.Link)
             //         .setURL('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
             // )
             .set(
                 Interactions.Remove,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' remove')
                     .setLabel('🗑️')
-                    .setStyle('DANGER')
+                    .setStyle(ButtonStyle.Danger)
             )
             .set(
                 Interactions.Enqueue,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(this.id + ' enqueue')
                     .setLabel('⏯️\u2000Enqueue this track to the playlist')
-                    .setStyle('PRIMARY')
+                    .setStyle(ButtonStyle.Primary)
             );
     }
 
@@ -248,48 +257,47 @@ export class Paginator {
         const id = this.pages[this.#currentView][this.#currentPage]?.galleryID ?? this.info.id;
         // let downloadURL = `https://d.nope.ovh/download/${id}`;
         // if (!id) downloadURL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-        // (this.methodMap.get(Interactions.Download) as MessageButton).setURL(downloadURL);
-        (this.methodMap.get(Interactions.Jump) as MessageButton).setLabel(
+        // (this.methodMap.get(Interactions.Download) as ButtonBuilder).setURL(downloadURL);
+        (this.methodMap.get(Interactions.Jump) as ButtonBuilder).setLabel(
             `${this.#currentPage + 1} of ${this.pages[this.#currentView].length}`
         );
-        const menu: MessageSelectOptionData[] = [
-            {
-                label: 'Info View',
-                description: 'Switch to Info View',
-                value: 'info',
-                emoji: '📄',
-                default: this.#currentView === 'info' && !this.#previewing,
-            },
-            {
-                label: 'Thumbnail View',
-                description: 'Switch to Thumbnail View',
-                value: 'thumbnail',
-                emoji: '🖼️',
-                default: this.#currentView === 'thumbnail' && !this.#previewing,
-            },
+        const menu = [
+            new StringSelectMenuOptionBuilder()
+            .setLabel('Info View')
+            .setDescription('Switch to Info View')
+            .setValue('info')
+            .setEmoji('📄')
+            .setDefault(this.#currentView === 'info' && !this.#previewing),
+            new StringSelectMenuOptionBuilder()
+            .setLabel('Thumbnail View')
+            .setDescription('Switch to Thumbnail View')
+            .setValue('thumbnail')
+            .setEmoji('🖼️')
+            .setDefault(this.#currentView === 'thumbnail' && !this.#previewing),
         ];
         if (
             ['home', 'search', 'favorite', ...TAGS].includes(this.interaction.commandName) &&
-            (this.pages[this.#currentView][this.#currentPage]?.embed?.image ||
-                this.pages[this.#currentView][this.#currentPage]?.embed?.thumbnail)
+            (this.pages[this.#currentView][this.#currentPage]?.embed?.data.image ||
+                this.pages[this.#currentView][this.#currentPage]?.embed?.data.thumbnail)
         ) {
-            menu.push({
-                label: 'Preview',
-                description: 'Take a look at the current doujin',
-                value: 'preview',
-                emoji: '🔎',
-                default: this.#previewing,
-            });
+            menu.push(
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Preview')
+                    .setDescription('Take a look at the current doujin')
+                    .setValue('preview')
+                    .setEmoji('🔎')
+                    .setDefault(this.#previewing)
+            );
         }
-        (this.methodMap.get(Interactions.Select) as MessageSelectMenu).spliceOptions(0, 3, menu);
-        const naviRow = new MessageActionRow().addComponents([
+        (this.methodMap.get(Interactions.Select) as StringSelectMenuBuilder).spliceOptions(0, 3, menu);
+        const naviRow = new ActionRowBuilder().addComponents([
             this.methodMap.get(Interactions.First),
             this.methodMap.get(Interactions.Back),
             this.methodMap.get(Interactions.Jump),
             this.methodMap.get(Interactions.Forward),
             this.methodMap.get(Interactions.Last),
         ]);
-        const optionsRow = new MessageActionRow().addComponents(
+        const optionsRow = new ActionRowBuilder().addComponents(
             TAGS.includes(this.interaction.commandName)
                 ? [
                       this.methodMap.get(Interactions.Love),
@@ -317,15 +325,15 @@ export class Paginator {
             this.ephemeral ||
             !(this.interaction.channel as TextChannel)
                 .permissionsFor(this.interaction.guild.members.me)
-                .has('MANAGE_MESSAGES') ||
+                .has(PermissionFlagsBits.ManageMessages) ||
             !(this.interaction.channel as TextChannel)
                 .permissionsFor(this.interaction.guild.members.me)
-                .has('VIEW_CHANNEL') ||
+                .has(PermissionFlagsBits.ViewChannel) ||
             !(this.interaction.channel as TextChannel)
                 .permissionsFor(this.interaction.guild.members.me)
-                .has('READ_MESSAGE_HISTORY')
+                .has(PermissionFlagsBits.ReadMessageHistory)
         )
-            optionsRow.spliceComponents(-1, 1);
+            optionsRow.setComponents(optionsRow.components.splice(-1, 1));
         if (
             this.image &&
             this.interaction.commandName !== 'sauce' &&
@@ -333,7 +341,7 @@ export class Paginator {
             !this.priorityUser
         ) {
             return [
-                new MessageActionRow().addComponents(
+                new ActionRowBuilder().addComponents(
                     this.ephemeral
                         ? [this.methodMap.get(Interactions.Info)]
                         : [
@@ -354,15 +362,15 @@ export class Paginator {
                 ascii2dURL = `https://ascii2d.net/search/url/${encodeURIComponent(imageURL)}`,
                 yandexURL = `https://yandex.com/images/search?url=${encodeURIComponent(imageURL)}&rpt=imageview`;
             const others = [
-                new MessageButton().setLabel('Google Lens').setStyle('LINK').setURL(googleURL),
-                new MessageButton().setLabel('TinEye').setStyle('LINK').setURL(tineyeURL),
-                new MessageButton().setLabel('ascii2d').setStyle('LINK').setURL(ascii2dURL),
-                new MessageButton().setLabel('Yandex').setStyle('LINK').setURL(yandexURL),
+                new ButtonBuilder().setLabel('Google Lens').setStyle(ButtonStyle.Link).setURL(googleURL),
+                new ButtonBuilder().setLabel('TinEye').setStyle(ButtonStyle.Link).setURL(tineyeURL),
+                new ButtonBuilder().setLabel('ascii2d').setStyle(ButtonStyle.Link).setURL(ascii2dURL),
+                new ButtonBuilder().setLabel('Yandex').setStyle(ButtonStyle.Link).setURL(yandexURL),
                 this.methodMap.get(Interactions.Remove),
             ];
             return [
                 naviRow,
-                new MessageActionRow().addComponents(
+                new ActionRowBuilder().addComponents(
                     this.ephemeral ? others.splice(0, others.length - 1) : others
                 ),
             ];
@@ -372,11 +380,11 @@ export class Paginator {
         if (optionsRow.components.length) rows.push(optionsRow);
         if (this.filterIDs.length && !this.#previewing)
             rows.push(
-                new MessageActionRow().addComponents(this.methodMap.get(Interactions.Filter))
+                new ActionRowBuilder().addComponents(this.methodMap.get(Interactions.Filter))
             );
         if (this.pages.thumbnail.length && this.pages.info.length)
             rows.push(
-                new MessageActionRow().addComponents(this.methodMap.get(Interactions.Select))
+                new ActionRowBuilder().addComponents(this.methodMap.get(Interactions.Select))
             );
         return rows;
     }
@@ -402,7 +410,7 @@ export class Paginator {
     }
 
     async run(
-        interaction: CommandInteraction | ContextMenuInteraction,
+        interaction: CommandInteraction | ContextMenuCommandInteraction,
         content = '',
         type: 'followUp' | 'reply' | 'editReply' = 'editReply'
     ) {
@@ -440,7 +448,7 @@ export class Paginator {
                 ? [this.pages[this.#currentView][this.#currentPage].embed]
                 : [],
             components: this.getButtons(),
-            ephemeral: this.ephemeral,
+            ...this.ephemeral && { flags: 64 /* MessageFlags.Ephemeral */ },
             allowedMentions: { repliedUser: false },
         };
         const message = (await this.interaction[type](c)) as Message;
@@ -452,8 +460,8 @@ export class Paginator {
         this.collector.on('collect', async interaction => {
             if (interaction.user.bot) return;
             let method = interaction.customId;
-            if (!method.startsWith(this.id)) return;
-            method = method.slice(this.id.length + 1);
+            if (!method.startsWith(this.id.toString())) return;
+            method = method.slice(this.id.toString().length + 1);
             if (!this.methodMap.has(method as Interactions)) return;
             if (method !== Interactions.Jump && !interaction.deferred && !interaction.replied)
                 await interaction.deferUpdate();
@@ -473,7 +481,7 @@ export class Paginator {
     }
 
     private async turnPage(interaction: MessageComponentInteraction): Promise<void> {
-        this.methodMap.forEach((v, k) => this.methodMap.get(k).setDisabled(!v.disabled));
+        this.methodMap.forEach((v, k) => this.methodMap.get(k).setDisabled(!v.data.disabled));
         await this.update(interaction);
     }
 
@@ -679,14 +687,14 @@ export class Paginator {
                         : interaction.user.id !== this.interaction.user.id
                 )
                     return Promise.resolve(false);
-                const modal = new Modal().setCustomId(this.id).setTitle(this.client.user.username);
-                const pageInput = new TextInputComponent()
+                const modal = new ModalBuilder().setCustomId(this.id.toString()).setTitle(this.client.user.username);
+                const pageInput = new TextInputBuilder()
                     .setCustomId('pageInput')
                     .setLabel(this.prompt)
-                    .setStyle('SHORT')
+                    .setStyle(TextInputStyle.Short)
                     .setRequired(true);
                 const firstActionRow =
-                    new MessageActionRow<ModalActionRowComponent>().addComponents(pageInput);
+                    new ActionRowBuilder<TextInputBuilder>().addComponents(pageInput);
                 modal.addComponents(firstActionRow);
                 await interaction.showModal(modal);
                 const response = await interaction.awaitModalSubmit({
@@ -738,7 +746,7 @@ export class Paginator {
                 this: Paginator,
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
-                if (interaction.user !== this.interaction.user || !interaction.isSelectMenu())
+                if (interaction.user !== this.interaction.user || !interaction.isStringSelectMenu())
                     return Promise.resolve(false);
                 let id = 0;
                 if ((id = +this.pages.info[0].galleryID) < 0) {
@@ -827,14 +835,14 @@ export class Paginator {
                         content: adding
                             ? `✅\u2000Added \`${id}\` to your favorites`
                             : `❌\u2000Removed \`${id}\` from your favorites`,
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                     });
                     return Promise.resolve(false);
                 } catch (err) {
                     this.client.logger.error(err);
                     this.interaction.followUp({
                         embeds: [this.client.embeds.internalError(err)],
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                     });
                     return true;
                 }
@@ -860,14 +868,14 @@ export class Paginator {
                         content: adding
                             ? `✅\u2000Started following ${type} \`${name}\``
                             : `❌\u2000Stopped following ${type} \`${name}\``,
-                        ephemeral: true,
+                            flags: MessageFlags.Ephemeral,
                     });
                     return Promise.resolve(false);
                 } catch (err) {
                     this.client.logger.error(err);
                     this.interaction.followUp({
                         embeds: [this.client.embeds.internalError(err)],
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                     });
                     return true;
                 }
@@ -888,14 +896,14 @@ export class Paginator {
                         content: adding
                             ? `✅\u2000Added ${type} ${name} to your blacklist`
                             : `❌\u2000Removed ${type} ${name} from your blacklist`,
-                        ephemeral: true,
+                            flags: MessageFlags.Ephemeral,
                     });
                     return Promise.resolve(false);
                 } catch (err) {
                     this.client.logger.error(err);
                     this.interaction.followUp({
                         embeds: [this.client.embeds.internalError(err)],
-                        ephemeral: true,
+                        flags: MessageFlags.Ephemeral,
                     });
                     return true;
                 }

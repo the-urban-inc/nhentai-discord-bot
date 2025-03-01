@@ -1,8 +1,7 @@
-import { MessageEmbed } from 'discord.js';
+import { Embed, EmbedBuilder } from 'discord.js';
 import type { Client } from './Client';
 import { Paginator, PaginatorOptions } from './Paginator';
 import { decode } from 'he';
-import moment from 'moment';
 import { Gallery, Comment, Language, PartialGallery } from '@api/nhentai';
 import { SearchResult } from '@api/jasmr';
 import { BANNED_TAGS, FLAG_EMOJIS } from '@constants';
@@ -15,23 +14,23 @@ export class Embeds {
     }
 
     default() {
-        return new MessageEmbed().setColor('#000000');
+        return new EmbedBuilder().setColor('#000000');
     }
 
     success() {
-        return new MessageEmbed().setColor('#008000');
+        return new EmbedBuilder().setColor('#008000');
     }
 
     info(text: string) {
-        return new MessageEmbed().setColor('#f0f0f0').setDescription(text);
+        return new EmbedBuilder().setColor('#f0f0f0').setDescription(text);
     }
 
     clientError(text: string) {
-        return new MessageEmbed().setColor('#ff0000').setDescription(text);
+        return new EmbedBuilder().setColor('#ff0000').setDescription(text);
     }
 
     internalError(text: string) {
-        return new MessageEmbed()
+        return new EmbedBuilder()
             .setColor('#ff0000')
             .setDescription(
                 `An unexpected error has occurred${

@@ -1,5 +1,5 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction, Message, MessageActionRow, MessageSelectMenu } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction, Message, ActionRowBuilder, StringSelectMenuBuilder, Component, ComponentType } from 'discord.js';
 import { User } from '@database/models';
 
 const LANGUAGE_ID = {
@@ -12,7 +12,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'preferred-language',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Configure preferred language settings',
             cooldown: 10000,
             nsfw: true,
@@ -45,7 +45,7 @@ export default class extends Command {
                     }\u2000**Notifier**\n• Filter preferred languages in your notifies (for more info visit the QNA tab of the \`help\` command).`,
                 },
             ]);
-        const language = new MessageSelectMenu()
+        const language = new StringSelectMenuBuilder()
             .setCustomId('language')
             .setPlaceholder('⚙️\u2000Select language')
             .setMaxValues(3)
@@ -69,7 +69,7 @@ export default class extends Command {
                     default: preferred.includes('chinese'),
                 },
             ]);
-        const toggle = new MessageSelectMenu()
+        const toggle = new StringSelectMenuBuilder()
             .setCustomId('toggle')
             .setPlaceholder('⚙️\u2000Toggle settings')
             .addOptions([
@@ -87,8 +87,8 @@ export default class extends Command {
         return {
             embeds: [settings],
             components: [
-                new MessageActionRow().addComponents(language),
-                new MessageActionRow().addComponents(toggle),
+                new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(language),
+                new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(toggle),
             ],
         };
     }
@@ -116,11 +116,11 @@ export default class extends Command {
             )
         )) as Message;
         const collector = message.createMessageComponentCollector({
+            componentType: ComponentType.StringSelect,
             filter: i => i.user.id === member.id,
             time: 300000,
         });
         collector.on('collect', async i => {
-            if (!i.isSelectMenu()) return;
             await i.deferUpdate();
             let updateLanguages = [],
                 updateQuery = false,

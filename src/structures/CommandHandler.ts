@@ -6,7 +6,9 @@ import {
     ApplicationCommandManager,
     Collection,
     CommandInteraction,
-    ContextMenuInteraction,
+    ContextMenuCommandInteraction,
+    InteractionType,
+    MessageFlags,
     Snowflake,
     TextChannel,
     ThreadChannel,
@@ -20,11 +22,11 @@ let startCooldown: () => void;
 export class CommandHandler extends ApplicationCommandManager {
     client: Client;
     constructor(client: Client) {
-        super(client);
+        super(client as Client<true>);
         this.client.on('interactionCreate', async interaction => {
             if (
                 !interaction.isCommand() &&
-                !interaction.isContextMenu() &&
+                !interaction.isAnySelectMenu() &&
                 !interaction.isAutocomplete()
             )
                 return;
@@ -33,7 +35,11 @@ export class CommandHandler extends ApplicationCommandManager {
                 interaction.channel instanceof ThreadChannel
             )
                 return;
-            if (this.client.commands.has(interaction.commandName)) {
+            if (
+                (interaction.type == InteractionType.ApplicationCommand ||
+                    interaction.type == InteractionType.ApplicationCommandAutocomplete) &&
+                this.client.commands.has(interaction.commandName)
+            ) {
                 try {
                     const { commands, cooldowns } = this.client;
                     const command = commands.get(interaction.commandName);
@@ -49,8 +55,11 @@ export class CommandHandler extends ApplicationCommandManager {
                     }
                     const privateCommand = server.settings.private;
                     await interaction.deferReply({
-                        ephemeral: interaction.options.get('private')?.value as boolean ?? privateCommand,
-                        fetchReply: !(interaction.options.get('private')?.value as boolean ?? privateCommand),
+                        ...(((interaction.options.get('private')?.value as boolean) ??
+                            privateCommand) && { flags: MessageFlags.Ephemeral }),
+                        withResponse: !(
+                            (interaction.options.get('private')?.value as boolean) ?? privateCommand
+                        ),
                     });
                     const { name, permissions, cooldown, nsfw, owner } = command.data;
 
@@ -111,7 +120,7 @@ export class CommandHandler extends ApplicationCommandManager {
                     interaction.isCommand()
                         ? await (command as Command).exec(interaction as CommandInteraction)
                         : await (command as ContextMenuCommand).exec(
-                              interaction as ContextMenuInteraction
+                              interaction as ContextMenuCommandInteraction
                           );
 
                     startCooldown();

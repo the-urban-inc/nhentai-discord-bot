@@ -1,12 +1,12 @@
 import { Client, Command, MusicSubscription, UserError, createDiscordJSAdapter } from '@structures';
-import { CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 import { entersState, joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'join',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Joins voice channel',
             cooldown: 10000,
             nsfw: true,

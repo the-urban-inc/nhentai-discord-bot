@@ -1,12 +1,12 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction } from 'discord.js';
 import { WatchModel } from '@database/models';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'follow',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Shows your follow list',
             cooldown: 10000,
             nsfw: true,
@@ -22,7 +22,7 @@ export default class extends Command {
                     this.client.embeds
                         .default()
                         .setTitle('🔖\u2000Follow List')
-                        .setDescription("You haven't followed anything!")
+                        .setDescription("You haven't followed anything!"),
                 ],
             });
         }
@@ -32,14 +32,14 @@ export default class extends Command {
                     this.client.embeds
                         .default()
                         .setTitle('🔖\u2000Follow List')
-                        .setDescription("You haven't followed anything!")
+                        .setDescription("You haven't followed anything!"),
                 ],
             });
         }
-        let embed = this.client.embeds
-            .default()
-            .setTitle(`🔖\u2000Follow List`)
-            .setFooter(member.tag, member.displayAvatarURL());
+        let embed = this.client.embeds.default().setTitle(`🔖\u2000Follow List`).setFooter({
+            text: member.tag,
+            iconURL: member.displayAvatarURL(),
+        });
         let t = new Map<string, string[]>();
         tags.forEach(tag => {
             const { type, name } = tag;
@@ -56,7 +56,7 @@ export default class extends Command {
             ['language', 'Languages'],
             ['category', 'Categories'],
         ].forEach(([key, fieldName]) => {
-            t.has(key) && embed.addField(fieldName, t.get(key).join(', '));
+            t.has(key) && embed.addFields([{ name: fieldName, value: t.get(key).join(', ') }]);
         });
         return interaction.editReply({ embeds: [embed] });
     }

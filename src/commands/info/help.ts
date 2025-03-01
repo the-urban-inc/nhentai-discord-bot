@@ -3,9 +3,15 @@ import {
     Collection,
     CommandInteraction,
     Message,
-    MessageActionRow,
-    MessageEmbed,
-    MessageSelectMenu,
+    ActionRowBuilder,
+    ApplicationCommandType,
+    StringSelectMenuBuilder,
+    Embed,
+    StringSelectMenuInteraction,
+    InteractionType,
+    CacheType,
+    ComponentType,
+    EmbedBuilder, 
 } from 'discord.js';
 import { SUPPORT_SERVER } from '@constants';
 
@@ -25,14 +31,14 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'help',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Shows command list and FAQ (that nobody asks)',
             cooldown: 10000,
         });
     }
 
     update(category: string, owner: boolean) {
-        const menu = new MessageSelectMenu().setCustomId('select');
+        const menu = new StringSelectMenuBuilder().setCustomId('select');
         for (const c of Object.keys(CATEGORIES).reverse()) {
             if (c === 'owner' && owner) continue;
             menu.spliceOptions(0, 0, {
@@ -46,7 +52,7 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        const embeds = new Collection<string, MessageEmbed>();
+        const embeds = new Collection<string, EmbedBuilder>();
         const qna = this.client.embeds
             .default()
             .setTitle('❔\u2000Questions Nobody Asked')
@@ -138,25 +144,25 @@ export default class extends Command {
             embeds.set(category, embed);
         }
         let menu = this.update('general', interaction.user.id === this.client.ownerID);
-        menu.setCustomId(`${interaction.id}${menu.customId}`);
+        menu.setCustomId(`${interaction.id}${menu.data.custom_id}`);
         const message = (await interaction.editReply({
             embeds: [embeds.get('general')],
-            components: [new MessageActionRow().addComponents(menu)],
+            components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
         })) as Message;
         const collector = message.createMessageComponentCollector({
+            componentType: ComponentType.StringSelect,
             filter: i => i.user.id === interaction.user.id,
-            time: 300000,
+            time: 300_000,
         });
         collector.on('collect', async i => {
-            if (!i.isSelectMenu()) return;
             if (!i.customId.startsWith(interaction.id)) return;
             await i.deferUpdate();
             const category = i.values[0];
             menu = this.update(category, interaction.user.id === this.client.ownerID);
-            menu.setCustomId(`${interaction.id}${menu.customId}`);
+            menu.setCustomId(`${interaction.id}${menu.data.custom_id}`);
             await interaction.editReply({
                 embeds: [embeds.get(category)],
-                components: [new MessageActionRow().addComponents(menu)],
+                components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
             });
         });
     }

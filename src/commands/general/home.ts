@@ -1,12 +1,12 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction} from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction } from 'discord.js';
 import { User, Server, Blacklist, Language } from '@database/models';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'home',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description:
                 "Shows nhentai homepage. Includes 'Popular Now' section for the first page.",
             cooldown: 20000,
@@ -14,7 +14,7 @@ export default class extends Command {
             options: [
                 {
                     name: 'page',
-                    type: 'INTEGER',
+                    type: ApplicationCommandOptionType.Integer,
                     description: 'Page number (default: 1)',
                 },
             ],

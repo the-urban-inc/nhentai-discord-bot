@@ -1,5 +1,5 @@
 import { Client, Command, UserError } from '@structures';
-import { AutocompleteInteraction, CommandInteraction } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, AutocompleteInteraction, CommandInteraction } from 'discord.js';
 import { Sort } from '@api/nhentai';
 import { User, Server, Blacklist, Language } from '@database/models';
 import Fuse from 'fuse.js';
@@ -8,7 +8,7 @@ export default class C extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'tag',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Searches nhentai for specified tag',
             cooldown: 20000,
             nsfw: true,
@@ -19,19 +19,19 @@ export default class C extends Command {
             options: [
                 {
                     name: 'query',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'The tag to search for on nhentai',
                     required: true,
                     autocomplete: true,
                 },
                 {
                     name: 'page',
-                    type: 'INTEGER',
+                    type: ApplicationCommandOptionType.Integer,
                     description: 'Page number (default: 1)',
                 },
                 {
                     name: 'sort',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'Doujin sort method (default: recent)',
                     choices: Object.keys(Sort).map(k => {
                         return {

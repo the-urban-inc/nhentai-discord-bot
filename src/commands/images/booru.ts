@@ -1,5 +1,5 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction } from 'discord.js';
 import { Server } from '@database/models';
 import { search } from 'booru';
 import { decode } from 'he';
@@ -25,14 +25,14 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'booru',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Shows random posts with specified tag on specified booru site',
             cooldown: 5000,
             nsfw: true,
             options: [
                 {
                     name: 'site',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'The site to search on',
                     required: true,
                     choices: SITES.map(k => {
@@ -44,14 +44,14 @@ export default class extends Command {
                 },
                 {
                     name: 'tags',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description:
                         'The tag(s) to search for. Separate tags with spaces. Wrap multi-word tags in quotes "".',
                     required: true,
                 },
                 {
                     name: 'page',
-                    type: 'INTEGER',
+                    type: ApplicationCommandOptionType.Integer,
                     description: 'The page to display',
                 },
             ],

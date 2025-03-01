@@ -1,11 +1,11 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction, Message } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction, Message } from 'discord.js';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'ping',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Shows RTT and heartbeat of the bot',
         });
     }

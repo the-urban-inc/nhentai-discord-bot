@@ -1,18 +1,19 @@
 import { Client } from './Client';
 import {
     ApplicationCommandOptionData,
+    ApplicationCommandType,
     AutocompleteInteraction,
     ChatInputApplicationCommandData,
     CommandInteraction,
-    ContextMenuInteraction,
     MessageApplicationCommandData,
-    PermissionString,
-    User,
+    PermissionsString,
+    ApplicationCommandOptionType,
+    ContextMenuCommandInteraction,
 } from 'discord.js';
 
 export interface CommandOptions extends ChatInputApplicationCommandData {
     name: string;
-    type: 'CHAT_INPUT';
+    type: ApplicationCommandType.ChatInput;
     description: string;
     nsfw?: boolean;
     cooldown?: number;
@@ -21,23 +22,23 @@ export interface CommandOptions extends ChatInputApplicationCommandData {
         keyword: string;
         clones: string[];
     };
-    permissions?: PermissionString[];
+    permissions?: PermissionsString[];
     options?: ApplicationCommandOptionData[];
     defaultPermission?: boolean;
 }
 
 export interface MessageCommandOptions extends MessageApplicationCommandData {
     name: string;
-    type: 'MESSAGE';
+    type: ApplicationCommandType.Message;
     nsfw?: boolean;
     cooldown?: number;
     owner?: boolean;
-    permissions?: PermissionString[];
+    permissions?: PermissionsString[];
 }
 
 const p = <const>{
     name: 'private',
-    type: 'BOOLEAN',
+    type: ApplicationCommandOptionType.Boolean,
     description: 'Whether to send the command in private',
 };
 
@@ -63,7 +64,7 @@ export abstract class Command {
 export abstract class ContextMenuCommand {
     client: Client;
     data: MessageCommandOptions;
-    abstract exec(interaction: ContextMenuInteraction): any | Promise<any>;
+    abstract exec(interaction: ContextMenuCommandInteraction): any | Promise<any>;
     constructor(client: Client, commandOptions: MessageCommandOptions) {
         this.client = client;
         this.data = commandOptions;

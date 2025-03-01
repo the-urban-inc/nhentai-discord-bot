@@ -1,5 +1,5 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction, Snowflake } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction, Snowflake } from 'discord.js';
 import { Server } from '@database/models';
 import moment from 'moment';
 
@@ -7,7 +7,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'recent',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Shows recent nhentai-related command calls in this server',
             cooldown: 10000,
             nsfw: true,

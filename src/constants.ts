@@ -1,13 +1,13 @@
-export const PERMISSIONS = <const>[
-    'CONNECT',
-    'SPEAK',
-    'USE_VAD',
-    'MANAGE_MESSAGES',
-    'SEND_MESSAGES',
-    'EMBED_LINKS',
-    'READ_MESSAGE_HISTORY',
-    'USE_PUBLIC_THREADS',
-    'USE_PRIVATE_THREADS'
+import { PermissionFlagsBits } from "discord.js";
+
+export const PERMISSIONS = [
+    PermissionFlagsBits.Connect,
+    PermissionFlagsBits.Speak,
+    PermissionFlagsBits.UseVAD,
+    PermissionFlagsBits.ManageMessages,
+    PermissionFlagsBits.SendMessages,
+    PermissionFlagsBits.EmbedLinks,
+    PermissionFlagsBits.ReadMessageHistory
 ];
 
 export const ICON = 'https://i.imgur.com/cGT4RMd.png';

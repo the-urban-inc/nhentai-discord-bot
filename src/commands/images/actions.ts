@@ -1,5 +1,5 @@
 import { Client, Command, UserError } from '@structures';
-import { AutocompleteInteraction, CommandInteraction, User } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, AutocompleteInteraction, CommandInteraction, User } from 'discord.js';
 import { ACTIONS } from '@api/images';
 import Fuse from 'fuse.js';
 
@@ -45,20 +45,20 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'action',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Perform an action on someone (or on yourself)',
             cooldown: 5000,
             options: [
                 {
                     name: 'action',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'The action to perform (type list to see action list)',
                     autocomplete: true,
                     required: true,
                 },
                 {
                     name: 'user',
-                    type: 'USER',
+                    type: ApplicationCommandOptionType.User,
                     description: 'The user to perform action on',
                 },
             ],

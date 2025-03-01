@@ -1,12 +1,12 @@
 import { Client, Command, Track } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction } from 'discord.js';
 import { AudioPlayerStatus, AudioResource } from '@discordjs/voice';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'queue',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Shows the current queue',
             cooldown: 10000,
             nsfw: true,

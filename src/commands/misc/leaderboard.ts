@@ -1,12 +1,12 @@
-import { Client, Command, Paginator } from '@structures';
-import { CommandInteraction, MessageEmbed, Snowflake } from 'discord.js';
+import { Client, Command } from '@structures';
+import { ApplicationCommandType, CommandInteraction, Snowflake } from 'discord.js';
 import { Server } from '@database/models';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'leaderboard',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: "Shows server's leaderboard.",
             cooldown: 10000,
         });
@@ -60,7 +60,9 @@ export default class extends Command {
                 i + page * l < members.length && i < l;
                 i++, member = members[i + page * l]
             ) {
-                embed.addField(`[${i + page * l + 1}] ${member.name}`, member.score);
+                embed.addFields([
+                    { name: `[${i + page * l + 1}] ${member.name}`, value: member.score },
+                ]);
             }
             display.addPage('thumbnail', { embed });
         }

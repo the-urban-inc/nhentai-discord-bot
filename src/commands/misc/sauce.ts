@@ -1,5 +1,5 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction, User } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction, User } from 'discord.js';
 import sagiri from 'sagiri';
 const sauceNAO = sagiri(process.env.SAUCENAO_TOKEN);
 
@@ -7,14 +7,14 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'sauce',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Searches for image sauce with SauceNAO.',
             cooldown: 10000,
             nsfw: true,
             options: [
                 {
                     name: 'query',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'The image URL to search for',
                     required: true,
                 },

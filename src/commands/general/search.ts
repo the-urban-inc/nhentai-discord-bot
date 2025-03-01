@@ -1,5 +1,5 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction } from 'discord.js';
 import { Sort } from '@api/nhentai';
 import { User, Server, Blacklist, Language } from '@database/models';
 
@@ -7,25 +7,25 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'search',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Searches nhentai for specified query',
             cooldown: 20000,
             nsfw: true,
             options: [
                 {
                     name: 'query',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'The query to search for on nhentai',
                     required: true,
                 },
                 {
                     name: 'page',
-                    type: 'INTEGER',
+                    type: ApplicationCommandOptionType.Integer,
                     description: 'Page number (default: 1)',
                 },
                 {
                     name: 'sort',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'Doujin sort method (default: recent)',
                     choices: Object.keys(Sort).map(k => {
                         return {

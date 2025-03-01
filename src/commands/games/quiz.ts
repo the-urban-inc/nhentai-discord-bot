@@ -1,5 +1,5 @@
 import { Client, Command, UserError } from '@structures';
-import { CommandInteraction, Message, MessageActionRow, MessageButton } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, CommandInteraction, Message, MessageFlags } from 'discord.js';
 import { decode } from 'he';
 import { User, Server, Blacklist } from '@database/models';
 import { Gallery } from '@api/nhentai';
@@ -8,7 +8,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'quiz',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description:
                 'Starts a quiz session: try to guess the title of the displayed doujin page.',
             cooldown: 30000,
@@ -120,25 +120,25 @@ export default class extends Command {
         const message = (await interaction.editReply({
             embeds: [quiz],
             components: [
-                new MessageActionRow().addComponents([
-                    new MessageButton().setCustomId('0').setLabel('A').setStyle('SECONDARY'),
-                    new MessageButton().setCustomId('1').setLabel('B').setStyle('SECONDARY'),
-                    new MessageButton().setCustomId('2').setLabel('C').setStyle('SECONDARY'),
-                    new MessageButton().setCustomId('3').setLabel('D').setStyle('SECONDARY'),
-                    new MessageButton().setCustomId('cancel').setLabel('Skip').setStyle('DANGER'),
+                new ActionRowBuilder<ButtonBuilder>().addComponents([
+                    new ButtonBuilder().setCustomId('0').setLabel('A').setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setCustomId('1').setLabel('B').setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setCustomId('2').setLabel('C').setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setCustomId('3').setLabel('D').setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setCustomId('cancel').setLabel('Skip').setStyle(ButtonStyle.Danger),
                 ]),
             ],
         })) as Message;
         const answer = choices.findIndex(({ id }) => +gallery.gallery.id === +id);
         const embed = this.client.embeds.default().setFooter({ text: 'Quiz session ended' });
         const buttons = [0, 1, 2, 3].map(i =>
-            new MessageButton()
+            new ButtonBuilder()
                 .setCustomId(String(i))
                 .setLabel(abcd[i])
-                .setStyle('DANGER')
+                .setStyle(ButtonStyle.Danger)
                 .setDisabled(true)
         );
-        buttons[answer].setStyle('SUCCESS');
+        buttons[answer].setStyle(ButtonStyle.Success);
         message
             .awaitMessageComponent({
                 filter: i =>
@@ -151,7 +151,7 @@ export default class extends Command {
                 if (i.customId === 'cancel') {
                     await interaction.editReply({
                         embeds: [quiz],
-                        components: [new MessageActionRow().addComponents(buttons)],
+                        components: [new ActionRowBuilder<ButtonBuilder>().addComponents(buttons)],
                     });
                     return interaction.followUp({
                         embeds: [
@@ -162,13 +162,13 @@ export default class extends Command {
                                     `Quiz skipped. The correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
                                 ),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                 }
                 const choice = parseInt(i.customId, 10);
                 await interaction.editReply({
                     embeds: [quiz],
-                    components: [new MessageActionRow().addComponents(buttons)],
+                    components: [new ActionRowBuilder<ButtonBuilder>().addComponents(buttons)],
                 });
                 if (choice === answer) {
                     const min = 50,
@@ -186,7 +186,7 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                     });
                     const leveledUp = await this.client.db.xp.save(
                         'add',
@@ -198,8 +198,7 @@ export default class extends Command {
                     if (leveledUp) {
                         await interaction.followUp({
                             content: 'Congratulations! You have leveled up!',
-                            ephemeral:
-                                (interaction.options.get('private')?.value as boolean) ?? false,
+                            ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                         });
                     }
                     return;
@@ -213,13 +212,13 @@ export default class extends Command {
                                 `Unfortunately, that was the wrong answer.\nThe correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.\nYou chose **[${abcd[choice]}] [${choices[choice].title}](${choices[choice].url})**.`
                             ),
                     ],
-                    ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                    ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                 });
             })
             .catch(async err => {
                 await interaction.editReply({
                     embeds: [quiz],
-                    components: [new MessageActionRow().addComponents(buttons)],
+                    components: [new ActionRowBuilder<ButtonBuilder>().addComponents(buttons)],
                 });
                 return interaction.followUp({
                     embeds: [
@@ -230,7 +229,7 @@ export default class extends Command {
                                 `The session timed out as you did not answer within 30 seconds. The correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
                             ),
                     ],
-                    ephemeral: (interaction.options.get('private')?.value as boolean) ?? false,
+                    ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
                 });
             });
     }

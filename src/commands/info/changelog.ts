@@ -1,5 +1,5 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction } from 'discord.js';
 import { Octokit } from '@octokit/rest';
 const { npm_package_version, npm_package_repository_url } = process.env;
 
@@ -11,7 +11,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'changelog',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: "Shows the bot's latest 5 commits",
         });
     }

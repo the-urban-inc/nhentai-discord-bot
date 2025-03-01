@@ -1,17 +1,35 @@
-import { Command, CommandHandler, ContextMenuCommand, Embeds, Notifier, MusicSubscription, Paginator, Util, Logger } from './index';
-import { Client as C, ClientOptions, Collection, Snowflake, User, Options } from 'discord.js';
+import {
+    Command,
+    CommandHandler,
+    ContextMenuCommand,
+    Embeds,
+    Notifier,
+    MusicSubscription,
+    Paginator,
+    Util,
+    Logger,
+} from './index';
+import {
+    Client as DiscordClient,
+    ClientOptions,
+    Collection,
+    Snowflake,
+    User,
+    Options,
+    IntentsBitField,
+} from 'discord.js';
 import { Database } from '@database/index';
 import { Client as JASMRAPI } from '@api/jasmr';
 import { Client as NhentaiAPI } from '@api/nhentai';
 import { Client as ImageAPI } from '@api/images';
 const { DISCORD_TOKEN } = process.env;
 
-export class Client extends C {
+export class Client<Ready extends boolean = boolean> extends DiscordClient<Ready> {
     ownerID: string;
     commands: Collection<string, Command | ContextMenuCommand>;
     categories: Collection<string, string[]>;
     cooldowns: Collection<string, Collection<User['id'], number>>;
-    paginators: Collection<string, Paginator>;
+    paginators: Collection<bigint, Paginator>;
     warned: Set<User['id']>;
     commandHandler: CommandHandler;
     db: Database;
@@ -30,10 +48,10 @@ export class Client extends C {
         super({
             ...options,
             intents: [
-                'GUILDS',
-                'DIRECT_MESSAGES',
-                'GUILD_MESSAGES',
-                'GUILD_VOICE_STATES',
+                IntentsBitField.Flags.Guilds,
+                IntentsBitField.Flags.DirectMessages,
+                IntentsBitField.Flags.GuildMessages,
+                IntentsBitField.Flags.GuildVoiceStates,
             ],
             shards: 'auto',
             makeCache: Options.cacheWithLimits({
@@ -43,13 +61,13 @@ export class Client extends C {
                 ThreadManager: 0,
                 PresenceManager: 0,
                 ReactionManager: 0,
-                ReactionUserManager: 0
-            })
+                ReactionUserManager: 0,
+            }),
         });
         this.commands = new Collection<string, Command | ContextMenuCommand>();
         this.categories = new Collection<string, string[]>();
         this.cooldowns = new Collection<string, Collection<User['id'], number>>();
-        this.paginators = new Collection<string, Paginator>();
+        this.paginators = new Collection<bigint, Paginator>();
         this.warned = new Set<User['id']>();
         this.commandHandler = new CommandHandler(this);
         this.db = new Database(this);

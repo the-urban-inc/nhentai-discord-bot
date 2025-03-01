@@ -1,5 +1,5 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction, User as DiscordUser } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction, User as DiscordUser } from 'discord.js';
 import { User, Server, Blacklist } from '@database/models';
 import moment from 'moment';
 import { ICON } from '@constants';
@@ -8,19 +8,19 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'profile',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: "Shows your (or your friend's) profile",
             cooldown: 10000,
             nsfw: true,
             options: [
                 {
                     name: 'user',
-                    type: 'USER',
+                    type: ApplicationCommandOptionType.User,
                     description: 'The user to search for',
                 },
                 {
                     name: 'more',
-                    type: 'BOOLEAN',
+                    type: ApplicationCommandOptionType.Boolean,
                     description: 'Views more info',
                 },
             ],

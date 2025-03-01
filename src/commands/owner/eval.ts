@@ -1,18 +1,18 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction } from 'discord.js';
 import util from 'util';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'eval',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Evaluates a code block',
             owner: true,
             options: [
                 {
                     name: 'code',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'The code to evaluate',
                     required: true
                 },

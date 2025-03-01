@@ -1,12 +1,12 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction, MessageActionRow, MessageButton } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction, ActionRowBuilder, ButtonBuilder, OAuth2Scopes, ButtonStyle } from 'discord.js';
 import { PERMISSIONS } from '@constants';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'invite',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Invite me to your server',
         });
     }
@@ -15,16 +15,16 @@ export default class extends Command {
         return interaction.editReply({
             content: 'Click the button below to invite me to your server',
             components: [
-                new MessageActionRow().addComponents(
-                    new MessageButton()
+                new ActionRowBuilder<ButtonBuilder>().addComponents(
+                    new ButtonBuilder()
                         .setLabel('Invite')
                         .setURL(
                             this.client.generateInvite({
-                                scopes: ['bot', 'applications.commands'],
+                                scopes: [OAuth2Scopes.Bot, OAuth2Scopes.ApplicationsCommands],
                                 permissions: PERMISSIONS,
                             })
                         )
-                        .setStyle('LINK')
+                        .setStyle(ButtonStyle.Link)
                 ),
             ],
         });

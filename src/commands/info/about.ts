@@ -1,5 +1,5 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction, version as DiscordVersion } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction, version as DiscordVersion, OAuth2Scopes } from 'discord.js';
 import { User } from '@database/models';
 import { PERMISSIONS } from '@constants';
 const { npm_package_version, npm_package_repository_url } = process.env;
@@ -8,7 +8,7 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'about',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Shows detailed bot information',
         });
     }
@@ -35,7 +35,7 @@ export default class extends Command {
                                 `• **Channels** : ${this.client.channels.cache.size}\n` +
                                 `• **Users** : ${await User.estimatedDocumentCount({}).exec()}\n` +
                                 `• **Invite Link** : [Click here](${this.client.generateInvite({
-                                    scopes: ['bot', 'applications.commands'],
+                                    scopes: [OAuth2Scopes.Bot, OAuth2Scopes.ApplicationsCommands],
                                     permissions: PERMISSIONS,
                                 })})`,
                         },

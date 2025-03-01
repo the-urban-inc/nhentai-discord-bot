@@ -1,12 +1,12 @@
 import { Client, Command } from '@structures';
-import { CommandInteraction } from 'discord.js';
+import { ApplicationCommandType, CommandInteraction } from 'discord.js';
 import { User } from '@database/models';
 
 export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'blacklist',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Shows your blacklist',
             cooldown: 10000,
             nsfw: true,
@@ -38,9 +38,7 @@ export default class extends Command {
                 ],
             });
         }
-        let embed = this.client.embeds
-            .default()
-            .setTitle('🏴\u2000Blacklist');
+        let embed = this.client.embeds.default().setTitle('🏴\u2000Blacklist');
         let t = new Map<string, string[]>();
         user.blacklists.forEach(tag => {
             const { type, name } = tag;
@@ -57,7 +55,7 @@ export default class extends Command {
             ['language', 'Languages'],
             ['category', 'Categories'],
         ].forEach(([key, fieldName]) => {
-            t.has(key) && embed.addField(fieldName, t.get(key).join(', '));
+            t.has(key) && embed.addFields([{ name: fieldName, value: t.get(key).join(', ') }]);
         });
         return interaction.editReply({ embeds: [embed] });
     }

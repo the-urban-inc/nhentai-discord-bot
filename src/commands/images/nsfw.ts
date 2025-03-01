@@ -1,5 +1,5 @@
 import { Client, Command, UserError } from '@structures';
-import { AutocompleteInteraction, CommandInteraction } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, AutocompleteInteraction, CommandInteraction } from 'discord.js';
 import { NSFW_METHODS } from '@api/images';
 import Fuse from 'fuse.js';
 
@@ -7,14 +7,14 @@ export default class extends Command {
     constructor(client: Client) {
         super(client, {
             name: 'nsfw-image',
-            type: 'CHAT_INPUT',
+            type: ApplicationCommandType.ChatInput,
             description: 'Searches for a NSFW image',
             cooldown: 5000,
             nsfw: true,
             options: [
                 {
                     name: 'tag',
-                    type: 'STRING',
+                    type: ApplicationCommandOptionType.String,
                     description: 'Tag to search for (type list to see tag list)',
                     autocomplete: true,
                     required: true,
