@@ -170,7 +170,7 @@ export class Client {
             }
         );
         if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
+        return { ...(await this.search(`tag:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
     }
 
     public async artist(query: string, page?: number, sort?: Sort): Promise<TagResult> {
@@ -187,7 +187,7 @@ export class Client {
             }
         );
         if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
+        return { ...(await this.search(`artist:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
     }
 
     public async category(query: string, page?: number, sort?: Sort): Promise<TagResult> {
@@ -204,7 +204,7 @@ export class Client {
             }
         );
         if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
+        return { ...(await this.search(`category:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
     }
 
     public async character(query: string, page?: number, sort?: Sort): Promise<TagResult> {
@@ -221,7 +221,7 @@ export class Client {
             }
         );
         if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
+        return { ...(await this.search(`character:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
     }
 
     public async group(query: string, page?: number, sort?: Sort): Promise<TagResult> {
@@ -238,7 +238,7 @@ export class Client {
             }
         );
         if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
+        return { ...(await this.search(`group:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
     }
 
     public async parody(query: string, page?: number, sort?: Sort): Promise<TagResult> {
@@ -255,7 +255,7 @@ export class Client {
             }
         );
         if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
+        return { ...(await this.search(`parody:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
     }
 
     public async language(query: string, page?: number, sort?: Sort): Promise<TagResult> {
@@ -272,7 +272,7 @@ export class Client {
             }
         );
         if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
+        return { ...(await this.search(`language:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
     }
 
     public getPages(gallery: Gallery) {
