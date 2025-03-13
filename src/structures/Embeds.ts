@@ -49,7 +49,7 @@ export class Embeds {
             return {
                 galleryID: String(id),
                 embed: this.default()
-                    .setTitle(`${decode(title.english)}`)
+                    .setTitle(`${this.client.util.shorten(decode(title.english), ' ', 256)}`)
                     .setURL(`https://nhentai.net/g/${id}`)
                     .setImage(page)
                     .setFooter({ text: `ID : ${id}` })
@@ -64,7 +64,7 @@ export class Embeds {
             return {
                 galleryID: String(id),
                 embed: this.default()
-                    .setTitle(`${decode(title.english)}`)
+                    .setTitle(`${this.client.util.shorten(decode(title.english), ' ', 256)}`)
                     .setURL(`https://nhentai.net/g/${id}`)
                     .setImage(page)
                     .setFooter({ text: `ID : ${id}` })
@@ -81,7 +81,7 @@ export class Embeds {
     ) {
         const { tags, num_pages, upload_date } = gallery;
         const id = gallery.id.toString(),
-            title = decode(gallery.title.english);
+            title = this.client.util.shorten(decode(gallery.title.english), ' ', 256);
         const info = this.default()
             .setTitle(title)
             .setURL(`https://nhentai.net/g/${id}`)
@@ -150,7 +150,7 @@ export class Embeds {
             BANNED_TAGS
         );
         const id = gallery.id.toString(),
-            title = decode(gallery.title.english);
+            title = this.client.util.shorten(decode(gallery.title.english), ' ', 256);
         const displayGallery = this.paginator(this.client, {
             startPage: page,
             info: { id, name: title },
@@ -171,7 +171,7 @@ export class Embeds {
             BANNED_TAGS
         );
         const id = gallery.id.toString(),
-            title = decode(gallery.title.english);
+            title = this.client.util.shorten(decode(gallery.title.english), ' ', 256);
         const displayGallery = this.paginator(this.client, {
             info: { id, name: title },
             collectorTimeout: 300000,
@@ -257,7 +257,7 @@ export class Embeds {
             else if (tags.some(tag => tag.id === 12227)) language = Language.English;
             else if (tags.some(tag => tag.id === 29963)) language = Language.Chinese;
             const thumb = this.default()
-                .setTitle(`${decode(title.english)}`)
+                .setTitle(`${this.client.util.shorten(decode(title.english), ' ', 256)}`)
                 .setURL(`https://nhentai.net/g/${id}`)
                 .setDescription(
                     `**ID** : ${id}` +
@@ -337,7 +337,7 @@ export class Embeds {
             else if (tags.some(tag => tag.id === 12227)) language = Language.English;
             else if (tags.some(tag => tag.id === 29963)) language = Language.Chinese;
             const thumb = this.default()
-                .setTitle(`${decode(title.english)}`)
+                .setTitle(`${this.client.util.shorten(decode(title.english), ' ', 256)}`)
                 .setURL(`https://nhentai.net/g/${id}`)
                 .setDescription(
                     `**ID** : ${id}` +
