@@ -110,12 +110,12 @@ export class Cache {
                     ]
                 );
                 await conn.batch(
-                    'REPLACE INTO doujinshi_tag (doujinshi_id, tag_id) VALUES (?, ?)',
-                    tags.map(({ id: tagId }) => [id, tagId])
-                );
-                await conn.batch(
                     'REPLACE INTO tag (tag_id, name, type) VALUES (?, ?, ?)',
                     tags.map(tag => [tag.id, tag.name, tag.type])
+                );
+                await conn.batch(
+                    'REPLACE INTO doujinshi_tag (doujinshi_id, tag_id) VALUES (?, ?)',
+                    tags.map(({ id: tagId }) => [id, tagId])
                 );
 
                 await conn.commit();
