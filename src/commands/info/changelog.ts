@@ -1,11 +1,6 @@
 import { Client, Command } from '@structures';
 import { ApplicationCommandType, CommandInteraction } from 'discord.js';
-import { Octokit } from '@octokit/rest';
 const { npm_package_version, npm_package_repository_url } = process.env;
-
-const client = new Octokit({
-    userAgent: `nhentai v${npm_package_version}`,
-});
 
 export default class extends Command {
     constructor(client: Client) {
@@ -22,19 +17,28 @@ export default class extends Command {
             .filter(a => a)
             .reverse();
         repo = repo.replace('.git', '');
-        const { data } = await client.repos.listCommits({
-            repo,
-            owner,
-            per_page: 5,
-        });
+
+        let url = `https://api.github.com/repos/${owner}/${repo}/commits?per_page=5`;
+        let commitList = await fetch(url).then(res => res.json()) as {
+            url: string;
+            sha: string;
+            html_url: string;
+            commit: {
+                message: string;
+            };
+            committer: {
+                login: string;
+            }
+        }[]
+
         return interaction.editReply({
             embeds: [
                 this.client.embeds
                     .default()
-                    .setTitle(`[${repo}:master] Latest ${data.length} commit(s)`)
+                    .setTitle(`[${repo}:master] Latest ${commitList.length} commit(s)`)
                     .setURL(`https://github.com/${owner}/${repo}/commits/master`)
                     .setDescription(
-                        data
+                        commitList
                             .map(({ html_url, sha, commit: { message }, committer: { login } }) => {
                                 message = message.split('\n').filter(a => a)[0];
                                 message =
