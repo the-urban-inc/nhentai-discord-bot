@@ -110,7 +110,7 @@ export class Cache {
                     ]
                 );
                 await conn.batch(
-                    'REPLACE INTO tag (tag_id, name, type) VALUES (?, ?, ?)',
+                    'INSERT INTO tag (tag_id, name, type) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type)',
                     tags.map(tag => [tag.id, tag.name, tag.type])
                 );
                 await conn.batch(
