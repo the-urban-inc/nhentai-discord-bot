@@ -34,7 +34,7 @@ export interface TagResult {
 }
 
 export class Client {
-    public socksProxy = process.env.SOCKS_PROXY || '';
+    public socksProxy = process.env.NHENTAI_SOCKS_PROXY || '';
     public baseURL = process.env.NHENTAI_URL || 'https://nhentai.net';
     public baseImageURL = () => `https://i${Math.floor(Math.random() * 4) + 1}.nhentai.net`;
     public baseThumbnailURL = () => `https://t${Math.floor(Math.random() * 4) + 1}.nhentai.net`;
