@@ -1,6 +1,7 @@
 import { Gallery, Related, Comment, Search, SearchQuery, Sort, ImageT, PartialGallery } from './structures';
 import axios, { AxiosResponse } from 'axios';
 import { load } from 'cheerio';
+import { SocksProxyAgent } from 'socks-proxy-agent';
 type Root = ReturnType<typeof load>;
 import qs from 'qs';
 
@@ -33,15 +34,33 @@ export interface TagResult {
 }
 
 export class Client {
+    public socksProxy = process.env.SOCKS_PROXY || '';
     public baseURL = process.env.NHENTAI_URL || 'https://nhentai.net';
     public baseImageURL = () => `https://i${Math.floor(Math.random() * 4) + 1}.nhentai.net`;
     public baseThumbnailURL = () => `https://t${Math.floor(Math.random() * 4) + 1}.nhentai.net`;
 
+    private socks?: SocksProxyAgent;
+
+    private socksClient(): SocksProxyAgent | undefined {
+        if (this.socksProxy) {
+            if (this.socks) return this.socks;
+
+            this.socks = new SocksProxyAgent(this.socksProxy);
+            return this.socks;
+        }
+
+        return undefined;
+    }
+
     private async fetch<T>(path: string, query?: SearchQuery): Promise<AxiosResponse<T>> {
         const q = qs.stringify(query);
         const url = `${this.baseURL}${path}${q ? `?${q}` : ''}`;
-        const res = await axios.get(url);
+        const res = await axios.get(url, {
+            httpAgent: this.socksClient(),
+            httpsAgent: this.socksClient()
+        });
         if (res.data.error) throw new Error(res.data.error);
+
         return res;
     }
 
