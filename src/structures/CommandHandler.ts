@@ -13,7 +13,7 @@ import {
     TextChannel,
     ThreadChannel,
 } from 'discord.js';
-import { readdirSync } from 'fs';
+import fg from 'fast-glob';
 import { ContextMenuCommand } from '@structures';
 import { Server } from '@database/models';
 import axios from 'axios';
@@ -160,32 +160,26 @@ export class CommandHandler extends ApplicationCommandManager {
     async loadCommands() {
         try {
             let allCommands: Command[] = [];
-            const commandFolders = readdirSync(`${__dirname}/../commands/`);
-            for (const folder of commandFolders) {
-                const commandFiles = readdirSync(`${__dirname}/../commands/${folder}`).filter(
-                    file => file.endsWith('.js') || file.endsWith('.ts')
-                );
-                const commands = await Promise.all(
-                    commandFiles.map(async file => {
-                        const commandData = await import(
-                            `${__dirname}/../commands/${folder}/${file.slice(0, -3)}`
+            const commandFiles = await fg([`${__dirname}/../commands/*/*.{js,ts}`]);
+            const categories = new Collection<string, string[]>();
+            const commands = await Promise.all(
+                commandFiles.map(async file => {
+                    const commandData = await import(file.slice(0, -3));
+                    const c = new commandData.default(this.client);
+                    const folder = file.split('/').slice(-2, -1)[0];
+                    if (!categories.has(folder)) categories.set(folder, []);
+                    categories.get(folder)?.push(c.data.name);
+                    if ((c as Command).data.clone) {
+                        const cloned = c.data.clone.clones.map(clone =>
+                            this.cloneCommandData(c, clone)
                         );
-                        const c = new commandData.default(this.client);
-                        if ((c as Command).data.clone) {
-                            const cloned = c.data.clone.clones.map(clone =>
-                                this.cloneCommandData(c, clone)
-                            );
-                            return cloned;
-                        }
-                        return [c];
-                    })
-                );
-                this.client.categories.set(
-                    folder,
-                    [].concat(...commands).map(c => c.data.name)
-                );
-                allCommands = allCommands.concat(...commands);
-            }
+                        return cloned;
+                    }
+                    return [c];
+                })
+            );
+            this.client.categories = categories;
+            allCommands = allCommands.concat(...commands);
             let updatedCommands = new Collection<Snowflake, ApplicationCommand>();
             updatedCommands = await this.client.application?.commands.set(
                 allCommands.map(c => c.data)
