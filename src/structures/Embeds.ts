@@ -218,7 +218,7 @@ export class Embeds {
                     tags.filter(tag => tag.type == 'tag').map(tag => tag.name),
                     ', ',
                     4096
-                )
+                ) || '\u200b'
             )
             .setFooter({ text: `ID : ${id}` })
             .setTimestamp(upload_date * 1000);

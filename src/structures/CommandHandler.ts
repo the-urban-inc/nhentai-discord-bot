@@ -125,7 +125,7 @@ export class CommandHandler extends ApplicationCommandManager {
 
                     startCooldown();
                 } catch (err) {
-                    if (axios.isAxiosError(err) || err.code === 10062) return this.client.logger.error(`${interaction.commandName} => ${err.message}`);
+                    if (axios.isAxiosError(err) || err.code === 10062 || err.code === 40060) return this.client.logger.error(`${interaction.commandName} => ${err.message}`);
                     else this.client.logger.error(err instanceof UserError ? err.code : err);
                     if (interaction.isAutocomplete()) return;
                     const type =
