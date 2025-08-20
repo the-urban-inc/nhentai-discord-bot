@@ -38,6 +38,7 @@
         "@types/qs": "^6.9.6",
         "@types/ws": "^7.4.5",
         "eslint": "^7.29.0",
+        "nodemon": "^3.1.10",
         "rimraf": "^3.0.2",
         "ts-node": "^10.9.2",
         "ts-patch": "^3.3.0",
@@ -52,7 +53,7 @@
         "lint": "eslint src/**/* --ext .ts",
         "start": "node --trace-warnings --trace-deprecation build/src/index.js",
         "start:web": "node --trace-warnings --trace-deprecation build/src/web/index.js",
-        "dev": "ts-node --compiler ts-patch/compiler src/index.ts",
+        "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"ts-node --compiler ts-patch/compiler src/index.ts\"",
         "dev:web": "ts-node --compiler ts-patch/compiler src/web/index.ts"
     },
     "engines": {
