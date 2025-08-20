@@ -44,7 +44,7 @@ export default class extends Command {
             menu.spliceOptions(0, 0, {
                 label: CATEGORIES[c][1],
                 value: c,
-                emoji: CATEGORIES[c][0],
+                emoji: { name: CATEGORIES[c][0] },
                 default: c === category,
             });
         }
