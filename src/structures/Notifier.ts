@@ -64,9 +64,9 @@ export class Notifier {
                         }).save();
                     }
                     if (
-                        user.language.follow === true &&
+                        user.language?.follow === true &&
                         !doujin.tags.some(tag =>
-                            user.language.preferred.map(x => x.id).includes(String(tag.id))
+                            user.language?.preferred.map(x => x.id).includes(String(tag.id))
                         )
                     )
                         return;
