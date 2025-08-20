@@ -324,13 +324,13 @@ export class Client {
 
     public getCover(gallery: PartialGallery | Gallery) {
         return `${this.baseThumbnailURL()}/galleries/${gallery.media_id}/cover.${
-            ImageT[gallery.images.cover.t]
+            ImageT[gallery.images.cover.t || 'w']
         }`;
     }
 
     public getCoverThumbnail(gallery: PartialGallery | Gallery) {
         return `${this.baseThumbnailURL()}/galleries/${gallery.media_id}/thumb.${
-            ImageT[gallery.images.thumbnail.t === 'n' ? gallery.images.cover.t : gallery.images.thumbnail.t]
+            ImageT[(gallery.images.thumbnail.t === 'n' ? gallery.images.cover.t : gallery.images.thumbnail.t) || 'w']
         }`;
     }
 }
