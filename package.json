@@ -9,6 +9,7 @@
     "dependencies": {
         "@discordjs/voice": "^0.18.0",
         "axios": "^0.21.1",
+        "axios-retry": "^4.5.0",
         "booru": "^2.5.3",
         "chalk": "^4.1.1",
         "cheerio": "1.0.0-rc.5",
@@ -20,6 +21,7 @@
         "fuse.js": "^6.4.6",
         "he": "^1.2.0",
         "libsodium-wrappers": "^0.7.9",
+        "lru-cache": "^11.1.0",
         "mariadb": "^3.2.3",
         "moment": "^2.29.1",
         "mongoose": "^8.9.5",

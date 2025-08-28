@@ -1,9 +1,19 @@
-import { Gallery, Related, Comment, Search, SearchQuery, Sort, ImageT, PartialGallery } from './structures';
-import axios, { AxiosResponse } from 'axios';
+import {
+    Gallery,
+    Related,
+    Comment,
+    Search,
+    SearchQuery,
+    Sort,
+    ImageT,
+    PartialGallery,
+} from './structures';
+import { AxiosResponse, AxiosInstance } from 'axios';
 import { load } from 'cheerio';
-import { SocksProxyAgent } from 'socks-proxy-agent';
 type Root = ReturnType<typeof load>;
-import qs from 'qs';
+import { Logger } from '../../structures/Logger';
+import { createHttp } from './http';
+import { SimpleCache, CacheOptions } from './cache';
 
 export interface GalleryResult {
     gallery: Gallery;
@@ -39,29 +49,46 @@ export class Client {
     public baseImageURL = () => `https://i${Math.floor(Math.random() * 4) + 1}.nhentai.net`;
     public baseThumbnailURL = () => `https://t${Math.floor(Math.random() * 4) + 1}.nhentai.net`;
 
-    private socks?: SocksProxyAgent;
+    private logger: Logger;
+    private http: AxiosInstance;
+    private cache: SimpleCache | undefined;
 
-    private socksClient(): SocksProxyAgent | undefined {
-        if (this.socksProxy) {
-            if (this.socks) return this.socks;
-
-            this.socks = new SocksProxyAgent(this.socksProxy);
-            return this.socks;
+    constructor(options?: {
+        logger?: Logger;
+        http?: AxiosInstance;
+        cacheOptions?: CacheOptions | false;
+    }) {
+        this.logger = options?.logger || new Logger();
+        this.http =
+            options?.http ||
+            createHttp(this.baseURL, this.logger, this.socksProxy, { maxRetries: 2 });
+        if (options?.cacheOptions === false) {
+            this.cache = undefined;
+        } else {
+            const cfg =
+                options && typeof options.cacheOptions === 'object'
+                    ? (options.cacheOptions as CacheOptions)
+                    : undefined;
+            this.cache = new SimpleCache(cfg);
         }
-
-        return undefined;
     }
 
     private async fetch<T>(path: string, query?: SearchQuery): Promise<AxiosResponse<T>> {
-        const q = qs.stringify(query);
-        const url = `${this.baseURL}${path}${q ? `?${q}` : ''}`;
-        const res = await axios.get(url, {
-            httpAgent: this.socksClient(),
-            httpsAgent: this.socksClient()
-        });
-        if (res.data.error) throw new Error(res.data.error);
+        return this.http.get<T>(path, { params: query });
+    }
 
-        return res;
+    private async fetchJson<T>(path: string, query?: SearchQuery): Promise<T> {
+        return (await this.fetch<T>(path, query)).data;
+    }
+
+    private async fetchHtml(path: string, query?: SearchQuery) {
+        const res = await this.fetch<string>(path, query);
+        return load(<string>res.data, { decodeEntities: false, xmlMode: false });
+    }
+
+    private async pageMeta(path: string) {
+        const $ = await this.fetchHtml(path);
+        return { id: await this.tagID($), num_results: await this.numResults($) };
     }
 
     private async galleryID($: Root): Promise<number | null> {
@@ -116,35 +143,46 @@ export class Client {
     }
 
     public async g(id: number, more = false): Promise<GalleryResult> {
-        const gallery = (await this.fetch<Gallery>(`/api/gallery/${id}`)).data;
+        const key = `/api/gallery/${id}`;
+        const gallery = await this.fetchJson<Gallery>(key);
         if (!more) return { gallery };
-        const related = (await this.fetch<Related>(`/api/gallery/${id}/related`)).data;
-        const comments = (await this.fetch<Comment[]>(`/api/gallery/${id}/comments`)).data;
+        const related = await this.fetchJson<Related>(`/api/gallery/${id}/related`);
+        const comments = await this.fetchJson<Comment[]>(`/api/gallery/${id}/comments`);
         return { gallery, related: related.result, comments };
     }
 
     public async random(more = false): Promise<GalleryResult> {
-        const id = await this.fetch(`/random`).then(async res => {
-            const $ = load(<string>res.data, {
-                decodeEntities: false,
-                xmlMode: false,
-            });
-            return await this.galleryID($);
-        });
+        const $ = await this.fetchHtml(`/random`);
+        const id = await this.galleryID($);
         if (!id || isNaN(id)) throw new Error('Invalid ID');
         return await this.g(id, more);
     }
 
     public async home(page?: number): Promise<HomeResult> {
-        const results = (await this.fetch<Search>(`/api/galleries/all`, { page })).data;
-        if (page !== 1) return results;
-        const popular_now = await this.fetch(`/`).then(async res => {
-            const $ = load(<string>res.data, {
-                decodeEntities: false,
-                xmlMode: false,
-            });
-            return await this.popularNow($);
-        });
+        const pageNum = page ?? 1;
+        const keyResults = `home:page:${pageNum}`;
+        const HOME_TTL = 5 * 60_000; // 5 minutes
+        const POPULAR_TTL = 30 * 60_000; // 30 minutes
+
+        const results = this.cache
+            ? await this.cache.getOrSet(
+                  keyResults,
+                  async () => this.fetchJson<Search>(`/api/galleries/all`, { page }),
+                  HOME_TTL
+              )
+            : await this.fetchJson<Search>(`/api/galleries/all`, { page });
+        if (pageNum !== 1) return results;
+
+        const popular_now = this.cache
+            ? await this.cache.getOrSet(
+                  'popular_now',
+                  async () => {
+                      const $ = await this.fetchHtml(`/`);
+                      return await this.popularNow($);
+                  },
+                  POPULAR_TTL
+              )
+            : await this.popularNow(await this.fetchHtml(`/`));
         return {
             ...results,
             popular_now,
@@ -152,147 +190,54 @@ export class Client {
     }
 
     public async search(query: string, page?: number, sort?: Sort): Promise<SearchResult> {
-        const num_results = await this.fetch(`/search/`, { q: query, page, sort }).then(
-            async res => {
-                const $ = load(<string>res.data, {
-                    decodeEntities: false,
-                    xmlMode: false,
-                });
-                return await this.numResults($);
-            }
-        );
+        const $ = await this.fetchHtml(`/search/`, { q: query, page, sort });
+        const num_results = await this.numResults($);
+
         return {
-            ...((await this.fetch<Search>(`/api/galleries/search`, { query, page, sort })).data),
+            ...(await this.fetchJson<Search>(`/api/galleries/search`, { q: query, page, sort })),
             num_results,
         };
     }
 
     private async fromID(tag_id: number, page?: number, sort?: Sort): Promise<Search> {
-        return (await this.fetch<Search>(`/api/galleries/tagged`, {
-            tag_id,
-            page,
-            sort,
-        })).data;
+        return await this.fetchJson<Search>(`/api/galleries/tagged`, { tag_id, page, sort });
     }
 
-    public async tag(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/tag/${query.replace(/ /g, '-')}`).then(
-            async res => {
-                const $ = load(<string>res.data, {
-                    decodeEntities: false,
-                    xmlMode: false,
-                });
-                return {
-                    id: await this.tagID($),
-                    num_results: await this.numResults($),
-                };
+    private tagEndpoint(prefix: string) {
+        return async (query: string, page?: number, sort?: Sort): Promise<TagResult> => {
+            const normalizedQuery = (query || '').replace(/\s+/g, ' ').trim().toLowerCase();
+            const pageNum = page ?? 1;
+            const sortKey = sort ?? 'none';
+            const cacheKey = `tag:${prefix}:${normalizedQuery}:page:${pageNum}:sort:${sortKey}`;
+            const TAG_TTL = 15 * 60_000; // 15 minutes
+
+            if (this.cache) {
+                return await this.cache.getOrSet<TagResult>(
+                    cacheKey,
+                    async () => {
+                        const { id, num_results } = await this.pageMeta(
+                            `/${prefix}/${query.replace(/ /g, '-')}`
+                        );
+                        if (!id || isNaN(id)) throw new Error('Invalid ID');
+                        return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
+                    },
+                    TAG_TTL
+                );
             }
-        );
-        if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.search(`tag:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
+
+            const { id, num_results } = await this.pageMeta(`/${prefix}/${query.replace(/ /g, '-')}`);
+            if (!id || isNaN(id)) throw new Error('Invalid ID');
+            return { ...(await this.fromID(id, page, sort)), tag_id: id, num_results };
+        };
     }
 
-    public async artist(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/artist/${query.replace(/ /g, '-')}`).then(
-            async res => {
-                const $ = load(<string>res.data, {
-                    decodeEntities: false,
-                    xmlMode: false,
-                });
-                return {
-                    id: await this.tagID($),
-                    num_results: await this.numResults($),
-                };
-            }
-        );
-        if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.search(`artist:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
-    }
-
-    public async category(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/category/${query.replace(/ /g, '-')}`).then(
-            async res => {
-                const $ = load(<string>res.data, {
-                    decodeEntities: false,
-                    xmlMode: false,
-                });
-                return {
-                    id: await this.tagID($),
-                    num_results: await this.numResults($),
-                };
-            }
-        );
-        if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.search(`category:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
-    }
-
-    public async character(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/character/${query.replace(/ /g, '-')}`).then(
-            async res => {
-                const $ = load(<string>res.data, {
-                    decodeEntities: false,
-                    xmlMode: false,
-                });
-                return {
-                    id: await this.tagID($),
-                    num_results: await this.numResults($),
-                };
-            }
-        );
-        if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.search(`character:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
-    }
-
-    public async group(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/group/${query.replace(/ /g, '-')}`).then(
-            async res => {
-                const $ = load(<string>res.data, {
-                    decodeEntities: false,
-                    xmlMode: false,
-                });
-                return {
-                    id: await this.tagID($),
-                    num_results: await this.numResults($),
-                };
-            }
-        );
-        if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.search(`group:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
-    }
-
-    public async parody(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/parody/${query.replace(/ /g, '-')}`).then(
-            async res => {
-                const $ = load(<string>res.data, {
-                    decodeEntities: false,
-                    xmlMode: false,
-                });
-                return {
-                    id: await this.tagID($),
-                    num_results: await this.numResults($),
-                };
-            }
-        );
-        if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.search(`parody:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
-    }
-
-    public async language(query: string, page?: number, sort?: Sort): Promise<TagResult> {
-        const { id, num_results } = await this.fetch(`/language/${query.replace(/ /g, '-')}`).then(
-            async res => {
-                const $ = load(<string>res.data, {
-                    decodeEntities: false,
-                    xmlMode: false,
-                });
-                return {
-                    id: await this.tagID($),
-                    num_results: await this.numResults($),
-                };
-            }
-        );
-        if (!id || isNaN(id)) throw new Error('Invalid ID');
-        return { ...(await this.search(`language:${query}`, page, sort) /* this.fromID(id, page, sort) */), tag_id: id };
-    }
+    public tag = this.tagEndpoint('tag');
+    public artist = this.tagEndpoint('artist');
+    public category = this.tagEndpoint('category');
+    public character = this.tagEndpoint('character');
+    public group = this.tagEndpoint('group');
+    public parody = this.tagEndpoint('parody');
+    public language = this.tagEndpoint('language');
 
     public getPages(gallery: Gallery) {
         const pages: string[] = [];
@@ -307,7 +252,11 @@ export class Client {
     public eduGuessPages(gallery: PartialGallery) {
         const pages: string[] = [];
         for (let i = 0; i < gallery.num_pages; i++) {
-            pages.push(`${this.baseImageURL()}/galleries/${gallery.media_id}/${i + 1}.${ImageT[gallery.images.cover.t]}`);
+            pages.push(
+                `${this.baseImageURL()}/galleries/${gallery.media_id}/${i + 1}.${
+                    ImageT[gallery.images.cover.t]
+                }`
+            );
         }
         return pages;
     }
@@ -316,7 +265,9 @@ export class Client {
         const pages: string[] = [];
         gallery.images.pages.forEach((page, i) => {
             pages.push(
-                `${this.baseThumbnailURL()}/galleries/${gallery.media_id}/${i + 1}t.${ImageT[page.t]}`
+                `${this.baseThumbnailURL()}/galleries/${gallery.media_id}/${i + 1}t.${
+                    ImageT[page.t]
+                }`
             );
         });
         return pages;
@@ -330,7 +281,11 @@ export class Client {
 
     public getCoverThumbnail(gallery: PartialGallery | Gallery) {
         return `${this.baseThumbnailURL()}/galleries/${gallery.media_id}/thumb.${
-            ImageT[(gallery.images.thumbnail.t === 'n' ? gallery.images.cover.t : gallery.images.thumbnail.t) || 'w']
+            ImageT[
+                (gallery.images.thumbnail.t === 'n'
+                    ? gallery.images.cover.t
+                    : gallery.images.thumbnail.t) || 'w'
+            ]
         }`;
     }
 }
