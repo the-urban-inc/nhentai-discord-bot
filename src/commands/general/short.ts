@@ -1,5 +1,10 @@
 import { Client, Command, UserError } from '@structures';
-import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction, MessageFlags } from 'discord.js';
+import {
+    ApplicationCommandOptionType,
+    ApplicationCommandType,
+    CommandInteraction,
+    MessageFlags,
+} from 'discord.js';
 import { decode } from 'he';
 import { User, Server, Blacklist } from '@database/models';
 import { PartialGallery } from '@api/nhentai';
@@ -91,7 +96,9 @@ export default class extends Command {
             if (leveledUp) {
                 await interaction.followUp({
                     content: 'Congratulations! You have leveled up!',
-                    ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                    ...((interaction.options.get('private')?.value as boolean) && {
+                        flags: MessageFlags.Ephemeral,
+                    }),
                 });
             }
         }
@@ -100,19 +107,13 @@ export default class extends Command {
     async exec(interaction: CommandInteraction) {
         await this.before(interaction);
         const code = interaction.options.get('query').value as number;
-        let gallery = await this.client.db.cache
-            .getDoujin(code)
-            .catch(err => this.client.logger.error(err.message));
+        let gallery = await this.client.db.cache.getDoujin(code);
         if (!gallery) {
-            const data = await this.client.nhentai
-                .g(code)
-                .catch(err => this.client.logger.error(err.message));
+            const data = await this.client.nhentai.g(code);
             if (!data || !data.gallery) {
                 throw new UserError('NO_RESULT', String(code));
             }
-            await this.client.db.cache
-                .addDoujin(data.gallery)
-                .catch(err => this.client.logger.error(err.message));
+            await this.client.db.cache.addDoujin(data.gallery);
             gallery = data.gallery;
         }
         const { thumb, rip } = this.client.embeds.displayShortGallery(

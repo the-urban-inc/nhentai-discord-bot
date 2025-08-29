@@ -1,5 +1,10 @@
 import { Client, Command, UserError } from '@structures';
-import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction, MessageFlags } from 'discord.js';
+import {
+    ApplicationCommandOptionType,
+    ApplicationCommandType,
+    CommandInteraction,
+    MessageFlags,
+} from 'discord.js';
 import { decode } from 'he';
 import { User, Server, Blacklist } from '@database/models';
 import { Gallery, PartialGallery } from '@api/nhentai';
@@ -100,7 +105,9 @@ export default class extends Command {
             if (leveledUp) {
                 await interaction.followUp({
                     content: 'Congratulations! You have leveled up!',
-                    ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                    ...((interaction.options.get('private')?.value as boolean) && {
+                        flags: MessageFlags.Ephemeral,
+                    }),
                 });
             }
         }
@@ -113,34 +120,32 @@ export default class extends Command {
         const page = interaction.options.get('page')?.value as number;
 
         if (!page && !more) {
-            let gallery = await this.client.db.cache.getDoujin(code)
-                .catch(err => this.client.logger.error(err.message));
+            let gallery = await this.client.db.cache.getDoujin(code);
             if (!gallery) {
-                const data = await this.client.nhentai
-                    .g(code)
-                    .catch(err => this.client.logger.error(err.message));
+                const data = await this.client.nhentai.g(code);
                 if (!data || !data.gallery) {
                     throw new UserError('NO_RESULT', String(code));
                 }
-                await this.client.db.cache.addDoujin(data.gallery)
-                    .catch(err => this.client.logger.error(err.message));
+                await this.client.db.cache.addDoujin(data.gallery);
                 gallery = data.gallery;
             }
-            const { displayGallery, rip } = this.client.embeds.displayLazyFullGallery(gallery, this.danger, this.blacklists);
+            const { displayGallery, rip } = this.client.embeds.displayLazyFullGallery(
+                gallery,
+                this.danger,
+                this.blacklists
+            );
             if (rip) this.warning = true;
             await displayGallery.run(interaction, `> **Searching for** **\`${code}\`**`);
             return await this.after(interaction, gallery);
         }
 
-        const data = await this.client.nhentai
-            .g(code)
-            .catch(err => this.client.logger.error(err.message));
+        const data = await this.client.nhentai.g(code);
         if (!data || !data.gallery) {
             throw new UserError('NO_RESULT', String(code));
         }
 
         const { gallery } = data;
-        
+
         if (page && (page < 1 || page > gallery.num_pages)) {
             throw new UserError('INVALID_PAGE_INDEX', page, gallery.num_pages);
         }

@@ -1,5 +1,9 @@
 import { Client, Command, UserError } from '@structures';
-import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction } from 'discord.js';
+import {
+    ApplicationCommandOptionType,
+    ApplicationCommandType,
+    CommandInteraction,
+} from 'discord.js';
 import { User, Server, Blacklist, Language } from '@database/models';
 
 export default class extends Command {
@@ -59,9 +63,7 @@ export default class extends Command {
     }
 
     async run(interaction: CommandInteraction, page: number, external = false) {
-        const data = await this.client.nhentai
-            .home(page)
-            .catch(err => this.client.logger.error(err.message));
+        const data = await this.client.nhentai.home(page);
         if (!data || !data.result || !data.result.length) {
             if (external) return;
             throw new UserError('NO_RESULT');
@@ -99,7 +101,7 @@ export default class extends Command {
                 num_pages,
                 additional_options: {
                     commandPage: page,
-                }
+                },
             }
         );
         if (rip) this.warning = true;
@@ -119,7 +121,7 @@ export default class extends Command {
     async exec(interaction: CommandInteraction) {
         await this.before(interaction);
         const page = (interaction.options.get('page')?.value as number) ?? 1;
-        
+
         await this.run(interaction, page);
     }
 }

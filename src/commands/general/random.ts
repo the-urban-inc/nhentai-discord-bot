@@ -1,5 +1,9 @@
 import { Client, Command, UserError } from '@structures';
-import { ApplicationCommandType, ApplicationCommandOptionType, CommandInteraction } from 'discord.js';
+import {
+    ApplicationCommandType,
+    ApplicationCommandOptionType,
+    CommandInteraction,
+} from 'discord.js';
 import { User, Server, Blacklist } from '@database/models';
 
 export default class extends Command {
@@ -71,30 +75,22 @@ export default class extends Command {
         await this.before(interaction);
         const more = interaction.options.get('more')?.value as boolean;
         const page = (interaction.options.get('page')?.value as number) ?? 1;
-        let id = await this.client.db.cache
-            .safeRandom(
-                this.danger,
-                this.blacklists.map(({ id }) => id)
-            )
-            .catch(err => this.client.logger.error(err.message));
+        let id = await this.client.db.cache.safeRandom(
+            this.danger,
+            this.blacklists.map(({ id }) => id)
+        );
         if (!id) {
             id = (await this.client.nhentai.random()).gallery.id;
         }
 
         if (!page && !more) {
-            let gallery = await this.client.db.cache
-                .getDoujin(id)
-                .catch(err => this.client.logger.error(err.message));
+            let gallery = await this.client.db.cache.getDoujin(id);
             if (!gallery) {
-                const data = await this.client.nhentai
-                    .g(id)
-                    .catch(err => this.client.logger.error(err.message));
+                const data = await this.client.nhentai.g(id);
                 if (!data || !data.gallery) {
                     throw new UserError('NO_RESULT', String(id));
                 }
-                await this.client.db.cache
-                    .addDoujin(data.gallery)
-                    .catch(err => this.client.logger.error(err.message));
+                await this.client.db.cache.addDoujin(data.gallery);
                 gallery = data.gallery;
             }
             const { displayGallery, rip } = this.client.embeds.displayLazyFullGallery(
@@ -107,9 +103,7 @@ export default class extends Command {
             return await this.after(interaction);
         }
 
-        const data = await this.client.nhentai
-            .g(id, more)
-            .catch(err => this.client.logger.error(err.message));
+        const data = await this.client.nhentai.g(id, more);
         if (!data || !data.gallery) {
             throw new UserError('NO_RESULT');
         }

@@ -1,5 +1,13 @@
 import { Client, Command, UserError } from '@structures';
-import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, CommandInteraction, Message, MessageFlags } from 'discord.js';
+import {
+    ActionRowBuilder,
+    ApplicationCommandType,
+    ButtonBuilder,
+    ButtonStyle,
+    CommandInteraction,
+    Message,
+    MessageFlags,
+} from 'discord.js';
 import { decode } from 'he';
 import { User, Server, Blacklist } from '@database/models';
 import { Gallery } from '@api/nhentai';
@@ -52,12 +60,10 @@ export default class extends Command {
     }
 
     async fetchRandomDoujin() {
-        return await this.client.db.cache
-            .safeRandom(
-                this.danger,
-                this.blacklists.map(bl => bl.id)
-            )
-            .catch(err => this.client.logger.error(err.message));
+        return await this.client.db.cache.safeRandom(
+            this.danger,
+            this.blacklists.map(bl => bl.id)
+        );
     }
 
     async exec(interaction: CommandInteraction) {
@@ -121,11 +127,26 @@ export default class extends Command {
             embeds: [quiz],
             components: [
                 new ActionRowBuilder<ButtonBuilder>().addComponents([
-                    new ButtonBuilder().setCustomId('0').setLabel('A').setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder().setCustomId('1').setLabel('B').setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder().setCustomId('2').setLabel('C').setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder().setCustomId('3').setLabel('D').setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder().setCustomId('cancel').setLabel('Skip').setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder()
+                        .setCustomId('0')
+                        .setLabel('A')
+                        .setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                        .setCustomId('1')
+                        .setLabel('B')
+                        .setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                        .setCustomId('2')
+                        .setLabel('C')
+                        .setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                        .setCustomId('3')
+                        .setLabel('D')
+                        .setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                        .setCustomId('cancel')
+                        .setLabel('Skip')
+                        .setStyle(ButtonStyle.Danger),
                 ]),
             ],
         })) as Message;
@@ -162,7 +183,9 @@ export default class extends Command {
                                     `Quiz skipped. The correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
                                 ),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                 }
                 const choice = parseInt(i.customId, 10);
@@ -186,7 +209,9 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                     const leveledUp = await this.client.db.xp.save(
                         'add',
@@ -198,7 +223,9 @@ export default class extends Command {
                     if (leveledUp) {
                         await interaction.followUp({
                             content: 'Congratulations! You have leveled up!',
-                            ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                            ...((interaction.options.get('private')?.value as boolean) && {
+                                flags: MessageFlags.Ephemeral,
+                            }),
                         });
                     }
                     return;
@@ -212,7 +239,9 @@ export default class extends Command {
                                 `Unfortunately, that was the wrong answer.\nThe correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.\nYou chose **[${abcd[choice]}] [${choices[choice].title}](${choices[choice].url})**.`
                             ),
                     ],
-                    ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                    ...((interaction.options.get('private')?.value as boolean) && {
+                        flags: MessageFlags.Ephemeral,
+                    }),
                 });
             })
             .catch(async err => {
@@ -229,7 +258,9 @@ export default class extends Command {
                                 `The session timed out as you did not answer within 30 seconds. The correct answer was **[${abcd[answer]}] [${choices[answer].title}](${choices[answer].url})**.`
                             ),
                     ],
-                    ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                    ...((interaction.options.get('private')?.value as boolean) && {
+                        flags: MessageFlags.Ephemeral,
+                    }),
                 });
             });
     }

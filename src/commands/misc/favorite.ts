@@ -1,5 +1,10 @@
 import { Client, Command } from '@structures';
-import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction, User as DiscordUser } from 'discord.js';
+import {
+    ApplicationCommandOptionType,
+    ApplicationCommandType,
+    CommandInteraction,
+    User as DiscordUser,
+} from 'discord.js';
 import { User, Server, Blacklist } from '@database/models';
 import { PartialGallery } from '@api/nhentai';
 
@@ -108,11 +113,12 @@ export default class extends Command {
         const delay = (ms = 500) => new Promise(r => setTimeout(r, ms));
         for (const [i, code] of user.favorites.entries()) {
             await delay();
-            let gallery = await this.client.db.cache
-                .getDoujin(+code)
-                .catch(err => this.client.logger.error(err.message));
+            let gallery = await this.client.db.cache.getDoujin(+code);
             if (!gallery) {
-                gallery = await this.client.nhentai.g(+code).then(res => res.gallery).catch(() => null);
+                gallery = await this.client.nhentai
+                    .g(+code)
+                    .then(res => res.gallery)
+                    .catch(() => null);
             }
             const progress = Math.floor((i / user.favorites.length) * 100);
             const totalBar = '░░░░░░░░░░░░░░░░';

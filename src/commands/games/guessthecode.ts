@@ -64,12 +64,10 @@ export default class extends Command {
     }
 
     async fetchRandomDoujin() {
-        return await this.client.db.cache
-            .safeRandom(
-                this.danger,
-                this.blacklists.map(bl => bl.id)
-            )
-            .catch(err => this.client.logger.error(err.message));
+        return await this.client.db.cache.safeRandom(
+            this.danger,
+            this.blacklists.map(bl => bl.id)
+        );
     }
 
     async exec(interaction: CommandInteraction) {
@@ -78,9 +76,7 @@ export default class extends Command {
         if (!id) {
             throw new UserError('NO_RESULT');
         }
-        const gallery = await this.client.db.cache
-            .getDoujin(id)
-            .catch(err => this.client.logger.error(err.message));
+        const gallery = await this.client.db.cache.getDoujin(id);
         if (!gallery) {
             throw new UserError('NO_RESULT');
         }
@@ -143,7 +139,9 @@ export default class extends Command {
                                     `Quiz skipped. The correct answer was \`${answer}\`.`
                                 ),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                 }
                 const modal = new ModalBuilder()
@@ -188,7 +186,9 @@ export default class extends Command {
                                     `That's not a number. Are you even trying??? The correct answer was \`${answer}\`.`
                                 ),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                     return;
                 }
@@ -209,7 +209,9 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                 } else if (
                     this.client.util.isBetween(choice, answer - 10, answer) ||
@@ -227,7 +229,9 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                 } else if (
                     this.client.util.isBetween(choice, answer - 100, answer) ||
@@ -245,7 +249,9 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                 } else if (
                     this.client.util.isBetween(choice, answer - 1000, answer) ||
@@ -265,7 +271,9 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                 } else if (
                     this.client.util.isBetween(choice, answer - 10000, answer) ||
@@ -285,7 +293,9 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                 } else if (
                     this.client.util.isBetween(choice, answer - 100000, answer) ||
@@ -305,7 +315,9 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                 } else {
                     interaction.followUp({
@@ -320,7 +332,9 @@ export default class extends Command {
                                     text: `Received ${inc} xp\u2000•\u2000Quiz session ended`,
                                 }),
                         ],
-                        ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                        ...((interaction.options.get('private')?.value as boolean) && {
+                            flags: MessageFlags.Ephemeral,
+                        }),
                     });
                 }
                 if (inc > 0) {
@@ -334,7 +348,9 @@ export default class extends Command {
                     if (leveledUp) {
                         await interaction.followUp({
                             content: 'Congratulations! You have leveled up!',
-                            ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                            ...((interaction.options.get('private')?.value as boolean) && {
+                                flags: MessageFlags.Ephemeral,
+                            }),
                         });
                     }
                 }
@@ -350,7 +366,9 @@ export default class extends Command {
                                 `The session timed out as you did not answer within 30 seconds. The correct answer was \`${answer}\`.`
                             ),
                     ],
-                    ...(interaction.options.get('private')?.value as boolean) && { flags: MessageFlags.Ephemeral },
+                    ...((interaction.options.get('private')?.value as boolean) && {
+                        flags: MessageFlags.Ephemeral,
+                    }),
                 });
             });
     }
