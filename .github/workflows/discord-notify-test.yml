@@ -1,0 +1,56 @@
+name: Notify Discord (test)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  simulate:
+    name: Simulate workflow_run.completed (dry-run)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Install jq
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+
+      - name: Create fake workflow_run.completed event
+        run: |
+          mkdir -p $(dirname "$GITHUB_EVENT_PATH")
+          cat > "$GITHUB_EVENT_PATH" <<'JSON'
+
+      - name: Run notify script (dry-run)
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVENT_PATH="${GITHUB_EVENT_PATH:-/github/workflow/event.json}"
+
+          run_repo=$(jq -r '.workflow_run.repository.full_name // empty' "$EVENT_PATH")
+          run_name=$(jq -r '.workflow_run.name // "<unknown>"' "$EVENT_PATH")
+          run_html=$(jq -r '.workflow_run.html_url // empty' "$EVENT_PATH")
+          status=$(jq -r '.workflow_run.conclusion // .workflow_run.status // "unknown"' "$EVENT_PATH")
+          actor=$(jq -r '.workflow_run.actor.login // .workflow_run.triggering_actor.login // empty' "$EVENT_PATH")
+          head_sha=$(jq -r '.workflow_run.head_sha // .workflow_run.head_commit.id // empty' "$EVENT_PATH")
+          short_sha=${head_sha:0:7}
+
+          pr_entry=$(jq -c --arg repo "$run_repo" '.workflow_run.pull_requests[]? | select(.base.repo.full_name == $repo and (.user.login // "") != "pull[bot]")' "$EVENT_PATH" | head -n1 || true)
+
+          if [ -n "$pr_entry" ]; then
+            pr_number=$(echo "$pr_entry" | jq -r '.number')
+            pr_url="https://github.com/${run_repo}/pull/${pr_number}"
+            pr_text="PR #${pr_number} (${pr_url})"
+          else
+            pr_text=""
+          fi
+
+          if [ -n "$pr_text" ]; then
+            content="Workflow **${run_name}** finished with status **${status}** — ${pr_text}\nRun: ${run_html} | ${actor} @ ${short_sha}"
+          else
+            content="Workflow **${run_name}** finished with status **${status}**\nRun: ${run_html} | ${actor} @ ${short_sha}"
+          fi
+
+          payload=$(jq -n --arg c "$content" '{content:$c}')
+
+          echo "DRY RUN payload:"
+          echo "$payload"
