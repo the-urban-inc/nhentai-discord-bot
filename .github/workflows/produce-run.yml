@@ -1,0 +1,14 @@
+name: Produce workflow run (test)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  quick:
+    name: Quick no-op job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print marker and exit
+        run: |
+          echo "producer: start"
+          echo "producer: done"
