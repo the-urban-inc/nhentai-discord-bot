@@ -1,0 +1,58 @@
+name: Notify Discord (filtered)
+
+on:
+  workflow_run:
+    types: [completed]
+
+jobs:
+  notify:
+    name: Send filtered Discord notification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Notify Discord
+        shell: bash
+        run: |
+          DISCORD_WEBHOOK_URLS="${{ secrets.DISCORD_WEBHOOK_URLS }}"
+          set -euo pipefail
+
+          EVENT_PATH="${GITHUB_EVENT_PATH:-/github/workflow/event.json}"
+
+          if [ -z "${DISCORD_WEBHOOK_URLS:-}" ]; then
+            echo "DISCORD_WEBHOOK_URLS not set; skipping notification"
+            exit 0
+          fi
+
+          run_repo=$(jq -r '.workflow_run.repository.full_name // empty' "$EVENT_PATH")
+          run_name=$(jq -r '.workflow_run.name // "<unknown>"' "$EVENT_PATH")
+          run_html=$(jq -r '.workflow_run.html_url // empty' "$EVENT_PATH")
+          status=$(jq -r '.workflow_run.conclusion // .workflow_run.status // "unknown"' "$EVENT_PATH")
+          actor=$(jq -r '.workflow_run.actor.login // .workflow_run.triggering_actor.login // empty' "$EVENT_PATH")
+          head_sha=$(jq -r '.workflow_run.head_sha // .workflow_run.head_commit.id // empty' "$EVENT_PATH")
+          short_sha=${head_sha:0:7}
+
+          # Find a PR whose base repo matches the run repository and ignore pull[bot]
+          pr_entry=$(jq -c --arg repo "$run_repo" '.workflow_run.pull_requests[]? | select(.base.repo.full_name == $repo and (.user.login // "") != "pull[bot]")' "$EVENT_PATH" | head -n1 || true)
+
+          if [ -n "$pr_entry" ]; then
+            pr_number=$(echo "$pr_entry" | jq -r '.number')
+            pr_url="https://github.com/${run_repo}/pull/${pr_number}"
+            pr_text="PR #${pr_number} (${pr_url})"
+          else
+            pr_text=""
+          fi
+
+          if [ -n "$pr_text" ]; then
+            content="Workflow **${run_name}** finished with status **${status}** — ${pr_text}\nRun: ${run_html} | ${actor} @ ${short_sha}"
+          else
+            content="Workflow **${run_name}** finished with status **${status}**\nRun: ${run_html} | ${actor} @ ${short_sha}"
+          fi
+
+          payload=$(jq -n --arg c "$content" '{content:$c}')
+
+          # Normalize secret into newline-separated URLs, allow comma or newline separation
+          echo "$DISCORD_WEBHOOK_URLS" | tr ',' '\n' | sed '/^\s*$/d' | while read -r url; do
+            echo "Posting to $url"
+            curl -sS -H "Content-Type: application/json" -d "$payload" "$url" || echo "failed to post to $url"
+          done
