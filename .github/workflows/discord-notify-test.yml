@@ -17,8 +17,10 @@ jobs:
 
       - name: Create fake workflow_run.completed event
         run: |
-          mkdir -p $(dirname "$GITHUB_EVENT_PATH")
-          cat > "$GITHUB_EVENT_PATH" <<'JSON'
+          # write to the actual EVENT_PATH used later (fall back to /github/workflow/event.json)
+          EVENT_PATH="${GITHUB_EVENT_PATH:-/github/workflow/event.json}"
+          mkdir -p "$(dirname "$EVENT_PATH")"
+          cat > "$EVENT_PATH" <<'JSON'
 
       - name: Run notify script (dry-run)
         shell: bash
