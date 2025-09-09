@@ -15,9 +15,11 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y jq
 
-      - name: Create fake workflow_run.completed event
+      - name: Create fake event and run notify script (dry-run)
+        shell: bash
         run: |
-          # write fake event JSON reliably using jq to avoid here-doc parsing issues
+          set -euo pipefail
+          # create fake event into a local path and parse it in the same shell
           EVENT_PATH="${GITHUB_EVENT_PATH:-/github/workflow/event.json}"
           mkdir -p "$(dirname "$EVENT_PATH")"
           jq -n \
@@ -30,12 +32,10 @@ jobs:
             '{workflow_run: {repository: {full_name: $repo}, name: $name, html_url: $html, conclusion: $concl, actor: {login: $actor}, head_sha: $head, pull_requests: []}}' \
             > "$EVENT_PATH"
 
-      - name: Run notify script (dry-run)
-        shell: bash
-        run: |
-          set -euo pipefail
-          EVENT_PATH="${GITHUB_EVENT_PATH:-/github/workflow/event.json}"
+          # debug: show event contents
+          echo "WROTE EVENT:" && cat "$EVENT_PATH"
 
+          # now run the same parsing logic used in the real workflow
           run_repo=$(jq -r '.workflow_run.repository.full_name // empty' "$EVENT_PATH")
           run_name=$(jq -r '.workflow_run.name // "<unknown>"' "$EVENT_PATH")
           run_html=$(jq -r '.workflow_run.html_url // empty' "$EVENT_PATH")
