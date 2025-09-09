@@ -17,10 +17,18 @@ jobs:
 
       - name: Create fake workflow_run.completed event
         run: |
-          # write to the actual EVENT_PATH used later (fall back to /github/workflow/event.json)
+          # write fake event JSON reliably using jq to avoid here-doc parsing issues
           EVENT_PATH="${GITHUB_EVENT_PATH:-/github/workflow/event.json}"
           mkdir -p "$(dirname "$EVENT_PATH")"
-          cat > "$EVENT_PATH" <<'JSON'
+          jq -n \
+            --arg repo "the-urban-inc/nhentai-discord-bot" \
+            --arg name "Push Docker image to GitHub Container Registry" \
+            --arg html "https://github.com/the-urban-inc/nhentai-discord-bot/actions/runs/17575503109" \
+            --arg concl "success" \
+            --arg actor "the-urban-inc" \
+            --arg head "0123456789abcdef0123456789abcdef01234567" \
+            '{workflow_run: {repository: {full_name: $repo}, name: $name, html_url: $html, conclusion: $concl, actor: {login: $actor}, head_sha: $head, pull_requests: []}}' \
+            > "$EVENT_PATH"
 
       - name: Run notify script (dry-run)
         shell: bash
