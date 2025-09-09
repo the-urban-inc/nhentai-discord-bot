@@ -14,7 +14,9 @@ jobs:
       - name: Notify Discord
         shell: bash
         run: |
+          # Config
           DISCORD_WEBHOOK_URLS="${{ secrets.DISCORD_WEBHOOK_URLS }}"
+          DRY_RUN="${{ secrets.DISCORD_NOTIFY_DRY_RUN || '' }}" # set to '1' to avoid posting
           set -euo pipefail
 
           EVENT_PATH="${GITHUB_EVENT_PATH:-/github/workflow/event.json}"
@@ -24,6 +26,12 @@ jobs:
             exit 0
           fi
 
+          if [ ! -f "$EVENT_PATH" ]; then
+            echo "Event file $EVENT_PATH not found; skipping"
+            exit 0
+          fi
+
+          # Parse fields (log them for debugging)
           run_repo=$(jq -r '.workflow_run.repository.full_name // empty' "$EVENT_PATH")
           run_name=$(jq -r '.workflow_run.name // "<unknown>"' "$EVENT_PATH")
           run_html=$(jq -r '.workflow_run.html_url // empty' "$EVENT_PATH")
@@ -31,6 +39,8 @@ jobs:
           actor=$(jq -r '.workflow_run.actor.login // .workflow_run.triggering_actor.login // empty' "$EVENT_PATH")
           head_sha=$(jq -r '.workflow_run.head_sha // .workflow_run.head_commit.id // empty' "$EVENT_PATH")
           short_sha=${head_sha:0:7}
+
+          echo "Parsed event: repo=$run_repo name=$run_name status=$status actor=$actor sha=$short_sha"
 
           # Find a PR whose base repo matches the run repository and ignore pull[bot]
           pr_entry=$(jq -c --arg repo "$run_repo" '.workflow_run.pull_requests[]? | select(.base.repo.full_name == $repo and (.user.login // "") != "pull[bot]")' "$EVENT_PATH" | head -n1 || true)
@@ -51,8 +61,25 @@ jobs:
 
           payload=$(jq -n --arg c "$content" '{content:$c}')
 
-          # Normalize secret into newline-separated URLs, allow comma or newline separation
-          echo "$DISCORD_WEBHOOK_URLS" | tr ',' '\n' | sed '/^\s*$/d' | while read -r url; do
+          # Normalize secret into newline-separated URLs; do not use a subshell that masks set -e failures
+          IFS=$'\n'
+          urls=()
+          for u in $(echo "$DISCORD_WEBHOOK_URLS" | tr ',' '\n'); do
+            u_trim=$(echo "$u" | sed 's/^\s*//;s/\s*$//')
+            if [ -n "$u_trim" ]; then
+              urls+=("$u_trim")
+            fi
+          done
+
+          if [ "${DRY_RUN:-}" = "1" ]; then
+            echo "DRY RUN enabled; not posting to Discord. Payload to send:"
+            echo "$payload"
+            exit 0
+          fi
+
+          for url in "${urls[@]}"; do
             echo "Posting to $url"
-            curl -sS -H "Content-Type: application/json" -d "$payload" "$url" || echo "failed to post to $url"
+            if ! curl -sS -H "Content-Type: application/json" -d "$payload" "$url"; then
+              echo "failed to post to $url"
+            fi
           done
