@@ -76,7 +76,7 @@ export class Client<Ready extends boolean = boolean> extends DiscordClient<Ready
         this.util = new Util(this);
         this.logger = new Logger(this);
         this.jasmr = new JASMRAPI();
-        this.nhentai = new NhentaiAPI();
+        this.nhentai = new NhentaiAPI({ tagCacheDb: this.db.cache });
         this.images = new ImageAPI();
         this.subscriptions = new Collection<Snowflake, MusicSubscription>();
         this.tags = new Collection<string, string[]>();
@@ -84,6 +84,7 @@ export class Client<Ready extends boolean = boolean> extends DiscordClient<Ready
     }
 
     async start(): Promise<void> {
+        await this.nhentai.initCdn();
         await super.login(DISCORD_TOKEN);
     }
 }

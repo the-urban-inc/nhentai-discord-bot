@@ -1,23 +1,67 @@
+// ─── Shared types ────────────────────────────────────────────────────────────────
+
+/**
+ * Maps a v2 image path extension to the type-char used by the MariaDB cache schema.
+ */
+export function pathToTypeChar(path: string): 'j' | 'p' | 'g' | 'w' | 'n' {
+    const ext = path.split('.').pop()?.toLowerCase();
+    if (ext === 'jpg' || ext === 'jpeg') return 'j';
+    if (ext === 'png') return 'p';
+    if (ext === 'gif') return 'g';
+    if (ext === 'webp') return 'w';
+    return 'n'; // unknown / avif / webp double-extension edge case
+}
+
+/**
+ * Cleans double-extension paths like "cover.webp.webp" → "cover.webp".
+ * Only strips when the SAME extension is duplicated, preserving paths like
+ * "thumb.jpg.webp" (a webp thumbnail of a jpg source).
+ */
+export function cleanImagePath(path: string): string {
+    return path.replace(/\.(jpe?g|png|gif|webp)\.\1$/, '.$1');
+}
+
+/**
+ * Converts a type char (stored in Gallery.images.cover.t etc.) to a full file extension.
+ */
+export function typeCharToExt(t: Image['t']): string {
+    switch (t) {
+        case 'j': return 'jpg';
+        case 'p': return 'png';
+        case 'g': return 'gif';
+        case 'w': return 'webp';
+        default:  return 'unknown';
+    }
+}
+
+/** Flat item returned by /search, /galleries, and the related field of /galleries/{id} */
+export interface GalleryListItem {
+    id: number;
+    media_id: string;
+    english_title: string;
+    japanese_title: string | null;
+    thumbnail: string;          // "galleries/3886754/thumb.webp"
+    thumbnail_width: number;
+    thumbnail_height: number;
+    num_pages: number;
+    tag_ids: number[];          // only IDs — no counts
+    blacklisted: boolean;
+}
+
+/** Tag lookup result from GET /api/v2/tags/{type}/{slug} */
+export interface TagLookupResult {
+    id: number;
+    type: TagType;
+    name: string;
+    slug: string;
+    url: string;
+    count: number;
+}
 
 export interface Image {
     t: 'j' | 'p' | 'g' | 'w' | 'n';
     w: number;
     h: number;
-}
-
-enum ImageType {
-    JPG = 'jpg',
-    PNG = 'png',
-    GIF = 'gif',
-    WEBP = 'webp',
-}
-
-export const ImageT = {
-    'j': ImageType.JPG,
-    'p': ImageType.PNG,
-    'g': ImageType.GIF,
-    'w': ImageType.WEBP,
-    'n': null
 }
 
 export enum Language {
@@ -38,7 +82,7 @@ export enum TagType {
 
 export interface Tag {
     id: number;
-    type: TagType; 
+    type: TagType;
     name: string;
     url: string;
     count: number;
@@ -91,9 +135,6 @@ export interface Gallery extends PartialGallery {
     num_favorites: number;
 }
 
-export interface Related {
-    result: Gallery[];
-}
 
 export interface Comment {
     id: number | string;
@@ -110,16 +151,11 @@ export interface Comment {
     body: string;
 }
 
-export interface Search {
-    result: Gallery[];
-    num_pages: number;
-    per_page: number;
-}
-
 export enum Sort {
     Recent = 'recent',
     PopularToday = 'popular-today',
     PopularWeek = 'popular-week',
+    PopularMonth = 'popular-month',
     PopularAllTime = 'popular',
 }
 

@@ -38,6 +38,28 @@ export class Cache {
         return await this.pool.execute<{ name: string, type: string }[]>('SELECT name, type FROM tag');
     }
 
+    async resolveTagIds(ids: number[]): Promise<Map<number, { id: number; type: string; name: string; url: string; count: number }>> {
+        if (!ids.length) return new Map();
+        try {
+            const rows = await this.pool.execute<{ tag_id: number; name: string; type: string; count: number }[]>(
+                `SELECT tag_id, name, type, count_tag(tag_id) as \`count\` FROM tag WHERE tag_id IN (${ids.join(',')})`
+            );
+            const result = new Map<number, { id: number; type: string; name: string; url: string; count: number }>();
+            for (const row of rows) {
+                result.set(row.tag_id, {
+                    id: row.tag_id,
+                    type: row.type,
+                    name: row.name,
+                    url: '',
+                    count: row.count ?? 0,
+                });
+            }
+            return result;
+        } catch {
+            return new Map();
+        }
+    }
+
     async getDoujin(id: number): Promise<PartialGallery | null> {
         const rows = await this.doujinBase(id);
         if (!rows.length) return null;

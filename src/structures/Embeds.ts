@@ -98,14 +98,14 @@ export class Embeds {
         );
         if (danger || !rip) info.setThumbnail(this.client.nhentai.getCoverThumbnail(gallery));
         const t = new Map();
-        tags.sort((a, b) => b.count - a.count);
-        tags.forEach(tag => {
+        const clonedTags = tags.map(tag => ({ ...tag }));
+        clonedTags.sort((a, b) => b.count - a.count);
+        clonedTags.forEach(tag => {
             const { id, type, name, count } = tag;
             const a = t.get(type) || [];
             let s = `**\`${name}\`**\u2009\`(${
                 count ? (count >= 1000 ? `${Math.floor(count / 1000)}K` : count) : '?'
             })\``;
-            // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
             if (blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
             if (follows.some(fl => fl === id)) s = `__${s}__`;
             a.push(s);
@@ -180,6 +180,7 @@ export class Embeds {
         const displayGallery = this.paginator(this.client, {
             info: { id, name: title },
             collectorTimeout: 300000,
+            gallery: gallery as any,
         }).addPage('info', {
             galleryID: id,
             embed: this.displayGalleryInfo(gallery, danger, blacklists).info,
@@ -201,11 +202,11 @@ export class Embeds {
             tags.map(x => x.id.toString()),
             BANNED_TAGS
         );
-        tags.sort((a, b) => b.count - a.count);
-        tags.forEach(tag => {
+        const clonedTags = tags.map(tag => ({ ...tag }));
+        clonedTags.sort((a, b) => b.count - a.count);
+        clonedTags.forEach(tag => {
             const { id, name } = tag;
             let s = name;
-            // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
             if (blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
             if (follows.some(fl => fl === id)) s = `__${s}__`;
             tag.name = s;
@@ -215,7 +216,7 @@ export class Embeds {
             .setURL(`https://nhentai.net/g/${id}`)
             .setDescription(
                 this.client.util.gshorten(
-                    tags.filter(tag => tag.type == 'tag').map(tag => tag.name),
+                    clonedTags.filter(tag => tag.type == 'tag').map(tag => tag.name),
                     ', ',
                     4096
                 ) || '\u200b'
@@ -269,8 +270,8 @@ export class Embeds {
                         (FLAG_EMOJIS[language]
                             ? `\u2000•\u2000**Language** : ${FLAG_EMOJIS[language]}`
                             : '')
-                )
-                .setTimestamp(upload_date * 1000);
+                );
+            if (upload_date) thumb.setTimestamp(upload_date * 1000);
             const footer =
                 (page ? `Page ${page} of ${num_pages || 1}` : '') +
                 (num_results ? `${page ? '\u2000•\u2000' : ''}${num_results} galleries` : '');
@@ -290,17 +291,22 @@ export class Embeds {
                 galleryID: String(id),
                 embed: this.displayGalleryInfo(gallery, danger, blacklists).info,
             };
-            displayList.addPage(
-                'info',
-                danger || !prip ? { pages: this.getPages(gallery), ...info } : info
-            );
             const thumbnail = {
                 galleryID: String(id),
                 embed: thumb,
             };
+            // v2 list items have empty pages — use lazy placeholders so preview mode still works
+            const pageUrls = danger || !prip ? this.getPages(gallery) : [];
+            const lazyPages = pageUrls.length
+                ? pageUrls
+                : [{ galleryID: -id, embed: this.default() }];
+            displayList.addPage(
+                'info',
+                danger || !prip ? { pages: lazyPages, ...info } : info
+            );
             displayList.addPage(
                 'thumbnail',
-                danger || !prip ? { pages: this.getPages(gallery), ...thumbnail } : thumbnail
+                danger || !prip ? { pages: lazyPages, ...thumbnail } : thumbnail
             );
         }
         return { displayList, rip };
@@ -349,8 +355,8 @@ export class Embeds {
                         (FLAG_EMOJIS[language]
                             ? `\u2000•\u2000**Language** : ${FLAG_EMOJIS[language]}`
                             : '')
-                )
-                .setTimestamp(upload_date * 1000);
+                );
+            if (upload_date) thumb.setTimestamp(upload_date * 1000);
             const footer =
                 (page ? `Page ${page} of ${num_pages || 1}` : '') +
                 (num_results ? `${page ? '\u2000•\u2000' : ''}${num_results} galleries` : '');

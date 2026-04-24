@@ -34,7 +34,6 @@ export enum Interactions {
     Last = 'last',
     Info = 'info',
     Preview = 'preview',
-    Return = 'return',
     Select = 'select',
     Love = 'love',
     Follow = 'follow',
@@ -70,6 +69,8 @@ export interface PaginatorOptions {
     priorityUser?: User;
     filterIDs?: number[];
     dispose?: boolean;
+    /** Full gallery — set by displayLazyFullGallery so loadGalleryPages can reuse it instead of re-fetching. */
+    gallery?: Gallery;
 }
 
 const TAGS = ['tag', 'artist', 'character', 'category', 'group', 'parody', 'language'];
@@ -98,6 +99,7 @@ export class Paginator {
     private filterIDs: number[] = [];
     private readonly info: Info;
     private readonly filter: (interaction: MessageComponentInteraction) => boolean;
+    private readonly gallery: Gallery | undefined;
     private image: string | null = null;
     private ephemeral = false;
     private readonly prompt: string;
@@ -127,6 +129,7 @@ export class Paginator {
         this.jumpTimeout = options.jumpTimeout ?? DEFAULT_JUMP_TIMEOUT;
         this.collectorTimeout = options.collectorTimeout ?? DEFAULT_COLLECTOR_TIMEOUT;
         this.currentCommandPage = options.commandPage ?? 1;
+        this.gallery = options.gallery;
         this.#currentView = options.startView ?? 'info';
         this.#currentPage = options.startPage ?? 0;
         this.assignButtons();
@@ -186,7 +189,6 @@ export class Paginator {
                     .setCustomId(this.id + ' filter')
                     .setLabel(`👁️\u00A0\u00A0Click here to see ${this.filterIDs.length} filtered galleries`)
                     .setStyle(ButtonStyle.Secondary)
-                    
             )
             .set(
                 Interactions.Remove,
@@ -204,33 +206,47 @@ export class Paginator {
 
     private buildSelectOptions(): StringSelectMenuOptionBuilder[] {
         const menu: StringSelectMenuOptionBuilder[] = [];
-        menu.push(
-            new StringSelectMenuOptionBuilder()
-                .setLabel('Info View')
-                .setDescription('Switch to Info View')
-                .setValue('info')
-                .setEmoji('📄')
-                .setDefault(this.#currentView === 'info' && !this.#previewing),
-            new StringSelectMenuOptionBuilder()
-                .setLabel('Thumbnail View')
-                .setDescription('Switch to Thumbnail View')
-                .setValue('thumbnail')
-                .setEmoji('🖼️')
-                .setDefault(this.#currentView === 'thumbnail' && !this.#previewing)
-        );
-        if (
-            ['home', 'search', 'favorite', ...TAGS].includes(this.interaction.commandName) &&
-            (this.pages[this.#currentView][this.#currentPage]?.embed?.data.image ||
-                this.pages[this.#currentView][this.#currentPage]?.embed?.data.thumbnail)
-        ) {
+        if (this.#previewing) {
             menu.push(
                 new StringSelectMenuOptionBuilder()
-                    .setLabel('Preview')
-                    .setDescription('Take a look at the current doujin')
-                    .setValue('preview')
-                    .setEmoji('🔎')
-                    .setDefault(this.#previewing)
+                    .setLabel('Info View')
+                    .setDescription('Show gallery info')
+                    .setValue('info')
+                    .setEmoji('📄')
+                    .setDefault(this.#currentView === 'info'),
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Thumbnail View')
+                    .setDescription('Browse gallery pages')
+                    .setValue('thumbnail')
+                    .setEmoji('🖼️')
+                    .setDefault(this.#currentView === 'thumbnail')
             );
+        } else {
+            menu.push(
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Info View')
+                    .setDescription('Switch to Info View')
+                    .setValue('info')
+                    .setEmoji('📄')
+                    .setDefault(this.#currentView === 'info'),
+                new StringSelectMenuOptionBuilder()
+                    .setLabel('Thumbnail View')
+                    .setDescription('Switch to Thumbnail View')
+                    .setValue('thumbnail')
+                    .setEmoji('🖼️')
+                    .setDefault(this.#currentView === 'thumbnail')
+            );
+            if (
+                ['home', 'search', 'favorite', ...TAGS].includes(this.interaction.commandName)
+            ) {
+                menu.push(
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Browse Gallery')
+                        .setDescription('Browse the pages of the current gallery')
+                        .setValue('preview')
+                        .setEmoji('🔎')
+                );
+            }
         }
         return menu;
     }
@@ -263,6 +279,22 @@ export class Paginator {
             ? [Interactions.Enqueue, Interactions.Remove]
             : [Interactions.Remove];
 
+        // Preview mode: same nav + options, but select menu lets user swap views or return to list
+        if (this.#previewing) {
+            const previewOptionsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                [Interactions.Love, Interactions.Remove].map(k =>
+                    this.methodMap.get(k as Interactions) as ButtonBuilder
+                )
+            );
+            return [
+                naviRow,
+                previewOptionsRow,
+                new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+                    this.methodMap.get(Interactions.Select) as StringSelectMenuBuilder
+                ),
+            ];
+        }
+
         const optionsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
             baseOptions.map(k => this.methodMap.get(k as Interactions) as ButtonBuilder)
         );
@@ -271,16 +303,9 @@ export class Paginator {
         try {
             if (
                 this.ephemeral ||
-                !channel ||
-                !channel
-                    .permissionsFor(this.interaction.guild.members.me)
-                    ?.has(PermissionFlagsBits.ManageMessages) ||
-                !channel
-                    .permissionsFor(this.interaction.guild.members.me)
-                    ?.has(PermissionFlagsBits.ViewChannel) ||
-                !channel
-                    .permissionsFor(this.interaction.guild.members.me)
-                    ?.has(PermissionFlagsBits.ReadMessageHistory)
+                !channel?.permissionsFor(this.interaction.guild.members.me)?.has(PermissionFlagsBits.ManageMessages) ||
+                !channel?.permissionsFor(this.interaction.guild.members.me)?.has(PermissionFlagsBits.ViewChannel) ||
+                !channel?.permissionsFor(this.interaction.guild.members.me)?.has(PermissionFlagsBits.ReadMessageHistory)
             ) {
                 const comps = optionsRow.components;
                 comps.splice(-1, 1);
@@ -386,7 +411,7 @@ export class Paginator {
                 if (!data) continue;
 
                 // Button
-                if (data.type === 2 || data.style || data.custom_id || data.customId || data.url) {
+                if (data.type === 2) {
                     const b = new ButtonBuilder().setDisabled(true as any);
                     if (data.custom_id ?? data.customId) b.setCustomId(data.custom_id ?? data.customId);
                     if (data.url) b.setURL(data.url);
@@ -437,12 +462,20 @@ export class Paginator {
     }
 
     private async loadGalleryPages(id: number): Promise<Page[]> {
+        // Reuse already-fetched gallery from the /g command flow (cache miss → nhentai.g path)
+        if (this.gallery) {
+            return this.client.embeds.getPages(this.gallery);
+        }
         try {
             const g = await this.client.nhentai.g(Math.abs(id));
             return this.client.embeds.getPages(g.gallery);
         } catch (err) {
-            // fallback to edu guess
-            const doujin = await this.client.db.cache.getDoujin(Math.abs(id));
+            // fallback to MariaDB cache, then edu guess
+            this.client.logger.warn('loadGalleryPages: nhentai.g failed, trying cache', err.message);
+            const doujin = await this.client.db.cache.getDoujin(Math.abs(id)).catch(err => {
+                this.client.logger.warn('loadGalleryPages: MariaDB cache miss for', id, err.message);
+                return null;
+            });
             return this.client.embeds.getEduGuessPages(doujin as any);
         }
     }
@@ -526,13 +559,6 @@ export class Paginator {
         return Promise.resolve(true);
     }
 
-    private async turnPage(interaction: MessageComponentInteraction) {
-        this.methodMap.forEach((v, k) =>
-            (this.methodMap.get(k) as any).setDisabled(!v['data'].disabled)
-        );
-        await this.update(interaction);
-    }
-
     private methods: Map<
         Interactions,
         (this: Paginator, interaction: MessageComponentInteraction) => Promise<boolean>
@@ -561,7 +587,7 @@ export class Paginator {
                             if (!this.followedUp) return false;
                             else await (interaction.message as Message).delete();
                         } else {
-                            await this.turnPage(interaction);
+                            await this.update(interaction);
                         }
                         try {
                             // show loading state to the user
@@ -579,7 +605,7 @@ export class Paginator {
                             );
                             this.collector.stop('Aborted');
                         } catch (err) {
-                            await this.turnPage(interaction);
+                            await this.update(interaction);
                         } finally {
                             return false;
                         }
@@ -615,7 +641,7 @@ export class Paginator {
                             if (!this.followedUp) return false;
                             else await (interaction.message as Message).delete();
                         } else {
-                            await this.turnPage(interaction);
+                            await this.update(interaction);
                         }
                         try {
                             if (!interaction.deferred && !interaction.replied)
@@ -632,7 +658,7 @@ export class Paginator {
                             );
                             this.collector.stop('Aborted');
                         } catch (err) {
-                            await this.turnPage(interaction);
+                            await this.update(interaction);
                         } finally {
                             return false;
                         }
@@ -667,7 +693,7 @@ export class Paginator {
                             if (!this.followedUp) return false;
                             else await (interaction.message as Message).delete();
                         } else {
-                            await this.turnPage(interaction);
+                            await this.update(interaction);
                         }
                         try {
                             if (!interaction.deferred && !interaction.replied)
@@ -684,7 +710,7 @@ export class Paginator {
                             );
                             this.collector.stop('Aborted');
                         } catch (err) {
-                            await this.turnPage(interaction);
+                            await this.update(interaction);
                         } finally {
                             return false;
                         }
@@ -719,7 +745,7 @@ export class Paginator {
                             if (!this.followedUp) return false;
                             else await (interaction.message as Message).delete();
                         } else {
-                            await this.turnPage(interaction);
+                            await this.update(interaction);
                         }
                         try {
                             if (!interaction.deferred && !interaction.replied)
@@ -736,7 +762,7 @@ export class Paginator {
                             );
                             this.collector.stop('Aborted');
                         } catch (err) {
-                            await this.turnPage(interaction);
+                            await this.update(interaction);
                         } finally {
                             return false;
                         }
@@ -779,17 +805,22 @@ export class Paginator {
                     idle: this.jumpTimeout,
                 });
                 await response.deferUpdate();
-                let newPage = parseInt(response.fields.getTextInputValue('pageInput'));
+                const input = response.fields.getTextInputValue('pageInput');
+                const newPage = parseInt(input);
                 if (
-                    newPage &&
-                    !isNaN(newPage) &&
-                    newPage > 0 &&
-                    newPage <= this.pages[this.#currentView].length
+                    !input ||
+                    isNaN(newPage) ||
+                    newPage < 1 ||
+                    newPage > this.pages[this.#currentView].length
                 ) {
-                    this.#currentPage = newPage - 1;
-                    await this.update(interaction);
+                    await interaction.followUp({
+                        content: `Invalid page number. Please enter a number between 1 and ${this.pages[this.#currentView].length}.`,
+                        flags: MessageFlags.Ephemeral,
+                    } as any);
                     return false;
                 }
+                this.#currentPage = newPage - 1;
+                await this.update(interaction);
                 return false;
             },
         ],
@@ -821,55 +852,63 @@ export class Paginator {
             ): Promise<boolean> {
                 if (interaction.user !== this.interaction.user || !interaction.isStringSelectMenu())
                     return false;
-                let id = 0;
-                // show loading state while fetching gallery pages: disable all interactive components
                 if (!interaction.deferred && !interaction.replied) await interaction.deferUpdate();
                 await interaction.editReply({ components: this.getDisabledComponents() } as any).catch(() => null);
-                if ((id = +this.pages.info[0].galleryID!) < 0) {
-                    this.pages.info = await this.loadGalleryPages(Math.abs(id));
+
+                // Info/thumbnail: always exit preview and return to gallery list in the chosen view
+                if (interaction.values.includes('info') || interaction.values.includes('thumbnail')) {
+                    if (this.#previewing) {
+                        if (!this.goBack.pages.length) return false;
+                        this.#currentView = interaction.values.includes('info') ? 'info' : 'thumbnail';
+                        this.#currentPage = this.goBack.previousPage;
+                        this.pages.thumbnail = this.goBack.pages;
+                        this.goBack.pages = [];
+                        this.#previewing = false;
+                    } else {
+                        const view = interaction.values.includes('info') ? 'info' : 'thumbnail';
+                        const galleryID = this.pages[view][0]?.galleryID;
+                        if (galleryID && +galleryID < 0) {
+                            const loaded = await this.loadGalleryPages(Math.abs(+galleryID));
+                            if (loaded.length) this.pages[view] = loaded;
+                        }
+                        this.#currentView = view;
+                    }
+                    await this.update(interaction);
+                    return false;
                 }
-                if ((id = +this.pages.thumbnail[0].galleryID!) < 0) {
-                    this.pages.thumbnail = await this.loadGalleryPages(Math.abs(id));
-                }
+
+                // Browse Gallery — enter preview mode
                 if (interaction.values.includes('preview')) {
-                    if (!this.pages[this.#currentView][this.#currentPage].pages) return false;
-                    if (
-                        (id =
-                            +this.pages[this.#currentView][this.#currentPage].pages[0].galleryID!) <
-                        0
-                    ) {
-                        this.pages[this.#currentView][this.#currentPage].pages =
-                            await this.loadGalleryPages(Math.abs(id));
+                    const currentPages = this.pages[this.#currentView][this.#currentPage]?.pages;
+                    if (!currentPages?.length) return false;
+                    const firstID = currentPages[0].galleryID;
+                    if (firstID && +firstID < 0) {
+                        const loaded = await this.loadGalleryPages(Math.abs(+firstID));
+                        if (loaded.length) {
+                            this.pages[this.#currentView][this.#currentPage].pages = loaded;
+                        } else {
+                            await this.update(interaction);
+                            await interaction.followUp({
+                                content: 'Failed to load preview pages. Please try again.',
+                                flags: MessageFlags.Ephemeral,
+                            } as any).catch(() => null);
+                            return false;
+                        }
                     }
                     this.goBack = {
                         previousView: this.#currentView,
                         previousPage: this.#currentPage,
-                        pages: this.pages.thumbnail,
+                        pages: [...this.pages.thumbnail],
                     };
-                    this.pages.thumbnail = this.pages[this.#currentView][this.#currentPage]
-                        .pages as any;
+                    this.pages.thumbnail = this.pages[this.#currentView][this.#currentPage].pages as any;
                     this.#currentView = 'thumbnail';
                     this.#currentPage = 0;
                     this.#previewing = true;
                     await this.update(interaction);
                     return false;
                 }
-                if (
-                    ['home', 'search', 'favorite', ...TAGS].includes(
-                        this.interaction.commandName
-                    ) &&
-                    this.#previewing
-                ) {
-                    if (!this.goBack.pages.length) return false;
-                    this.#currentView = interaction.values[0] as Views;
-                    this.#currentPage = this.goBack.previousPage;
-                    this.pages.thumbnail = this.goBack.pages;
-                    this.goBack.pages = [];
-                    this.#previewing = false;
-                    await this.update(interaction);
-                    return false;
-                }
-                this.#currentView = interaction.values.includes('info') ? 'info' : 'thumbnail';
+
+                this.#currentView = 'thumbnail';
                 await this.update(interaction);
                 return false;
             },
@@ -881,17 +920,17 @@ export class Paginator {
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
                 try {
-                    let id =
-                        this.pages[this.#currentView][this.#currentPage]?.galleryID ?? this.info.id;
+                    // Use the page's galleryID, not this.info.id (which may be a tag ID in search/tag context)
+                    const id = this.pages[this.#currentView][this.#currentPage]?.galleryID;
                     if (!id) return false;
                     const adding = await this.client.db.user.favorite(
                         interaction.user.id,
-                        id.toString()
+                        Math.abs(+id).toString()
                     );
                     await interaction.followUp({
                         content: adding
-                            ? `✅\u2000Added \`${id}\` to your favorites`
-                            : `❌\u2000Removed \`${id}\` from your favorites`,
+                            ? `✅\u2000Added \`${Math.abs(+id)}\` to your favorites`
+                            : `❌\u2000Removed \`${Math.abs(+id)}\` from your favorites`,
                         flags: MessageFlags.Ephemeral,
                     } as any);
                     return false;
@@ -913,12 +952,13 @@ export class Paginator {
             ): Promise<boolean> {
                 try {
                     const info = { ...this.info, type: this.interaction.commandName } as any;
-                    if (!info) return false;
-                    const { id, type, name } = info;
+                    const { type, name } = info;
+                    const id = parseInt(info.id, 10);
+                    if (isNaN(id)) return false;
                     const adding = await this.client.db.user.follow(
                         interaction.user.id,
                         type,
-                        +id,
+                        id,
                         name
                     );
                     await interaction.followUp({
@@ -946,8 +986,9 @@ export class Paginator {
             ): Promise<boolean> {
                 try {
                     const info = { ...this.info, type: this.interaction.commandName } as any;
-                    if (!info) return false;
                     const { type, name } = info;
+                    const id = parseInt(info.id, 10);
+                    if (isNaN(id)) return false;
                     const adding = await this.client.db.user.blacklist(
                         interaction.user.id,
                         info as any
@@ -976,7 +1017,7 @@ export class Paginator {
                 interaction: MessageComponentInteraction
             ): Promise<boolean> {
                 if (interaction.user !== this.interaction.user) return false;
-                this.pages = this.filteredPages;
+                this.pages = { ...this.filteredPages };
                 this.filterIDs = [];
                 await this.update(interaction);
                 return false;

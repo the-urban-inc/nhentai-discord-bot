@@ -75,7 +75,7 @@ export default class extends Command {
         }
 
         if (page === 1) {
-            const popularNow = data.popular_now;
+            const popularNow = data.popular_now ?? [];
             const { displayList: displayPopular, rip } = this.client.embeds.displayGalleryList(
                 popularNow,
                 this.danger,

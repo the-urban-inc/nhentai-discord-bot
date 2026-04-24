@@ -1,7 +1,6 @@
 import { Client } from './Client';
 import { User, WatchModel } from '@database/models';
-import { Client as NHClient, Gallery } from '@api/nhentai';
-const nh = new NHClient();
+import { Gallery } from '@api/nhentai';
 
 export class Notifier {
     public client: Client;
@@ -14,7 +13,7 @@ export class Notifier {
     }
 
     private async getCode() {
-        return +(await nh.home()).result[0].id;
+        return +(await this.client.nhentai.home()).result[0].id;
     }
 
     async watches() {
@@ -28,7 +27,7 @@ export class Notifier {
         let last = 0,
             page = 1;
         do {
-            const cur = (await nh.home(page)).result;
+            const cur = (await this.client.nhentai.home(page)).result;
             last = +cur[24].id;
             pages.push(...cur);
             page++;

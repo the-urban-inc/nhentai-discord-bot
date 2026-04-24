@@ -63,14 +63,19 @@ export default class extends Command {
         return await this.client.db.cache.safeRandom(
             this.danger,
             this.blacklists.map(bl => bl.id)
-        );
+        ).catch(err => {
+            this.client.logger.warn('MariaDB random failed, using API fallback', err.message);
+            return null;
+        });
     }
 
     async exec(interaction: CommandInteraction) {
         await this.before(interaction);
-        const galleryID = await this.fetchRandomDoujin();
+        let galleryID = await this.fetchRandomDoujin();
         if (!galleryID) {
-            throw new UserError('NO_RESULT');
+            const random = await this.client.nhentai.random().catch(() => null);
+            if (!random) throw new UserError('NO_RESULT');
+            galleryID = random.gallery.id;
         }
         const gallery = await this.client.nhentai.g(galleryID, true);
         if (!gallery) {

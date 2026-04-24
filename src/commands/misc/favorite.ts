@@ -113,7 +113,10 @@ export default class extends Command {
         const delay = (ms = 500) => new Promise(r => setTimeout(r, ms));
         for (const [i, code] of user.favorites.entries()) {
             await delay();
-            let gallery = await this.client.db.cache.getDoujin(+code);
+            let gallery = await this.client.db.cache.getDoujin(+code).catch(err => {
+                this.client.logger.warn('MariaDB cache miss for', code, err.message);
+                return null;
+            });
             if (!gallery) {
                 gallery = await this.client.nhentai
                     .g(+code)
@@ -127,8 +130,8 @@ export default class extends Command {
                 `Fetching favorites list ${'.'.repeat((i % 3) + 1)} It may take a while${
                     gallery ? '' : `\nNo result found for ${code}. Skipping...`
                 }\n[${
-                    progressBar.repeat((totalBar.length / 100) * progress) +
-                    totalBar.substring((totalBar.length / 100) * progress + 1)
+                    progressBar.repeat(Math.floor((totalBar.length / 100) * progress)) +
+                    totalBar.substring(Math.floor((totalBar.length / 100) * progress) + 1)
                 }] [${progress}%]`
             );
             if (!gallery) continue;

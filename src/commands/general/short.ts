@@ -107,13 +107,18 @@ export default class extends Command {
     async exec(interaction: CommandInteraction) {
         await this.before(interaction);
         const code = interaction.options.get('query').value as number;
-        let gallery = await this.client.db.cache.getDoujin(code);
+        let gallery = await this.client.db.cache.getDoujin(code).catch(err => {
+            this.client.logger.warn('MariaDB cache miss for', code, err.message);
+            return null;
+        });
         if (!gallery) {
             const data = await this.client.nhentai.g(code);
             if (!data || !data.gallery) {
                 throw new UserError('NO_RESULT', String(code));
             }
-            await this.client.db.cache.addDoujin(data.gallery);
+            await this.client.db.cache.addDoujin(data.gallery).catch(err => {
+                this.client.logger.warn('Failed to cache doujin', code, err.message);
+            });
             gallery = data.gallery;
         }
         const { thumb, rip } = this.client.embeds.displayShortGallery(

@@ -120,13 +120,18 @@ export default class extends Command {
         const page = interaction.options.get('page')?.value as number;
 
         if (!page && !more) {
-            let gallery = await this.client.db.cache.getDoujin(code);
+            let gallery = await this.client.db.cache.getDoujin(code).catch(err => {
+                this.client.logger.warn('MariaDB cache miss for', code, err.message);
+                return null;
+            });
             if (!gallery) {
-                const data = await this.client.nhentai.g(code);
+                const data = await this.client.nhentai.g(code, more);
                 if (!data || !data.gallery) {
                     throw new UserError('NO_RESULT', String(code));
                 }
-                await this.client.db.cache.addDoujin(data.gallery);
+                await this.client.db.cache.addDoujin(data.gallery).catch(err => {
+                    this.client.logger.warn('Failed to cache doujin', code, err.message);
+                });
                 gallery = data.gallery;
             }
             const { displayGallery, rip } = this.client.embeds.displayLazyFullGallery(

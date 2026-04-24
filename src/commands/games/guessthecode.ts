@@ -67,21 +67,30 @@ export default class extends Command {
         return await this.client.db.cache.safeRandom(
             this.danger,
             this.blacklists.map(bl => bl.id)
-        );
+        ).catch(err => {
+            this.client.logger.warn('MariaDB random failed, using API fallback', err.message);
+            return null;
+        });
     }
 
     async exec(interaction: CommandInteraction) {
         await this.before(interaction);
-        const id = await this.fetchRandomDoujin();
+        let id = await this.fetchRandomDoujin();
         if (!id) {
-            throw new UserError('NO_RESULT');
+            const random = await this.client.nhentai.random().catch(() => null);
+            if (!random) throw new UserError('NO_RESULT');
+            id = random.gallery.id;
         }
-        const gallery = await this.client.db.cache.getDoujin(id);
+        let gallery = await this.client.db.cache.getDoujin(id).catch(err => {
+            this.client.logger.warn('MariaDB cache miss for', id, err.message);
+            return null;
+        });
         if (!gallery) {
-            throw new UserError('NO_RESULT');
+            const data = await this.client.nhentai.g(id, false).catch(() => null);
+            if (!data || !data.gallery) throw new UserError('NO_RESULT');
+            gallery = data.gallery;
         }
         const page = this.client.nhentai.getCover(gallery);
-        console.log(page);
         const quiz = this.client.embeds
             .default()
             .setTitle(`Guess the code this doujin is from!`)

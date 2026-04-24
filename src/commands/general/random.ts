@@ -78,19 +78,27 @@ export default class extends Command {
         let id = await this.client.db.cache.safeRandom(
             this.danger,
             this.blacklists.map(({ id }) => id)
-        );
+        ).catch(err => {
+            this.client.logger.warn('MariaDB random failed', err.message);
+            return null;
+        });
         if (!id) {
             id = (await this.client.nhentai.random()).gallery.id;
         }
 
         if (!page && !more) {
-            let gallery = await this.client.db.cache.getDoujin(id);
+            let gallery = await this.client.db.cache.getDoujin(id as number).catch(err => {
+                this.client.logger.warn('MariaDB cache miss for', id, err.message);
+                return null;
+            });
             if (!gallery) {
-                const data = await this.client.nhentai.g(id);
+                const data = await this.client.nhentai.g(id as number);
                 if (!data || !data.gallery) {
                     throw new UserError('NO_RESULT', String(id));
                 }
-                await this.client.db.cache.addDoujin(data.gallery);
+                await this.client.db.cache.addDoujin(data.gallery).catch(err => {
+                    this.client.logger.warn('Failed to cache doujin', id, err.message);
+                });
                 gallery = data.gallery;
             }
             const { displayGallery, rip } = this.client.embeds.displayLazyFullGallery(

@@ -51,6 +51,10 @@ export function createHttp(baseURL: string, logger: Logger, socksProxy?: string,
     axiosRetry(a, {
         retries: opts.maxRetries ?? 2,
         retryDelay: (retryCount, error) => {
+            // If we got rate limited, back off for a full minute instead of milliseconds
+            if (error?.response?.status === 429) {
+                return 60_000;
+            }
             const base = opts.retryDelay ?? 200;
             const backoff = base * Math.pow(2, retryCount - 1);
             return backoff + Math.floor(Math.random() * 100);
@@ -59,7 +63,8 @@ export function createHttp(baseURL: string, logger: Logger, socksProxy?: string,
             if (axiosRetry.isNetworkOrIdempotentRequestError(error)) return true;
             const status = error?.response?.status;
             if (!status) return false;
-            return status === 429 || (status >= 500 && status <= 599);
+            // Only retry server errors. 429 = stop hammering the API.
+            return status >= 500 && status <= 599;
         },
     });
 
