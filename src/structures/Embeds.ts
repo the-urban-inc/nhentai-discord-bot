@@ -425,7 +425,7 @@ export class Embeds {
         return displayComments;
     }
 
-    displayASMRList(asmr: SearchResult[]) {
+    displayASMRList(asmr: SearchResult[], totalCount?: number) {
         const displayASMR = this.paginator(this.client, {
             collectorTimeout: 180000,
         });
@@ -441,6 +441,9 @@ export class Embeds {
             views,
             likes,
         } of asmr) {
+            const footer = totalCount !== undefined
+                ? `Circle: ${circle} • ${totalCount} results`
+                : `Circle: ${circle}`;
             displayASMR.addPage('thumbnail', {
                 embed: this.default()
                     .setTitle(title)
@@ -460,7 +463,7 @@ export class Embeds {
                         },
                     ])
                     .setThumbnail(image)
-                    .setFooter({ text: `Circle: ${circle}` }),
+                    .setFooter({ text: footer }),
             });
         }
         return displayASMR;

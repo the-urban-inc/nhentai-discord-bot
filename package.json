@@ -7,7 +7,7 @@
     "author": "t41y0u <vuthaiduong0607@gmail.com>",
     "license": "AGPL-3.0",
     "dependencies": {
-        "@discordjs/voice": "^0.18.0",
+        "@discordjs/voice": "^0.19.2",
         "axios": "^0.21.1",
         "axios-retry": "^4.5.0",
         "booru": "^2.5.3",

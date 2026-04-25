@@ -6,6 +6,6 @@ export * from './Error';
 export * from './Logger';
 export * from './Notifier';
 export * from './Paginator';
-export * from './Subscription';
+export * from './GuildAudioPlayer';
 export * from './Track';
 export * from './Util';
