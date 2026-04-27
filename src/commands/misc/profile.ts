@@ -119,13 +119,13 @@ export default class extends Command {
             );
         if (more && (interaction.user.id === u.id || !user.anonymous)) {
             const display = this.client.embeds
-                .paginator(this.client, {
+                .basePaginator(this.client, {
                     collectorTimeout: 180000,
                 })
-                .addPage('thumbnail', { embed });
+                .addPage({ embed });
 
             if (user.favorites.length) {
-                display.addPage('thumbnail', {
+                display.addPage({
                     embed: this.client.embeds
                         .default()
                         .setTitle('Favorites')
@@ -145,7 +145,7 @@ export default class extends Command {
                     return `[\`${type}\`] **\`${title}\`** (<t:${moment(date).unix()}:R>)`
                 });
                 embed.setDescription(history.join('\n'));
-                display.addPage('thumbnail', { embed });
+                display.addPage({ embed });
             }
             return display.run(interaction, `> **Viewing profile of** **\`${u.tag}\`**`);
         }

@@ -41,7 +41,7 @@ export default class extends Command {
                 score: `${level}\u2000•\u2000${score}`,
             });
         }
-        const display = this.client.embeds.paginator(this.client, {
+        const display = this.client.embeds.basePaginator(this.client, {
             collectorTimeout: 180000,
         });
         const l = 10;
@@ -64,7 +64,7 @@ export default class extends Command {
                     { name: `[${i + page * l + 1}] ${member.name}`, value: member.score },
                 ]);
             }
-            display.addPage('thumbnail', { embed });
+            display.addPage({ embed });
         }
         return display.run(interaction, `> **Viewing server rankings**`);
     }

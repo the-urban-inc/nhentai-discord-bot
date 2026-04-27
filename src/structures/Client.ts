@@ -5,7 +5,7 @@ import {
     Embeds,
     Notifier,
     GuildAudioPlayer,
-    Paginator,
+    BasePaginator,
     Util,
     Logger,
 } from './index';
@@ -29,7 +29,7 @@ export class Client<Ready extends boolean = boolean> extends DiscordClient<Ready
     commands: Collection<string, Command | ContextMenuCommand>;
     categories: Collection<string, string[]>;
     cooldowns: Collection<string, Collection<User['id'], number>>;
-    paginators: Collection<bigint, Paginator>;
+    paginators: Collection<bigint, BasePaginator>;
     warned: Set<User['id']>;
     commandHandler: CommandHandler;
     db: Database;
@@ -109,7 +109,7 @@ export class Client<Ready extends boolean = boolean> extends DiscordClient<Ready
         this.commands = new Collection<string, Command | ContextMenuCommand>();
         this.categories = new Collection<string, string[]>();
         this.cooldowns = new Collection<string, Collection<User['id'], number>>();
-        this.paginators = new Collection<bigint, Paginator>();
+        this.paginators = new Collection<bigint, BasePaginator>();
         this.warned = new Set<User['id']>();
         this.commandHandler = new CommandHandler(this);
         this.db = new Database(this);

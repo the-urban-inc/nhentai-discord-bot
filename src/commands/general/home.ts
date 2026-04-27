@@ -3,6 +3,7 @@ import {
     ApplicationCommandOptionType,
     ApplicationCommandType,
     CommandInteraction,
+    Message,
 } from 'discord.js';
 import { User, Server, Blacklist, Language } from '@database/models';
 
@@ -84,6 +85,10 @@ export default class extends Command {
                 {
                     page,
                     num_pages,
+                    additional_options: {
+                        allowPreview: true,
+                        galleryActions: ['love', 'remove'],
+                    },
                 }
             );
             if (rip) this.warning = true;
@@ -100,7 +105,15 @@ export default class extends Command {
                 page,
                 num_pages,
                 additional_options: {
-                    commandPage: page,
+                    allowPreview: true,
+                    galleryActions: ['love', 'remove'],
+                    onBoundary: async (direction, buttonInteraction) => {
+                        const newPage = direction === 'next' ? page + 1 : page - 1;
+                        if (page === 1 && direction === 'next') {
+                            await (buttonInteraction.message as Message).delete();
+                        }
+                        await this.run(interaction, newPage, true);
+                    },
                 },
             }
         );

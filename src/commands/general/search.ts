@@ -106,7 +106,11 @@ export default class extends Command {
                 num_pages,
                 num_results,
                 additional_options: {
-                    commandPage: page,
+                    allowPreview: true,
+                    galleryActions: ['love', 'remove'],
+                    onBoundary: async (direction) => {
+                        await this.run(interaction, direction === 'next' ? page + 1 : page - 1, true);
+                    },
                 },
             }
         );

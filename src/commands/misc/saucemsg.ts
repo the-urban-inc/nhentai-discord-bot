@@ -36,10 +36,8 @@ export default class extends ContextMenuCommand {
             throw new UserError('NO_RESULT', imageURL);
         }
         results = results.slice(0, 8);
-        const display = this.client.embeds.paginator(this.client, {
-            startView: 'thumbnail',
+        const display = this.client.embeds.basePaginator(this.client, {
             collectorTimeout: 300000,
-            image: imageURL,
         });
         for (const {
             url,
@@ -141,7 +139,7 @@ export default class extends ContextMenuCommand {
             if ((data as any).est_time && (data as any).est_time.length) {
                 info.addFields([{ name: 'Est Time', value: (data as any).est_time ?? 'Unknown' }]);
             }
-            display.addPage('thumbnail', { embed: info });
+            display.addPage({ embed: info });
         }
         return await display.run(
             interaction,

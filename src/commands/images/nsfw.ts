@@ -64,12 +64,10 @@ export default class extends Command {
             throw new UserError('NO_RESULT', tag);
         }
         return this.client.embeds
-            .paginator(this.client, {
-                startView: 'thumbnail',
-                image,
+            .basePaginator(this.client, {
                 collectorTimeout: 300000,
             })
-            .addPage('thumbnail', {
+            .addPage({
                 embed: this.client.embeds
                     .default()
                     .setDescription(`[Click here if image failed to load](${image})`)

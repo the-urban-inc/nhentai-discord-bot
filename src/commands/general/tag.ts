@@ -151,8 +151,12 @@ export default class C extends Command {
                 num_pages,
                 num_results,
                 additional_options: {
-                    info: { id, name },
-                    commandPage: page,
+                    info: { id, name, type },
+                    allowPreview: true,
+                    galleryActions: ['love', 'follow', 'blacklist', 'remove'],
+                    onBoundary: async (direction) => {
+                        await this.run(interaction, direction === 'next' ? page + 1 : page - 1, true);
+                    },
                 },
             }
         );

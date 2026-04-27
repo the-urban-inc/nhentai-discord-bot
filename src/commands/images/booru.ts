@@ -98,10 +98,8 @@ export default class extends Command {
             throw new UserError('NO_RESULT', tags);
         }
         const dataPosts = res.posts.filter(x => this.client.util.isUrl(x.fileUrl));
-        const display = this.client.embeds.paginator(this.client, {
-            startView: 'thumbnail',
+        const display = this.client.embeds.basePaginator(this.client, {
             collectorTimeout: 180000,
-            commandPage: page,
         });
         dataPosts.forEach(data => {
             const image = data.fileUrl,
@@ -133,7 +131,7 @@ export default class extends Command {
                 })
                 .setTimestamp(createdAt);
             if (this.danger || !prip) embed.setImage(image);
-            display.addPage('thumbnail', { embed });
+            display.addPage({ embed });
         });
         await display.run(interaction, `> **Searching for posts with tag(s)** **\`${tags}\`**`);
 

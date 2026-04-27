@@ -1,6 +1,6 @@
-import { Embed, EmbedBuilder } from 'discord.js';
+import { Embed, EmbedBuilder, ButtonStyle } from 'discord.js';
 import type { Client } from './Client';
-import { Paginator, PaginatorOptions } from './Paginator';
+import { BasePaginator, BasePaginatorOptions, GalleryPaginator, GalleryPaginatorOptions } from './paginators';
 import { decode } from 'he';
 import { Gallery, Comment, Language, PartialGallery } from '@api/nhentai';
 import { SearchResult } from '@api/jasmr';
@@ -44,8 +44,12 @@ export class Embeds {
             );
     }
 
-    paginator(client: Client, options: PaginatorOptions) {
-        return new Paginator(client, options);
+    basePaginator(client: Client, options: BasePaginatorOptions) {
+        return new BasePaginator(client, options);
+    }
+
+    galleryPaginator(client: Client, options: GalleryPaginatorOptions) {
+        return new GalleryPaginator(client, options);
     }
 
     getPages(gallery: Gallery) {
@@ -156,7 +160,7 @@ export class Embeds {
         );
         const id = gallery.id.toString(),
             title = this.shorten(decode(gallery.title.english), 250);
-        const displayGallery = this.paginator(this.client, {
+        const displayGallery = this.galleryPaginator(this.client, {
             startPage: page,
             info: { id, name: title },
             collectorTimeout: 300000,
@@ -177,7 +181,7 @@ export class Embeds {
         );
         const id = gallery.id.toString(),
             title = this.shorten(decode(gallery.title.english), 250);
-        const displayGallery = this.paginator(this.client, {
+        const displayGallery = this.galleryPaginator(this.client, {
             info: { id, name: title },
             collectorTimeout: 300000,
             gallery: gallery as any,
@@ -236,12 +240,12 @@ export class Embeds {
             page?: number;
             num_pages?: number;
             num_results?: number;
-            additional_options?: PaginatorOptions;
+            additional_options?: GalleryPaginatorOptions;
         }
     ) {
         let rip = false;
         const { page = 0, num_pages = 0, num_results = 0, additional_options = {} } = options || {};
-        const displayList = this.paginator(this.client, {
+        const displayList = this.galleryPaginator(this.client, {
             startView: 'thumbnail',
             collectorTimeout: 300000,
             ...additional_options,
@@ -321,12 +325,12 @@ export class Embeds {
             page?: number;
             num_pages?: number;
             num_results?: number;
-            additional_options?: PaginatorOptions;
+            additional_options?: GalleryPaginatorOptions;
         }
     ) {
         let rip = false;
         const { page = 0, num_pages = 0, num_results = 0, additional_options = {} } = options || {};
-        const displayList = this.paginator(this.client, {
+        const displayList = this.galleryPaginator(this.client, {
             startView: 'thumbnail',
             collectorTimeout: 300000,
             ...additional_options,
@@ -397,7 +401,7 @@ export class Embeds {
     }
 
     displayCommentList(comments: Comment[]) {
-        const displayComments = this.paginator(this.client, {
+        const displayComments = this.basePaginator(this.client, {
             collectorTimeout: 180000,
         });
         for (const {
@@ -407,7 +411,7 @@ export class Embeds {
             body,
             post_date,
         } of comments) {
-            displayComments.addPage('thumbnail', {
+            displayComments.addPage({
                 embed: this.default()
                     .setAuthor({
                         name: `${decode(username)}`,
@@ -426,8 +430,17 @@ export class Embeds {
     }
 
     displayASMRList(asmr: SearchResult[], totalCount?: number) {
-        const displayASMR = this.paginator(this.client, {
+        const displayASMR = this.basePaginator(this.client, {
             collectorTimeout: 180000,
+            resolveOn: 'enqueue',
+            actions: [
+                {
+                    id: 'enqueue',
+                    label: '⏯️\u2000Enqueue this track to the playlist',
+                    style: ButtonStyle.Primary,
+                    handler: async () => false,
+                },
+            ],
         });
         for (const {
             language,
@@ -444,7 +457,7 @@ export class Embeds {
             const footer = totalCount !== undefined
                 ? `Circle: ${circle} • ${totalCount} results`
                 : `Circle: ${circle}`;
-            displayASMR.addPage('thumbnail', {
+            displayASMR.addPage({
                 embed: this.default()
                     .setTitle(title)
                     .setURL(url)
