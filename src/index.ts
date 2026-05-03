@@ -18,6 +18,21 @@ async function getRandomCode() {
     );
 }
 
+async function populateTags() {
+    const a = new Collection<string, string[]>();
+    const tags = await client.db.cache
+        .getDoujinTags()
+        .catch(err => client.logger.error(err.message));
+    if (tags) {
+        for (const { name, type } of tags) {
+            if (!a.has(type)) a.set(type, []);
+            a.get(type)?.push(name);
+        }
+        client.tags = a;
+        client.logger.info(`[TAGS] Loaded ${tags.length} tags into autocomplete cache.`);
+    }
+}
+
 async function changePresence() {
     client.user.setPresence({
         activities: [
@@ -39,17 +54,7 @@ async function changePresence() {
         ][cur],
     });
     cur = (cur + 1) % 3;
-    let a = new Collection<string, string[]>();
-    const tags = await client.db.cache
-        .getDoujinTags()
-        .catch(err => client.logger.error(err.message));
-    if (tags) {
-        for (const { name, type } of tags) {
-            if (!a.has(type)) a.set(type, []);
-            a.get(type)?.push(name);
-        }
-        client.tags = a;
-    }
+    await populateTags();
     setTimeout(changePresence, 300000);
 }
 
@@ -60,6 +65,7 @@ client.once('ready', async () => {
     client.logger.info(`[READY] Fetched application profile. Setting owner ID to ${owner}.`);
     client.logger.info(`[READY] Logged in as ${client.user.tag}! ID: ${client.user.id}.`);
     await client.db.init();
+    await populateTags();
     await client.commandHandler.loadCommands();
     client.asmrTags = await client.jasmr.tagList();
     await changePresence();

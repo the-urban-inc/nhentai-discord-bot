@@ -168,8 +168,10 @@ export class CommandHandler extends ApplicationCommandManager {
                     );
                 else this.client.logger.error(err instanceof UserError ? err.code : err);
             }
-            if ((interaction as any).isAutocomplete && (interaction as any).isAutocomplete())
+            if ((interaction as any).isAutocomplete && (interaction as any).isAutocomplete()) {
+                (interaction as any).respond([]).catch(() => null);
                 return;
+            }
             const type =
                 (interaction as any).deferred || (interaction as any).replied
                     ? 'editReply'

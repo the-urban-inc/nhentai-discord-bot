@@ -14,6 +14,7 @@ import {
 	MessageComponentInteraction,
 	MessageFlags,
 	ModalBuilder,
+	ModalSubmitInteraction,
 	PermissionFlagsBits,
 	SnowflakeUtil,
 	StringSelectMenuBuilder,
@@ -76,7 +77,7 @@ export class BasePaginator {
 	protected collectorTimeout: number;
 	image: string | null;
 
-	#currentPage: number;
+	protected currentPage: number;
 	#resolve: ((value: number | null) => void) | null = null;
 
 	constructor(client: Client, options: BasePaginatorOptions = {}) {
@@ -92,7 +93,8 @@ export class BasePaginator {
 		this.dispose = options.dispose ?? false;
 		this.jumpTimeout = options.jumpTimeout ?? DEFAULT_JUMP_TIMEOUT;
 		this.collectorTimeout = options.collectorTimeout ?? DEFAULT_COLLECTOR_TIMEOUT;
-		this.#currentPage = options.startPage ?? 0;
+		this.currentPage = options.startPage ?? 0;
+		this.registerHandlers();
 	}
 
 	addPage(...args: any[]) {
@@ -101,7 +103,7 @@ export class BasePaginator {
 	}
 
 	protected getCurrentEmbed(): EmbedBuilder {
-		return this.pages[this.#currentPage]?.embed ?? this.pages[0]?.embed;
+		return this.pages[this.currentPage]?.embed ?? this.pages[0]?.embed;
 	}
 
 	protected makeButton(id: string, label: string, style: ButtonStyle = ButtonStyle.Secondary) {
@@ -113,7 +115,7 @@ export class BasePaginator {
 	}
 
 	protected getNavigationRow(): ActionRowBuilder<ButtonBuilder> {
-		const current = this.#currentPage + 1;
+		const current = this.currentPage + 1;
 		const total = this.getPageCount();
 		return new ActionRowBuilder<ButtonBuilder>().addComponents([
 			this.makeButton('first', '<<', ButtonStyle.Secondary),
@@ -187,11 +189,11 @@ export class BasePaginator {
 	}
 
 	protected async update(
-		interaction: MessageComponentInteraction | AnySelectMenuInteraction
+		interaction: MessageComponentInteraction | AnySelectMenuInteraction | ModalSubmitInteraction
 	): Promise<void> {
 		const message = interaction.message as Message;
 		const content = message.content?.length ? message.content : null;
-		await interaction[interaction.deferred || interaction.replied ? 'editReply' : 'update']({
+		await (interaction as any)[interaction.deferred || interaction.replied ? 'editReply' : 'update']({
 			content,
 			embeds: this.getCurrentEmbed() ? [this.getCurrentEmbed()] : [],
 			components: this.getButtons(),
@@ -231,7 +233,7 @@ export class BasePaginator {
 				if (interaction.user.bot) return;
 				const method = this.parseMethod(interaction.customId);
 				if (!method) return;
-				if (!interaction.deferred && !interaction.replied) await interaction.deferUpdate();
+				if (method !== 'jump' && !interaction.deferred && !interaction.replied) await interaction.deferUpdate();
 				const handler = this.handlers.get(method);
 				if (!handler) return;
 				const stop = await handler.call(this, interaction);
@@ -302,7 +304,7 @@ export class BasePaginator {
 			const existing = this.handlers.get(this.resolveOn);
 			this.handlers.set(this.resolveOn, async (interaction: MessageComponentInteraction) => {
 				if (!this.checkUser(interaction)) return false;
-				const pageIndex = this.#currentPage;
+				const pageIndex = this.currentPage;
 				if (existing) await existing.call(this, interaction);
 				return this.choose(pageIndex);
 			});
@@ -311,52 +313,52 @@ export class BasePaginator {
 
 	protected async handleFirst(interaction: MessageComponentInteraction): Promise<boolean> {
 		if (!this.checkUser(interaction)) return false;
-		if (this.#currentPage === 0) {
+		if (this.currentPage === 0) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'prev');
 			}
 			return false;
 		}
-		this.#currentPage = 0;
+		this.currentPage = 0;
 		await this.update(interaction);
 		return false;
 	}
 
 	protected async handleBack(interaction: MessageComponentInteraction): Promise<boolean> {
 		if (!this.checkUser(interaction)) return false;
-		if (this.#currentPage <= 0) {
+		if (this.currentPage <= 0) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'prev');
 			}
 			return false;
 		}
-		this.#currentPage--;
+		this.currentPage--;
 		await this.update(interaction);
 		return false;
 	}
 
 	protected async handleForward(interaction: MessageComponentInteraction): Promise<boolean> {
 		if (!this.checkUser(interaction)) return false;
-		if (this.#currentPage >= this.getPageCount() - 1) {
+		if (this.currentPage >= this.getPageCount() - 1) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'next');
 			}
 			return false;
 		}
-		this.#currentPage++;
+		this.currentPage++;
 		await this.update(interaction);
 		return false;
 	}
 
 	protected async handleLast(interaction: MessageComponentInteraction): Promise<boolean> {
 		if (!this.checkUser(interaction)) return false;
-		if (this.#currentPage === this.getPageCount() - 1) {
+		if (this.currentPage === this.getPageCount() - 1) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'next');
 			}
 			return false;
 		}
-		this.#currentPage = this.pages.length - 1;
+		this.currentPage = this.pages.length - 1;
 		await this.update(interaction);
 		return false;
 	}
@@ -390,24 +392,30 @@ export class BasePaginator {
 			.setRequired(true);
 		modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(pageInput) as any);
 		await interaction.showModal(modal);
-		const response = await interaction.awaitModalSubmit({
-			filter: mint => mint.user === interaction.user,
-			time: 15000,
-			idle: this.jumpTimeout,
-		});
-		await response.deferUpdate();
-		const input = response.fields.getTextInputValue('pageInput');
-		const newPage = parseInt(input, 10);
-		if (!input || isNaN(newPage) || newPage < 1 || newPage > this.getPageCount()) {
-			await interaction.followUp({
-				content: `Invalid page number. Please enter a number between 1 and ${this.getPageCount()}.`,
-				flags: MessageFlags.Ephemeral,
-			} as any);
+		try {
+			const response = await interaction.awaitModalSubmit({
+				filter: mint => mint.user === interaction.user,
+				time: 15000,
+				idle: this.jumpTimeout,
+			});
+			await response.deferUpdate();
+			const input = response.fields.getTextInputValue('pageInput');
+			const newPage = parseInt(input, 10);
+			if (!input || isNaN(newPage) || newPage < 1 || newPage > this.getPageCount()) {
+				await response.followUp({
+					content: `Invalid page number. Please enter a number between 1 and ${this.getPageCount()}.`,
+					flags: MessageFlags.Ephemeral,
+				} as any);
+				return false;
+			}
+			this.currentPage = newPage - 1;
+			await this.update(response);
 			return false;
 		}
-		this.#currentPage = newPage - 1;
-		await this.update(interaction);
-		return false;
+		catch {
+			// Modal dismissed or timed out — silently ignore
+			return false;
+		}
 	}
 
 	protected async handleRemove(interaction: MessageComponentInteraction): Promise<boolean> {

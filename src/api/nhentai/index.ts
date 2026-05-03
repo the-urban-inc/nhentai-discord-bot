@@ -114,7 +114,7 @@ function fromGalleryDetail(v2: V2GalleryDetail): Gallery {
 
 /**
  * Converts a v2 GalleryListItem (from search/home/popular/related arrays) into the
- * internal `Gallery` shape for use with displayGalleryList() / displayLazyGalleryList().
+ * internal `Gallery` shape for use with displayGalleryList().
  * Pass `tagMap` from resolveTagIds() to populate full tag objects for list views.
  */
 function fromGalleryListItem(item: GalleryListItem, tagMap?: Map<number, Tag>): Gallery {

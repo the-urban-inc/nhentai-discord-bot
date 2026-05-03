@@ -20,7 +20,7 @@ import {
 	ThreadChannel,
 	User,
 } from 'discord.js';
-import { Gallery } from '@api/nhentai';
+import { Gallery, PartialGallery } from '@api/nhentai';
 
 export enum Interactions {
 	First = 'first',
@@ -55,7 +55,7 @@ export interface GalleryPage {
 export interface GalleryPaginatorOptions extends BasePaginatorOptions {
 	info?: Info;
 	startView?: Views;
-	gallery?: Gallery;
+	source?: PartialGallery | Gallery;
 	filterIDs?: number[];
 	loader?: (id: number) => Promise<GalleryPage[]>;
 	galleryActions?: ('love' | 'follow' | 'blacklist' | 'remove')[];
@@ -65,7 +65,7 @@ export interface GalleryPaginatorOptions extends BasePaginatorOptions {
 export class GalleryPaginator extends BasePaginator {
 	protected views: Record<Views, GalleryPage[]> = { info: [], thumbnail: [] };
 	protected filteredViews: Record<Views, GalleryPage[]> = { info: [], thumbnail: [] };
-	protected gallery: Gallery | undefined;
+	protected source: PartialGallery | Gallery | undefined;
 	protected info: Info;
 	protected filterIDs: number[] = [];
 	protected galleryActions: ('love' | 'follow' | 'blacklist' | 'remove')[];
@@ -77,7 +77,6 @@ export class GalleryPaginator extends BasePaginator {
 	};
 
 	#currentView: Views;
-	#currentPage: number;
 	#previewing = false;
 
 	constructor(client: Client, options: GalleryPaginatorOptions = {}) {
@@ -93,9 +92,8 @@ export class GalleryPaginator extends BasePaginator {
 		});
 		this.info = options.info ?? { id: '', name: '' };
 		this.filterIDs = options.filterIDs ?? [];
-		this.gallery = options.gallery;
+		this.source = options.source;
 		this.#currentView = options.startView ?? (options.startPage && options.startPage > 0 ? 'thumbnail' : 'info');
-		this.#currentPage = options.startPage ?? 0;
 		this.galleryActions = options.galleryActions ?? ['love', 'remove'];
 		this.allowPreview = options.allowPreview ?? false;
 	}
@@ -105,8 +103,23 @@ export class GalleryPaginator extends BasePaginator {
 		return this;
 	}
 
+	enterPreview(targetPage = 0): this {
+		const currentPages = this.views[this.#currentView][this.currentPage]?.pages;
+		if (!currentPages?.length) return this;
+		this.goBack = {
+			previousView: this.#currentView,
+			previousPage: this.currentPage,
+			pages: [...this.views.thumbnail],
+		};
+		this.views.thumbnail = currentPages as any;
+		this.#currentView = 'thumbnail';
+		this.currentPage = Math.min(targetPage, currentPages.length - 1);
+		this.#previewing = true;
+		return this;
+	}
+
 	protected getCurrentPage(): GalleryPage | undefined {
-		return this.views[this.#currentView][this.#currentPage];
+		return this.views[this.#currentView][this.currentPage];
 	}
 
 	protected override getCurrentEmbed(): EmbedBuilder {
@@ -117,13 +130,9 @@ export class GalleryPaginator extends BasePaginator {
 		return this.views[this.#currentView].length;
 	}
 
-	protected getCurrentPagesLength(): number {
-		return this.views[this.#currentView].length;
-	}
-
 	protected override getNavigationRow(): ActionRowBuilder<ButtonBuilder> {
-		const current = this.#currentPage + 1;
-		const total = this.getCurrentPagesLength();
+		const current = this.currentPage + 1;
+		const total = this.getPageCount();
 		return new ActionRowBuilder<ButtonBuilder>().addComponents([
 			this.makeButton('first', '<<', ButtonStyle.Secondary),
 			this.makeButton('back', '<', ButtonStyle.Secondary),
@@ -135,59 +144,54 @@ export class GalleryPaginator extends BasePaginator {
 
 	protected buildSelectOptions(): StringSelectMenuOptionBuilder[] {
 		const menu: StringSelectMenuOptionBuilder[] = [];
-		if (this.#previewing) {
+		menu.push(
+			new StringSelectMenuOptionBuilder()
+				.setLabel('Info View')
+				.setDescription('Show gallery info')
+				.setValue('info')
+				.setEmoji('📄')
+				.setDefault(this.#currentView === 'info' && !this.#previewing)
+		);
+		const hadThumbnailView = this.goBack.pages.length > 0;
+		if (this.views.thumbnail.length && (!this.#previewing || hadThumbnailView)) {
 			menu.push(
 				new StringSelectMenuOptionBuilder()
-					.setLabel('Info View')
-					.setDescription('Show gallery info')
-					.setValue('info')
-					.setEmoji('📄')
-					.setDefault(this.#currentView === 'info'),
-				new StringSelectMenuOptionBuilder()
 					.setLabel('Thumbnail View')
-					.setDescription('Browse gallery pages')
+					.setDescription('Show thumbnail overview')
 					.setValue('thumbnail')
 					.setEmoji('🖼️')
-					.setDefault(this.#currentView === 'thumbnail')
+					.setDefault(this.#currentView === 'thumbnail' && !this.#previewing)
 			);
 		}
-		else {
+		if (this.allowPreview && (this.#previewing || !!this.views[this.#currentView][this.currentPage]?.pages?.length)) {
 			menu.push(
 				new StringSelectMenuOptionBuilder()
-					.setLabel('Info View')
-					.setDescription('Switch to Info View')
-					.setValue('info')
-					.setEmoji('📄')
-					.setDefault(this.#currentView === 'info'),
-				new StringSelectMenuOptionBuilder()
-					.setLabel('Thumbnail View')
-					.setDescription('Switch to Thumbnail View')
-					.setValue('thumbnail')
-					.setEmoji('🖼️')
-					.setDefault(this.#currentView === 'thumbnail')
+					.setLabel('Browse Gallery')
+					.setDescription('Browse the pages of this gallery')
+					.setValue('preview')
+					.setEmoji('🔎')
+					.setDefault(this.#previewing)
 			);
-			if (this.allowPreview) {
-				menu.push(
-					new StringSelectMenuOptionBuilder()
-						.setLabel('Browse Gallery')
-						.setDescription('Browse the pages of the current gallery')
-						.setValue('preview')
-						.setEmoji('🔎')
-				);
-			}
 		}
 		return menu;
 	}
 
 	protected override getButtons(): ActionRowBuilder<any>[] {
-		const id = this.views[this.#currentView][this.#currentPage]?.galleryID ?? this.info.id;
+		const id = this.views[this.#currentView][this.currentPage]?.galleryID ?? this.info.id;
 		const naviRow = this.getNavigationRow();
 
 		if (this.#previewing) {
+			const previewActions = this.galleryActions.filter(a => a === 'love' || a === 'remove');
 			const previewOptionsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-				['love', 'remove'].map(k =>
-					this.makeButton(k, k === 'love' ? '❤️' : '🗑️', k === 'remove' ? ButtonStyle.Danger : ButtonStyle.Secondary)
-				)
+				previewActions.map(k => {
+					const labels: Record<string, string> = {
+						love: '❤️',
+						follow: '🔖',
+						blacklist: '🏴',
+						remove: '🗑️',
+					};
+					return this.makeButton(k, labels[k] ?? k, k === 'remove' ? ButtonStyle.Danger : ButtonStyle.Secondary);
+				})
 			);
 			return [
 				naviRow,
@@ -229,7 +233,7 @@ export class GalleryPaginator extends BasePaginator {
 		}
 
 		const rows: ActionRowBuilder<any>[] = [];
-		if (this.getCurrentPagesLength() > 1) rows.push(naviRow);
+		if (this.getPageCount() > 1) rows.push(naviRow);
 		if ((optionsRow.components as any[]).length) rows.push(optionsRow as any);
 		if (this.filterIDs.length && !this.#previewing) {
 			rows.push(
@@ -241,12 +245,13 @@ export class GalleryPaginator extends BasePaginator {
 				) as any
 			);
 		}
-		if (this.views.thumbnail.length && this.views.info.length) {
+		const selectOptions = this.buildSelectOptions();
+		if (selectOptions.length > 1) {
 			rows.push(
 				new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 					new StringSelectMenuBuilder()
 						.setCustomId(`${this.id} select`)
-						.addOptions(this.buildSelectOptions())
+						.addOptions(selectOptions)
 				) as any
 			);
 		}
@@ -254,11 +259,12 @@ export class GalleryPaginator extends BasePaginator {
 	}
 
 	protected async loadGalleryPages(id: number): Promise<GalleryPage[]> {
-		if (this.gallery) {
-			return this.client.embeds.getPages(this.gallery) as GalleryPage[];
+		if (this.source && 'pages' in this.source.images && this.source.id === id) {
+			return this.client.embeds.getPages(this.source as Gallery) as GalleryPage[];
 		}
 		try {
 			const g = await this.client.nhentai.g(Math.abs(id));
+			this.source = g.gallery;
 			return this.client.embeds.getPages(g.gallery) as GalleryPage[];
 		}
 		catch (err: any) {
@@ -267,7 +273,8 @@ export class GalleryPaginator extends BasePaginator {
 				this.client.logger.warn('loadGalleryPages: MariaDB cache miss for', id, err.message);
 				return null;
 			});
-			return this.client.embeds.getEduGuessPages(doujin as any) as GalleryPage[];
+			if (!doujin) return [];
+			return this.client.embeds.getEduGuessPages(doujin) as GalleryPage[];
 		}
 	}
 
@@ -302,13 +309,13 @@ export class GalleryPaginator extends BasePaginator {
 	protected override async handleFirst(interaction: MessageComponentInteraction): Promise<boolean> {
 		if (this.priorityUser ? this.priorityUser.id !== interaction.user.id : interaction.user.id !== this.interaction.user.id)
 			return false;
-		if (this.#currentPage === 0) {
+		if (this.currentPage === 0) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'prev');
 			}
 			return false;
 		}
-		this.#currentPage = 0;
+		this.currentPage = 0;
 		await this.update(interaction);
 		return false;
 	}
@@ -316,13 +323,13 @@ export class GalleryPaginator extends BasePaginator {
 	protected override async handleBack(interaction: MessageComponentInteraction): Promise<boolean> {
 		if (this.priorityUser ? this.priorityUser.id !== interaction.user.id : interaction.user.id !== this.interaction.user.id)
 			return false;
-		if (this.#currentPage <= 0) {
+		if (this.currentPage <= 0) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'prev');
 			}
 			return false;
 		}
-		this.#currentPage--;
+		this.currentPage--;
 		await this.update(interaction);
 		return false;
 	}
@@ -330,13 +337,13 @@ export class GalleryPaginator extends BasePaginator {
 	protected override async handleForward(interaction: MessageComponentInteraction): Promise<boolean> {
 		if (this.priorityUser ? this.priorityUser.id !== interaction.user.id : interaction.user.id !== this.interaction.user.id)
 			return false;
-		if (this.#currentPage >= this.getCurrentPagesLength() - 1) {
+		if (this.currentPage >= this.getPageCount() - 1) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'next');
 			}
 			return false;
 		}
-		this.#currentPage++;
+		this.currentPage++;
 		await this.update(interaction);
 		return false;
 	}
@@ -344,13 +351,13 @@ export class GalleryPaginator extends BasePaginator {
 	protected override async handleLast(interaction: MessageComponentInteraction): Promise<boolean> {
 		if (this.priorityUser ? this.priorityUser.id !== interaction.user.id : interaction.user.id !== this.interaction.user.id)
 			return false;
-		if (this.#currentPage === this.getCurrentPagesLength() - 1) {
+		if (this.currentPage === this.getPageCount() - 1) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'next');
 			}
 			return false;
 		}
-		this.#currentPage = this.getCurrentPagesLength() - 1;
+		this.currentPage = this.getPageCount() - 1;
 		await this.update(interaction);
 		return false;
 	}
@@ -362,15 +369,18 @@ export class GalleryPaginator extends BasePaginator {
 
 		if (interaction.values.includes('info') || interaction.values.includes('thumbnail')) {
 			if (this.#previewing) {
-				if (!this.goBack.pages.length) return false;
 				this.#currentView = interaction.values.includes('info') ? 'info' : 'thumbnail';
-				this.#currentPage = this.goBack.previousPage;
+				this.currentPage = this.goBack.previousPage;
 				this.views.thumbnail = this.goBack.pages as any;
 				this.goBack.pages = [];
 				this.#previewing = false;
 			}
 			else {
 				const view = interaction.values.includes('info') ? 'info' : 'thumbnail';
+				if (!this.views[view].length) {
+					await this.update(interaction);
+					return false;
+				}
 				const galleryID = this.views[view][0]?.galleryID;
 				if (galleryID && +galleryID < 0) {
 					const loaded = await this.loadGalleryPages(Math.abs(+galleryID));
@@ -383,13 +393,20 @@ export class GalleryPaginator extends BasePaginator {
 		}
 
 		if (interaction.values.includes('preview')) {
-			const currentPages = this.views[this.#currentView][this.#currentPage]?.pages;
-			if (!currentPages?.length) return false;
+			if (this.#previewing) {
+				await this.update(interaction);
+				return false;
+			}
+			const currentPages = this.views[this.#currentView][this.currentPage]?.pages;
+			if (!currentPages?.length) {
+				await this.update(interaction);
+				return false;
+			}
 			const firstID = currentPages[0].galleryID;
 			if (firstID && +firstID < 0) {
 				const loaded = await this.loadGalleryPages(Math.abs(+firstID));
 				if (loaded.length) {
-					this.views[this.#currentView][this.#currentPage].pages = loaded;
+					this.views[this.#currentView][this.currentPage].pages = loaded;
 				}
 				else {
 					await this.update(interaction);
@@ -402,12 +419,12 @@ export class GalleryPaginator extends BasePaginator {
 			}
 			this.goBack = {
 				previousView: this.#currentView,
-				previousPage: this.#currentPage,
+				previousPage: this.currentPage,
 				pages: [...this.views.thumbnail],
 			};
-			this.views.thumbnail = this.views[this.#currentView][this.#currentPage].pages as any;
+			this.views.thumbnail = this.views[this.#currentView][this.currentPage].pages as any;
 			this.#currentView = 'thumbnail';
-			this.#currentPage = 0;
+			this.currentPage = 0;
 			this.#previewing = true;
 			await this.update(interaction);
 			return false;
@@ -420,7 +437,7 @@ export class GalleryPaginator extends BasePaginator {
 
 	protected async handleLove(interaction: MessageComponentInteraction): Promise<boolean> {
 		try {
-			const id = this.views[this.#currentView][this.#currentPage]?.galleryID;
+			const id = this.views[this.#currentView][this.currentPage]?.galleryID;
 			if (!id) return false;
 			const adding = await this.client.db.user.favorite(
 				interaction.user.id,

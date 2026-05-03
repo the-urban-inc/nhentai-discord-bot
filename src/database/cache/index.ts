@@ -9,7 +9,8 @@ export class Cache {
 
     constructor() {
         this.pool = mariadb.createPool({
-            host: process.env.MYSQL_HOST,
+            host: process.env.MYSQL_HOST ?? 'localhost',
+            port: process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT, 10) : 3306,
             user: process.env.MYSQL_USER,
             password: process.env.MYSQL_PASSWORD,
             database: process.env.MYSQL_DATABASE,
@@ -76,6 +77,9 @@ export class Cache {
         } = rows[0];
         const tagIds = await this.doujinTagIds(id);
         const tags = await this.doujinTags(tagIds.map(({ tag_id }) => tag_id));
+        // Safeguard: doujins cached too early may have incomplete tags.
+        // Force a re-fetch so the cache can be updated with complete metadata.
+        if (tags.length < 6) return null;
         const reformatTags = tags.map(({ tag_id, name, type, count }) => ({
             id: tag_id,
             name,
@@ -117,6 +121,10 @@ export class Cache {
                     doujin;
                 const { japanese, english, pretty } = title;
                 await conn.query(
+                    'DELETE FROM doujinshi_tag WHERE doujinshi_id = ?',
+                    [id]
+                );
+                await conn.query(
                     'REPLACE INTO doujinshi (id, media_id, title_japanese, title_english, title_pretty, upload_date, num_pages, num_favourites, cover_type, thumb_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     [
                         id,
@@ -136,7 +144,7 @@ export class Cache {
                     tags.map(tag => [tag.id, tag.name, tag.type])
                 );
                 await conn.batch(
-                    'REPLACE INTO doujinshi_tag (doujinshi_id, tag_id) VALUES (?, ?)',
+                    'INSERT INTO doujinshi_tag (doujinshi_id, tag_id) VALUES (?, ?)',
                     tags.map(({ id: tagId }) => [id, tagId])
                 );
 

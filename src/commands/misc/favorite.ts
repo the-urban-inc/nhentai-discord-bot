@@ -137,12 +137,12 @@ export default class extends Command {
             if (!gallery) continue;
             result.push(gallery);
         }
-        const { displayList, rip } = this.client.embeds.displayLazyGalleryList(
+        const { displayList, rip } = this.client.embeds.displayGalleryList(
             result,
-            this.danger,
-            this.blacklists,
-            { preferred: [], query: false, follow: false },
             {
+                danger: this.danger,
+                blacklists: this.blacklists,
+                language: { preferred: [], query: false, follow: false },
                 additional_options: {
                     allowPreview: true,
                     galleryActions: ['love', 'remove'],

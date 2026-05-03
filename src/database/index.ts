@@ -35,5 +35,12 @@ export class Database {
             .on('reconnected', () => log.info(`[DATABASE] Reconnected.`))
             .on('disconnected', () => log.warn(`[DATABASE] Disconnected.`))
             .on('error', err => log.error(`[DATABASE] Connection error : ${err}`));
+
+        try {
+            await this.cache.pool.getConnection();
+            log.info(`[DATABASE] Connected to MariaDB successfully!`);
+        } catch (err: any) {
+            log.error(`[DATABASE] MariaDB connection error : ${err.message}`);
+        }
     }
 }

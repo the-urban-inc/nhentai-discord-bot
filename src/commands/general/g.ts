@@ -134,10 +134,9 @@ export default class extends Command {
                 });
                 gallery = data.gallery;
             }
-            const { displayGallery, rip } = this.client.embeds.displayLazyFullGallery(
+            const { displayGallery, rip } = this.client.embeds.displaySingleGallery(
                 gallery,
-                this.danger,
-                this.blacklists
+                { danger: this.danger, blacklists: this.blacklists }
             );
             if (rip) this.warning = true;
             await displayGallery.run(interaction, `> **Searching for** **\`${code}\`**`);
@@ -155,11 +154,9 @@ export default class extends Command {
             throw new UserError('INVALID_PAGE_INDEX', page, gallery.num_pages);
         }
 
-        const { displayGallery, rip } = this.client.embeds.displayFullGallery(
+        const { displayGallery, rip } = this.client.embeds.displaySingleGallery(
             gallery,
-            (page ?? 1) - 1,
-            this.danger,
-            this.blacklists
+            { startPage: (page ?? 1) - 1, danger: this.danger, blacklists: this.blacklists }
         );
         if (rip) this.warning = true;
         await displayGallery.run(interaction, `> **Searching for** **\`${code}\`**`);
@@ -169,7 +166,7 @@ export default class extends Command {
 
             const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(
                 related,
-                this.danger
+                { danger: this.danger }
             );
             if (rip) this.warning = true;
             await displayRelated.run(interaction, '> **More Like This**');

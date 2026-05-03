@@ -98,10 +98,10 @@ export default class extends Command {
 
         const { displayList, rip } = this.client.embeds.displayGalleryList(
             result,
-            this.danger,
-            this.blacklists,
-            this.language,
             {
+                danger: this.danger,
+                blacklists: this.blacklists,
+                language: this.language,
                 page,
                 num_pages,
                 num_results,

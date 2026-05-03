@@ -85,6 +85,15 @@ export class Logger {
 
     clean(item: any) {
         if (typeof item === 'string') return item;
+        if (item && typeof item === 'object' && item.isAxiosError) {
+            const { message, config, response } = item;
+            const method = config?.method?.toUpperCase?.() || 'GET';
+            const url = config?.url || 'unknown';
+            const status = response?.status;
+            const statusText = response?.statusText;
+            const statusPart = status ? ` (${status}${statusText ? ` ${statusText}` : ''})` : '';
+            return `AxiosError: ${message}${statusPart} [${method} ${url}]`;
+        }
         const cleaned = util.inspect(item, { depth: Infinity });
         return cleaned;
     }

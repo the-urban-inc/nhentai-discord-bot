@@ -55,7 +55,9 @@ export default class C extends Command {
     language: Language = { preferred: [], query: false, follow: false };
 
     async autocomplete(interaction: AutocompleteInteraction) {
-        if (!this.client.tags.has(interaction.commandName)) return;
+        if (!this.client.tags.has(interaction.commandName)) {
+            return interaction.respond([]);
+        }
         await interaction.respond(
             new Fuse(this.client.tags.get(interaction.commandName), {
                 includeScore: true,
@@ -143,10 +145,10 @@ export default class C extends Command {
 
         const { displayList, rip } = this.client.embeds.displayGalleryList(
             result,
-            this.danger,
-            this.blacklists,
-            this.language,
             {
+                danger: this.danger,
+                blacklists: this.blacklists,
+                language: this.language,
                 page,
                 num_pages,
                 num_results,

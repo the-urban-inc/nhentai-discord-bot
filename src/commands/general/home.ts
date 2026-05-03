@@ -79,10 +79,10 @@ export default class extends Command {
             const popularNow = data.popular_now ?? [];
             const { displayList: displayPopular, rip } = this.client.embeds.displayGalleryList(
                 popularNow,
-                this.danger,
-                this.blacklists,
-                this.language,
                 {
+                    danger: this.danger,
+                    blacklists: this.blacklists,
+                    language: this.language,
                     page,
                     num_pages,
                     additional_options: {
@@ -98,10 +98,10 @@ export default class extends Command {
         const newUploads = result;
         const { displayList: displayNew, rip } = this.client.embeds.displayGalleryList(
             newUploads,
-            this.danger,
-            this.blacklists,
-            this.language,
             {
+                danger: this.danger,
+                blacklists: this.blacklists,
+                language: this.language,
                 page,
                 num_pages,
                 additional_options: {
