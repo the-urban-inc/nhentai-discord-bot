@@ -337,7 +337,7 @@ export class Client {
         const fetchSearch = async () => {
             const v2 = await this.fetchJson<V2Search>(
                 `${API_BASE}/search`,
-                { query, page: pageNum, sort: this.sortToV2(sort) }
+                { query, page: pageNum, ...(sort ? { sort: this.sortToV2(sort) } : {}) }
             );
             const tagMap = await this.resolveTagIds(v2.result.flatMap(item => item.tag_ids));
             return {
@@ -441,10 +441,10 @@ export class Client {
         const slug = query.replace(/ /g, '-').toLowerCase();
         const tag = await this.fetchJson<TagLookupResult>(`${API_BASE}/tags/${prefix}/${slug}`);
         const pageNum = page ?? 1;
-        const v2 = await this.fetchJson<V2Galleries>(`${API_BASE}/galleries`, {
+        const v2 = await this.fetchJson<V2Galleries>(`${API_BASE}/galleries/tagged`, {
             tag_id: tag.id,
             page: pageNum,
-            sort: this.sortToV2(sort),
+            ...(sort ? { sort: this.sortToV2(sort) } : {}),
         });
         const tagMap = await this.resolveTagIds(v2.result.flatMap(item => item.tag_ids));
         return {

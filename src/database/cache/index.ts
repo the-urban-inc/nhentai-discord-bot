@@ -10,7 +10,7 @@ export class Cache {
     constructor() {
         this.pool = mariadb.createPool({
             host: process.env.MYSQL_HOST ?? 'localhost',
-            port: process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT, 10) : 3306,
+            port: process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT, 10) : 49998,
             user: process.env.MYSQL_USER,
             password: process.env.MYSQL_PASSWORD,
             database: process.env.MYSQL_DATABASE,
@@ -101,7 +101,7 @@ export class Cache {
     async addDoujin(doujin: Gallery) {
         // If the doujin was uploaded within the last 24 hours, don't add it to the cache yet
         if (Date.now() - doujin.upload_date * 1000 < 1000 * 60 * 60 * 24) return;
-        let conn: mariadb.PoolConnection;
+        let conn: mariadb.PoolConnection | undefined;
         try {
             conn = await this.pool.getConnection();
             await this.addDoujinTransaction(conn, doujin);
