@@ -128,5 +128,26 @@ export class Client<Ready extends boolean = boolean> extends DiscordClient<Ready
     async start(): Promise<void> {
         await this.nhentai.initCdn();
         await super.login(DISCORD_TOKEN);
+        this.startMemoryMaintenance();
+    }
+
+    /**
+     * Background maintenance to keep memory bounded and observable:
+     * - periodically clear the short-lived `warned` set so it can't grow for the
+     *   whole process lifetime (it only de-duplicates the guidelines notice short-term)
+     * - log RSS plus the live sizes of the structures most likely to grow, so memory
+     *   trends can be watched in production
+     */
+    private startMemoryMaintenance(): void {
+        const MINUTE = 60 * 1000;
+        // Matches the historical 24h process restart that previously acted as the TTL
+        // for the warned set.
+        setInterval(() => this.warned.clear(), 1440 * MINUTE);
+        setInterval(() => {
+            const rss = Math.round(process.memoryUsage().rss / 1024 / 1024);
+            this.logger.info(
+                `[MEMORY] RSS ${rss} MB · warned=${this.warned.size} · paginators=${this.paginators.size} · voice=${this.subscriptions.size}`
+            );
+        }, 30 * MINUTE);
     }
 }

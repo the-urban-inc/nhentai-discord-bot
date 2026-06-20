@@ -400,7 +400,6 @@ export class Client {
                 const dbTags = await this.tagCacheDb.resolveTagIds(unique);
                 for (const [id, tag] of dbTags) {
                     const t: Tag = { id: tag.id, type: tag.type as TagType, name: tag.name, url: tag.url, count: tag.count };
-                    this.tagCache.set(id, t);
                     result.set(id, t);
                 }
             } catch (err) {
@@ -408,14 +407,7 @@ export class Client {
             }
         }
 
-        // 2. Check the in-memory tagCache for anything still missing (avoids redundant Tor calls)
-        for (const id of unique) {
-            if (result.has(id)) continue;
-            const cached = this.tagCache.get(id);
-            if (cached) result.set(id, cached);
-        }
-
-        // 3. Fetch whatever is still unresolved from the API in batches
+        // 2. Fetch whatever is still unresolved from the API in batches
         const missing = unique.filter(id => !result.has(id));
         if (missing.length) {
             const BATCH = 100;
@@ -436,7 +428,6 @@ export class Client {
             for (const batch of tagObjects) {
                 for (const tag of batch) {
                     const t: Tag = { id: tag.id, type: tag.type as TagType, name: tag.name, url: tag.url, count: tag.count };
-                    this.tagCache.set(tag.id, t);
                     result.set(tag.id, t);
                 }
             }
@@ -445,7 +436,6 @@ export class Client {
         return result;
     }
 
-    private tagCache = new Map<number, Tag>();
     private tagCacheDb?: { resolveTagIds(ids: number[]): Promise<Map<number, { id: number; type: string; name: string; url: string; count: number }>> };
 
     /**
