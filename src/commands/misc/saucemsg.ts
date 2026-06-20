@@ -1,7 +1,7 @@
 import { Client, ContextMenuCommand, UserError } from '@structures';
 import { ApplicationCommandType, APIContextMenuInteraction, Message, APIMessageApplicationCommandInteraction, MessageContextMenuCommandInteraction } from 'discord.js';
 import sagiri from 'sagiri';
-const sauceNAO = sagiri(process.env.SAUCENAO_TOKEN);
+const sauceNAO = sagiri(process.env.SAUCENAO_TOKEN!);
 
 export default class extends ContextMenuCommand {
     constructor(client: Client) {
@@ -15,7 +15,7 @@ export default class extends ContextMenuCommand {
 
     checkforImage(message: Message) {
         return Array.from(message.attachments.values()).filter(a =>
-            a.contentType.startsWith('image')
+            a.contentType?.startsWith('image')
         );
     }
 
@@ -28,9 +28,9 @@ export default class extends ContextMenuCommand {
         if (!message.content && !message.attachments.size) {
             throw new UserError('NO_IMAGE');
         }
-        const images = [message.content, this.checkforImage(message)[0]?.url, this.checkforEmbedImage(message)[0]?.url].filter(url => this.client.util.isUrl(url))
+        const images = [message.content, this.checkforImage(message)[0]?.url, this.checkforEmbedImage(message)[0]?.url].filter((url): url is string => this.client.util.isUrl(url ?? ''))
         if (!images.length) throw new UserError('INVALID_IMAGE', '');
-        const imageURL = images[0];
+        const imageURL = images[0]!;
         let results = await sauceNAO(imageURL, { db: 999 });
         if (!results || results.length === 0) {
             throw new UserError('NO_RESULT', imageURL);

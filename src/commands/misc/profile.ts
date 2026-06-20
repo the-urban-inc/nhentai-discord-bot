@@ -1,6 +1,6 @@
 import { Client, Command } from '@structures';
 import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction, User as DiscordUser } from 'discord.js';
-import { User, Server, Blacklist } from '@database/models';
+import { User, Blacklist } from '@database/models';
 import moment from 'moment';
 import { ICON } from '@constants';
 
@@ -27,40 +27,13 @@ export default class extends Command {
         });
     }
 
-    anonymous = true;
-    danger = false;
-    warning = false;
-    blacklists: Blacklist[] = [];
-
     async before(interaction: CommandInteraction) {
         try {
-            let user = await User.findOne({ userID: interaction.user.id }).exec();
-            if (!user) {
-                user = await new User({
-                    userID: interaction.user.id,
-                    blacklists: [],
-                    anonymous: true,
-                    language: {
-                        preferred: [],
-                        query: false,
-                        follow: false,
-                    },
-                }).save();
-            }
-            this.blacklists = user.blacklists;
-            this.anonymous = user.anonymous;
-            let server = await Server.findOne({ serverID: interaction.user.id }).exec();
-            if (!server) {
-                server = await new Server({
-                    serverID: interaction.user.id,
-                    settings: { danger: false },
-                }).save();
-            }
-            this.danger = server.settings.danger;
-            this.warning = false;
+            await this.client.db.user.findOrCreate(interaction.user.id);
+            await this.client.db.server.findOrCreate(interaction.user.id);
         } catch (err) {
             this.client.logger.error(err);
-            throw new Error(`Database error: ${err.message}`);
+            throw new Error(`Database error: ${(err as Error).message}`);
         }
     }
 
@@ -68,7 +41,7 @@ export default class extends Command {
         await this.before(interaction);
         const u = (interaction.options.get('user')?.user as DiscordUser) ?? interaction.user;
         const more = interaction.options.get('more')?.value as boolean;
-        const member = await interaction.guild.members.fetch(u.id);
+        const member = await interaction.guild!.members.fetch(u.id);
         const user = await User.findOne({
             userID: member.id,
         }).exec();
@@ -113,7 +86,7 @@ export default class extends Command {
                     `• **Total EXP** : ${exp.toLocaleString()}\n` +
                     `• **Server Rank** : #${await this.client.db.xp.getServerRanking(
                         member.id,
-                        interaction.guild.id
+                        interaction.guild!.id
                     )}\n` +
                     `• **Global Rank** : #${await this.client.db.xp.getGlobalRanking(exp)}`
             );
@@ -135,7 +108,7 @@ export default class extends Command {
             }
 
             if (user.history.length) {
-                let embed = this.client.embeds
+                const embed = this.client.embeds
                     .default()
                     .setTitle('Recent calls')
                     .setThumbnail(member.user.displayAvatarURL());

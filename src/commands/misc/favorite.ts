@@ -5,7 +5,7 @@ import {
     CommandInteraction,
     User as DiscordUser,
 } from 'discord.js';
-import { User, Server, Blacklist } from '@database/models';
+import { User, Blacklist } from '@database/models';
 import { PartialGallery } from '@api/nhentai';
 
 export default class extends Command {
@@ -26,50 +26,29 @@ export default class extends Command {
         });
     }
 
-    anonymous = true;
-    danger = false;
-    warning = false;
-    blacklists: Blacklist[] = [];
-
-    async before(interaction: CommandInteraction) {
+    async before(
+        interaction: CommandInteraction
+    ): Promise<{ danger: boolean; blacklists: Blacklist[]; anonymous: boolean }> {
         try {
-            let user = await User.findOne({ userID: interaction.user.id }).exec();
-            if (!user) {
-                user = await new User({
-                    userID: interaction.user.id,
-                    blacklists: [],
-                    anonymous: true,
-                    language: {
-                        preferred: [],
-                        query: false,
-                        follow: false,
-                    },
-                }).save();
-            }
-            this.blacklists = user.blacklists;
-            this.anonymous = user.anonymous;
-            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
-            if (!server) {
-                server = await new Server({
-                    serverID: interaction.guild.id,
-                    settings: { danger: false },
-                }).save();
-            }
-            this.danger = server.settings.danger;
-            this.warning = false;
+            const user = await this.client.db.user.findOrCreate(interaction.user.id);
+            const blacklists = user.blacklists;
+            const anonymous = user.anonymous;
+            const server = await this.client.db.server.findOrCreate(interaction.guild!.id);
+            return { danger: server.settings.danger, blacklists, anonymous };
         } catch (err) {
             this.client.logger.error(err);
-            throw new Error(`Database error: ${err.message}`);
+            throw new Error(`Database error: ${(err as Error).message}`);
         }
     }
 
     async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
+        const { danger, blacklists, anonymous } = await this.before(interaction);
+        let warning = false;
         const member = (interaction.options.get('user')?.user as DiscordUser) ?? interaction.user;
         const user = await User.findOne({
             userID: member.id,
         }).exec();
-        if (member.id !== interaction.user.id && this.anonymous) {
+        if (member.id !== interaction.user.id && anonymous) {
             return interaction.editReply({
                 embeds: [
                     this.client.embeds
@@ -109,7 +88,7 @@ export default class extends Command {
                 ],
             });
         }
-        let result: PartialGallery[] = [];
+        const result: PartialGallery[] = [];
         const delay = (ms = 500) => new Promise(r => setTimeout(r, ms));
         for (const [i, code] of user.favorites.entries()) {
             await delay();
@@ -140,8 +119,8 @@ export default class extends Command {
         const { displayList, rip } = this.client.embeds.displayGalleryList(
             result,
             {
-                danger: this.danger,
-                blacklists: this.blacklists,
+                danger: danger,
+                blacklists: blacklists,
                 language: { preferred: [], query: false, follow: false },
                 additional_options: {
                     allowPreview: true,
@@ -149,12 +128,12 @@ export default class extends Command {
                 },
             }
         );
-        if (rip) this.warning = true;
+        if (rip) warning = true;
         await displayList.run(
             interaction,
             `> **Favorites List of** **\`${member.tag}\`**\n> **Galleries are sorted by date added**`
         );
-        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+        if (!danger && warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
         }

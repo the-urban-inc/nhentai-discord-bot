@@ -4,6 +4,7 @@
         "target": "es6",
         "module": "commonjs",
         "sourceMap": false,
+        "strict": true,
         "alwaysStrict": true,
         "declaration": false,
         "listEmittedFiles": true,

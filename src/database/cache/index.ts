@@ -30,8 +30,12 @@ export class Cache {
     }
 
     private async doujinTags(ids: number[]) {
+        const safe = ids.filter(id => Number.isInteger(id));
+        if (!safe.length) return [] as unknown as ITag[];
+        const placeholders = safe.map(() => '?').join(',');
         return await this.pool.execute<ITag[]>(
-            `SELECT tag_id, name, type, count_tag(tag_id) as \`count\` FROM tag WHERE tag_id IN (${ids.join(',')})`
+            `SELECT tag_id, name, type, count_tag(tag_id) as \`count\` FROM tag WHERE tag_id IN (${placeholders})`,
+            safe
         );
     }
 
@@ -40,10 +44,13 @@ export class Cache {
     }
 
     async resolveTagIds(ids: number[]): Promise<Map<number, { id: number; type: string; name: string; url: string; count: number }>> {
-        if (!ids.length) return new Map();
+        const safe = ids.filter(id => Number.isInteger(id));
+        if (!safe.length) return new Map();
         try {
+            const placeholders = safe.map(() => '?').join(',');
             const rows = await this.pool.execute<{ tag_id: number; name: string; type: string; count: number }[]>(
-                `SELECT tag_id, name, type, count_tag(tag_id) as \`count\` FROM tag WHERE tag_id IN (${ids.join(',')})`
+                `SELECT tag_id, name, type, count_tag(tag_id) as \`count\` FROM tag WHERE tag_id IN (${placeholders})`,
+                safe
             );
             const result = new Map<number, { id: number; type: string; name: string; url: string; count: number }>();
             for (const row of rows) {
@@ -105,55 +112,49 @@ export class Cache {
         try {
             conn = await this.pool.getConnection();
             await this.addDoujinTransaction(conn, doujin);
-        } catch (err) {
-            throw err;
         } finally {
             if (conn) conn.release();
         }
     }
 
     private async addDoujinTransaction(conn: mariadb.PoolConnection, doujin: Gallery) {
+        await conn.beginTransaction();
+
         try {
-            await conn.beginTransaction();
+            const { id, media_id, title, upload_date, num_pages, num_favorites, tags, images } =
+                doujin;
+            const { japanese, english, pretty } = title;
+            await conn.query(
+                'DELETE FROM doujinshi_tag WHERE doujinshi_id = ?',
+                [id]
+            );
+            await conn.query(
+                'REPLACE INTO doujinshi (id, media_id, title_japanese, title_english, title_pretty, upload_date, num_pages, num_favourites, cover_type, thumb_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [
+                    id,
+                    media_id,
+                    japanese ?? '',
+                    english ?? '',
+                    pretty ?? '',
+                    moment.unix(upload_date).format('YYYY-MM-DD HH:mm:ss'),
+                    num_pages ?? 0,
+                    num_favorites ?? 0,
+                    images.cover.t,
+                    images.thumbnail.t,
+                ]
+            );
+            await conn.batch(
+                'INSERT INTO tag (tag_id, name, type) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type)',
+                tags.map(tag => [tag.id, tag.name, tag.type])
+            );
+            await conn.batch(
+                'INSERT INTO doujinshi_tag (doujinshi_id, tag_id) VALUES (?, ?)',
+                tags.map(({ id: tagId }) => [id, tagId])
+            );
 
-            try {
-                const { id, media_id, title, upload_date, num_pages, num_favorites, tags, images } =
-                    doujin;
-                const { japanese, english, pretty } = title;
-                await conn.query(
-                    'DELETE FROM doujinshi_tag WHERE doujinshi_id = ?',
-                    [id]
-                );
-                await conn.query(
-                    'REPLACE INTO doujinshi (id, media_id, title_japanese, title_english, title_pretty, upload_date, num_pages, num_favourites, cover_type, thumb_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [
-                        id,
-                        media_id,
-                        japanese ?? '',
-                        english ?? '',
-                        pretty ?? '',
-                        moment.unix(upload_date).format('YYYY-MM-DD HH:mm:ss'),
-                        num_pages ?? 0,
-                        num_favorites ?? 0,
-                        images.cover.t,
-                        images.thumbnail.t,
-                    ]
-                );
-                await conn.batch(
-                    'INSERT INTO tag (tag_id, name, type) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), type = VALUES(type)',
-                    tags.map(tag => [tag.id, tag.name, tag.type])
-                );
-                await conn.batch(
-                    'INSERT INTO doujinshi_tag (doujinshi_id, tag_id) VALUES (?, ?)',
-                    tags.map(({ id: tagId }) => [id, tagId])
-                );
-
-                await conn.commit();
-            } catch (err) {
-                await conn.rollback();
-                throw err;
-            }
+            await conn.commit();
         } catch (err) {
+            await conn.rollback();
             throw err;
         }
 
@@ -161,19 +162,25 @@ export class Cache {
     }
 
     async random() {
-        const rows = await this.pool.query<IDoujin[]>('SELECT DISTINCT id FROM doujinshi');
+        // Let the database pick the random row so we only transfer one id instead of the
+        // entire id column into Node memory on every call.
+        const rows = await this.pool.query<IDoujin[]>(
+            'SELECT DISTINCT id FROM doujinshi ORDER BY RAND() LIMIT 1'
+        );
         if (!rows.length) return null;
-        const { id } = rows[Math.floor(Math.random() * rows.length)];
-        return id;
+        return rows[0].id;
     }
 
     async safeRandom(banned: boolean, additional: string[] = []) {
+        // Only allow numeric tag-id strings; the driver expands & escapes the array for IN (?).
+        const safeAdditional = additional.filter(id => /^\d+$/.test(id));
+        // Random selection happens in the database (single-row transfer) rather than pulling
+        // every matching doujinshi_id into Node and picking one here.
         const rows = await this.pool.query(
-            'SELECT DISTINCT doujinshi_id FROM doujinshi_tag WHERE tag_id NOT IN (?)',
-            [...(banned ? ['0'] : BANNED_TAGS), ...additional]
+            'SELECT DISTINCT doujinshi_id FROM doujinshi_tag WHERE tag_id NOT IN (?) ORDER BY RAND() LIMIT 1',
+            [...(banned ? ['0'] : BANNED_TAGS), ...safeAdditional]
         );
         if (!rows.length) return null;
-        const { doujinshi_id } = rows[Math.floor(Math.random() * rows.length)];
-        return doujinshi_id;
+        return rows[0].doujinshi_id;
     }
 }

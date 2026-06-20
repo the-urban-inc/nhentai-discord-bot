@@ -22,7 +22,7 @@ export default class extends Command {
 	}
 
 	async exec(interaction: CommandInteraction) {
-		const subscription = this.client.subscriptions.get(interaction.guildId);
+		const subscription = this.client.subscriptions.get(interaction.guildId!);
 		if (!subscription) {
 			return interaction.editReply("❌\u2000Nothing's playing in this server!");
 		}

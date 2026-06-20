@@ -17,7 +17,7 @@ export class Notifier {
     }
 
     async watches() {
-        let records = await WatchModel.find({}).select('id').exec();
+        const records = await WatchModel.find({}).select('id').exec();
         return new Set(records.map(a => a.id));
     }
 
@@ -38,63 +38,74 @@ export class Notifier {
     }
 
     async dispatch(galleries: Gallery[]) {
-        let ids = await WatchModel.find({}).exec();
-        let cache = new Map<string, Set<number>>();
-        ids.forEach(({ id: tagId, user }) => {
+        const ids = await WatchModel.find({});
+        const cache = new Map<string, Set<number>>();
+        for (const { id: tagId, user } of ids) {
             const targets = galleries.filter(g => g.tags.some(t => t.id === tagId));
-            user.forEach(async userId => {
-                const duser = await this.client.users.fetch(userId);
-                if (!duser) return;
-                targets.forEach(async doujin => {
+            if (!targets.length) continue;
+            for (const userId of user) {
+                let duser;
+                try {
+                    duser = await this.client.users.fetch(userId);
+                }
+                catch (err) {
+                    this.client.logger.warn(`[NOTIFIER] Couldn't fetch user ${userId}`, err);
+                    continue;
+                }
+                if (!duser) continue;
+                for (const doujin of targets) {
                     const id = doujin.id;
                     if (!cache.has(userId)) cache.set(userId, new Set<number>());
-                    if (cache.get(userId).has(+id)) return;
-                    cache.get(userId).add(+id);
-                    let user = await User.findOne({ userID: userId }).exec();
-                    if (!user) {
-                        user = await new User({
-                            userID: userId,
-                            blacklists: [],
-                            language: {
-                                preferred: [],
-                                query: false,
-                                follow: false,
-                            },
-                        }).save();
-                    }
-                    if (
-                        user.language?.follow === true &&
-                        !doujin.tags.some(tag =>
-                            user.language?.preferred.map(x => x.id).includes(String(tag.id))
-                        )
-                    )
-                        return;
-                    const tags = await WatchModel.find({ user: userId }).exec();
-                    const info = this.client.embeds.displayGalleryInfo(
-                        doujin,
-                        true,
-                        user.blacklists,
-                        tags.map(t => t.id)
-                    ).info;
-                    duser
-                        .send({
+                    if (cache.get(userId)!.has(+id)) continue;
+                    cache.get(userId)!.add(+id);
+                    try {
+                        let dbUser = await User.findOne({ userID: userId });
+                        if (!dbUser) {
+                            dbUser = await new User({
+                                userID: userId,
+                                blacklists: [],
+                                language: {
+                                    preferred: [],
+                                    query: false,
+                                    follow: false,
+                                },
+                            }).save();
+                        }
+                        if (
+                            dbUser.language?.follow === true &&
+                            !doujin.tags.some(tag =>
+                                dbUser.language?.preferred
+                                    .map(x => x.id)
+                                    .includes(String(tag.id))
+                            )
+                        ) {
+                            continue;
+                        }
+                        const tags = await WatchModel.find({ user: userId });
+                        const info = this.client.embeds.displayGalleryInfo(
+                            doujin,
+                            true,
+                            dbUser.blacklists,
+                            tags.map(t => t.id)
+                        ).info;
+                        const m = await duser.send({
                             content:
                                 'A new doujin was released!\nNote: Tags you followed are underlined.',
                             embeds: [info],
-                        })
-                        .then(m =>
-                            this.client.logger.info(
-                                `[NOTIFIER] Notified user ${duser.username} (ID: ${duser.id}) of doujin ${id}. Message ID : ${m.id}`
-                            )
-                        )
-                        .catch(err =>
-                            this.client.logger.warn(
-                                `[NOTIFIER] Couldn't notify user ${duser.username} (ID: ${duser.id})`
-                            )
+                        });
+                        this.client.logger.info(
+                            `[NOTIFIER] Notified user ${duser.username} (ID: ${duser.id}) of doujin ${id}. Message ID : ${m.id}`
                         );
-                });
-            });
-        });
+                    }
+                    catch (err) {
+                        this.client.logger.warn(
+                            `[NOTIFIER] Couldn't notify user ${duser.username} (ID: ${duser.id}) of doujin ${id}`,
+                            err
+                        );
+                    }
+                }
+            }
+        }
     }
 
     async start() {
@@ -110,18 +121,43 @@ export class Notifier {
         if (watches.size === 0) {
             this.client.logger.warn(`[NOTIFIER] No tags to be watched for. I will not start.`);
         } else {
+            let running = false;
             this.current = setInterval(async () => {
-                let _ = await this.getCode();
-                if (this.last < _) {
-                    this.client.logger.info(
-                        `[NOTIFIER] The latest code is now ${_}, from the last of ${this.last}.`
+                if (running) {
+                    this.client.logger.warn(
+                        `[NOTIFIER] Previous check is still running; skipping this tick.`
                     );
-                    this.client.logger.info(`[NOTIFIER] Dispatching event.`);
-                    let out = await this.check(this.last + 1, _, await this.watches());
-                    this.last = _;
-                    this.dispatch(out);
-                } else this.client.logger.info(`[NOTIFIER] No new doujin.`);
-                this.last = _;
+                    return;
+                }
+                running = true;
+                try {
+                    const _ = await this.getCode();
+                    if (isNaN(_)) {
+                        this.client.logger.warn(
+                            `[NOTIFIER] Couldn't parse the latest code this tick; skipping.`
+                        );
+                        return;
+                    }
+                    if (this.last < _) {
+                        this.client.logger.info(
+                            `[NOTIFIER] The latest code is now ${_}, from the last of ${this.last}.`
+                        );
+                        this.client.logger.info(`[NOTIFIER] Dispatching event.`);
+                        const out = await this.check(this.last + 1, _, await this.watches());
+                        this.last = _;
+                        await this.dispatch(out ?? []);
+                    }
+                    else {
+                        this.client.logger.info(`[NOTIFIER] No new doujin.`);
+                        this.last = _;
+                    }
+                }
+                catch (err) {
+                    this.client.logger.error(err);
+                }
+                finally {
+                    running = false;
+                }
             }, this.interval);
             this.client.logger.info(
                 `[NOTIFIER] Started watcher. Every ${this.interval}ms there will be a check.`

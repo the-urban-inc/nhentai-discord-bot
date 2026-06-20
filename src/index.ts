@@ -1,5 +1,14 @@
 import { config } from 'dotenv';
 config();
+
+// Fail fast at startup if required configuration is missing.
+const REQUIRED_ENV = ['DISCORD_TOKEN', 'MONGODB_URI', 'MYSQL_USER', 'MYSQL_PASSWORD', 'MYSQL_DATABASE'];
+const missingEnv = REQUIRED_ENV.filter(key => !process.env[key]);
+if (missingEnv.length) {
+    console.error(`[STARTUP] Missing required environment variables: ${missingEnv.join(', ')}`);
+    process.exit(1);
+}
+
 import { createServer } from 'http';
 createServer().listen(process.env.PORT || 8080);
 import { ActivityType, Collection, Snowflake, TextChannel } from 'discord.js';
@@ -34,7 +43,7 @@ async function populateTags() {
 }
 
 async function changePresence() {
-    client.user.setPresence({
+    client.user!.setPresence({
         activities: [
             [
                 {
@@ -60,10 +69,10 @@ async function changePresence() {
 
 client.once('ready', async () => {
     if (!client.application?.owner) await client.application?.fetch();
-    const owner = client.application.owner.id;
+    const owner = client.application!.owner!.id;
     client.ownerID = owner;
     client.logger.info(`[READY] Fetched application profile. Setting owner ID to ${owner}.`);
-    client.logger.info(`[READY] Logged in as ${client.user.tag}! ID: ${client.user.id}.`);
+    client.logger.info(`[READY] Logged in as ${client.user!.tag}! ID: ${client.user!.id}.`);
     await client.db.init();
     await populateTags();
     await client.commandHandler.loadCommands();

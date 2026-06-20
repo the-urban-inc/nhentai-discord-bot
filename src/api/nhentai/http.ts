@@ -14,7 +14,7 @@ export function createHttp(baseURL: string, logger: Logger, socksProxy?: string,
     const a = axios.create({
         baseURL,
         timeout: opts.timeoutMs || 15_000,
-        paramsSerializer: p => qs.stringify(p),
+        paramsSerializer: { serialize: p => qs.stringify(p) },
     });
 
     if (socksProxy) {
@@ -63,8 +63,8 @@ export function createHttp(baseURL: string, logger: Logger, socksProxy?: string,
             if (axiosRetry.isNetworkOrIdempotentRequestError(error)) return true;
             const status = error?.response?.status;
             if (!status) return false;
-            // Only retry server errors. 429 = stop hammering the API.
-            return status >= 500 && status <= 599;
+            // Retry server errors; 429 backs off a full minute via retryDelay above.
+            return (status >= 500 && status <= 599) || status === 429;
         },
     });
 

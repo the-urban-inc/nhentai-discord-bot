@@ -21,7 +21,7 @@ export class Database {
     }
     async init() {
         await mongoose
-            .connect(process.env.MONGODB_URI, {
+            .connect(process.env.MONGODB_URI!, {
                 family: 4,
                 autoIndex: true,
                 serverSelectionTimeoutMS: 5000,

@@ -17,7 +17,7 @@ app.engine('html', require('ejs').renderFile);
 
 app.get('/download/:code/', async (req, res) => {
     const code = req.params.code;
-    let gallery: Gallery = null;
+    let gallery: Gallery | null = null;
     try {
         gallery = (await api.g(+code)).gallery;
         if (!gallery || !gallery.tags) return res.redirect('/');

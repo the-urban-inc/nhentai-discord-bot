@@ -11,8 +11,7 @@ import {
     TextInputBuilder,
     TextInputStyle,
 } from 'discord.js';
-import { User, Server, Blacklist } from '@database/models';
-import { Gallery } from '@api/nhentai';
+import { Blacklist } from '@database/models';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -26,47 +25,24 @@ export default class extends Command {
         });
     }
 
-    danger = false;
-    related: Gallery[] = null;
-    rawChoices: Gallery[] = [];
-    blacklists: Blacklist[] = [];
-
-    async before(interaction: CommandInteraction) {
+    async before(
+        interaction: CommandInteraction
+    ): Promise<{ danger: boolean; blacklists: Blacklist[] }> {
         try {
-            let user = await User.findOne({ userID: interaction.user.id }).exec();
-            if (!user) {
-                user = await new User({
-                    userID: interaction.user.id,
-                    blacklists: [],
-                    language: {
-                        preferred: [],
-                        query: false,
-                        follow: false,
-                    },
-                }).save();
-            }
-            this.blacklists = user.blacklists;
-            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
-            if (!server) {
-                server = await new Server({
-                    serverID: interaction.guild.id,
-                    settings: { danger: false },
-                }).save();
-            }
-            this.related = null;
-            this.rawChoices = [];
-            this.blacklists = [];
-            this.danger = server.settings.danger;
+            const user = await this.client.db.user.findOrCreate(interaction.user.id);
+            const blacklists = user.blacklists;
+            const server = await this.client.db.server.findOrCreate(interaction.guild!.id);
+            return { danger: server.settings.danger, blacklists };
         } catch (err) {
             this.client.logger.error(err);
-            throw new Error(`Database error: ${err.message}`);
+            throw new Error(`Database error: ${(err as Error).message}`);
         }
     }
 
-    async fetchRandomDoujin() {
+    async fetchRandomDoujin(danger: boolean, blacklists: Blacklist[]) {
         return await this.client.db.cache.safeRandom(
-            this.danger,
-            this.blacklists.map(bl => bl.id)
+            danger,
+            blacklists.map(bl => bl.id)
         ).catch(err => {
             this.client.logger.warn('MariaDB random failed, using API fallback', err.message);
             return null;
@@ -74,8 +50,8 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
-        let id = await this.fetchRandomDoujin();
+        const { danger, blacklists } = await this.before(interaction);
+        let id = await this.fetchRandomDoujin(danger, blacklists);
         if (!id) {
             const random = await this.client.nhentai.random().catch(() => null);
             if (!random) throw new UserError('NO_RESULT');
@@ -155,7 +131,7 @@ export default class extends Command {
                 }
                 const modal = new ModalBuilder()
                     .setCustomId(String(gallery.id))
-                    .setTitle(this.client.user.username);
+                    .setTitle(this.client.user!.username);
                 const pageInput = new TextInputBuilder()
                     .setCustomId('pageInput')
                     .setLabel('Input your guess!')
@@ -172,7 +148,7 @@ export default class extends Command {
                     idle: 30000,
                 });
                 await response.deferUpdate();
-                let choice = parseInt(response.fields.getTextInputValue('pageInput'));
+                const choice = parseInt(response.fields.getTextInputValue('pageInput'));
                 await interaction.editReply({
                     embeds: [quiz],
                     components: [
@@ -201,7 +177,7 @@ export default class extends Command {
                     });
                     return;
                 }
-                let inc = Math.max(
+                const inc = Math.max(
                     0,
                     Math.round((75 * (100 - Math.ceil(Math.abs(choice - answer) / 1000))) / 100)
                 );
@@ -351,7 +327,7 @@ export default class extends Command {
                         'add',
                         'exp',
                         interaction.user.id,
-                        interaction.guild.id,
+                        interaction.guild!.id,
                         inc
                     );
                     if (leveledUp) {

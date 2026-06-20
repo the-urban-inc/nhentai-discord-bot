@@ -24,14 +24,15 @@ export class Client {
         if (
             LOCALHOST_DOMAIN_RE.test(everythingAfterProtocol) ||
             NON_LOCALHOST_DOMAIN_RE.test(everythingAfterProtocol)
-        )
+        ) {
             return true;
+        }
         return false;
     }
 
     public async fetch(type: 'actions' | 'sfw' | 'nsfw', query: Endpoint): Promise<string> {
         const urls: string[] = [];
-        let method: typeof ACTIONS | typeof SFW_METHODS | typeof NSFW_METHODS;
+        let method: typeof ACTIONS | typeof SFW_METHODS | typeof NSFW_METHODS = ACTIONS;
         switch (type) {
             case 'actions':
                 method = ACTIONS;
@@ -41,21 +42,22 @@ export class Client {
                 break;
             case 'nsfw':
                 method = NSFW_METHODS;
+                break;
             default:
                 break;
         }
-        if (method[query]?.nekoslife) {
-            const q = this.random(method[query].nekoslife) as keyof typeof NekosClient;
+        if ((method as any)[query]?.nekoslife) {
+            const q = this.random((method as any)[query].nekoslife) as keyof typeof NekosClient;
             try {
-                const url = (await this.NekosAPI[q]())
+                const url = (await (this.NekosAPI as any)[q]())
                     ?.url;
                 if (this.isURL(url)) urls.push(url);
             } catch (err) {
                 /* ignore */
             }
         }
-        if (method[query]?.nekobot) {
-            const q = this.random(method[query].nekobot);
+        if ((method as any)[query]?.nekobot) {
+            const q = this.random((method as any)[query].nekobot);
             const url = await axios
                 .get(this.nekobotAPI + q)
                 .then(res => res.data.message)
@@ -64,8 +66,8 @@ export class Client {
                 });
             if (this.isURL(url)) urls.push(url);
         }
-        if (method[query]?.hmtai) {
-            const q = this.random(method[query].hmtai);
+        if ((method as any)[query]?.hmtai) {
+            const q = this.random((method as any)[query].hmtai);
             const url = await axios
                 .get(this.hmtaiAPI + q)
                 .then(res => res.data.url)

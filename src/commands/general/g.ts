@@ -6,7 +6,7 @@ import {
     MessageFlags,
 } from 'discord.js';
 import { decode } from 'he';
-import { User, Server, Blacklist } from '@database/models';
+import { Blacklist } from '@database/models';
 import { Gallery, PartialGallery } from '@api/nhentai';
 
 export default class extends Command {
@@ -38,44 +38,27 @@ export default class extends Command {
         });
     }
 
-    anonymous = true;
-    danger = false;
-    warning = false;
-    blacklists: Blacklist[] = [];
-
-    async before(interaction: CommandInteraction) {
+    async before(
+        interaction: CommandInteraction
+    ): Promise<{ danger: boolean; blacklists: Blacklist[]; anonymous: boolean }> {
         try {
-            let user = await User.findOne({ userID: interaction.user.id }).exec();
-            if (!user) {
-                user = await new User({
-                    userID: interaction.user.id,
-                    blacklists: [],
-                    language: {
-                        preferred: [],
-                        query: false,
-                        follow: false,
-                    },
-                }).save();
-            }
-            this.blacklists = user.blacklists;
-            this.anonymous = user.anonymous;
-            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
-            if (!server) {
-                server = await new Server({
-                    serverID: interaction.guild.id,
-                    settings: { danger: false },
-                }).save();
-            }
-            this.danger = server.settings.danger;
-            this.warning = false;
+            const user = await this.client.db.user.findOrCreate(interaction.user.id);
+            const blacklists = user.blacklists;
+            const anonymous = user.anonymous;
+            const server = await this.client.db.server.findOrCreate(interaction.guild!.id);
+            return { danger: server.settings.danger, blacklists, anonymous };
         } catch (err) {
             this.client.logger.error(err);
-            throw new Error(`Database error: ${err.message}`);
+            throw new Error(`Database error: ${(err as Error).message}`);
         }
     }
 
-    async after(interaction: CommandInteraction, gallery: PartialGallery | Gallery) {
-        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+    async after(
+        interaction: CommandInteraction,
+        gallery: PartialGallery | Gallery,
+        ctx: { danger: boolean; anonymous: boolean; warning: boolean }
+    ) {
+        if (!ctx.danger && ctx.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
         }
@@ -88,11 +71,11 @@ export default class extends Command {
             type: 'g',
             name: decode(gallery.title.english),
             author: interaction.user.id,
-            guild: interaction.guild.id,
+            guild: interaction.guild!.id,
             date: Date.now(),
         };
 
-        if (interaction.guild && !this.anonymous) {
+        if (interaction.guild && !ctx.anonymous) {
             await this.client.db.server.history(interaction.guild.id, history);
             await this.client.db.user.history(interaction.user.id, history);
             const leveledUp = await this.client.db.xp.save(
@@ -114,8 +97,9 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
-        const code = interaction.options.get('query').value as number;
+        const { danger, blacklists, anonymous } = await this.before(interaction);
+        let warning = false;
+        const code = interaction.options.get('query')!.value as number;
         const more = interaction.options.get('more')?.value as boolean;
         const page = interaction.options.get('page')?.value as number;
 
@@ -136,11 +120,11 @@ export default class extends Command {
             }
             const { displayGallery, rip } = this.client.embeds.displaySingleGallery(
                 gallery,
-                { danger: this.danger, blacklists: this.blacklists }
+                { danger: danger, blacklists: blacklists }
             );
-            if (rip) this.warning = true;
+            if (rip) warning = true;
             await displayGallery.run(interaction, `> **Searching for** **\`${code}\`**`);
-            return await this.after(interaction, gallery);
+            return await this.after(interaction, gallery, { danger, anonymous, warning });
         }
 
         const data = await this.client.nhentai.g(code);
@@ -156,26 +140,26 @@ export default class extends Command {
 
         const { displayGallery, rip } = this.client.embeds.displaySingleGallery(
             gallery,
-            { startPage: (page ?? 1) - 1, danger: this.danger, blacklists: this.blacklists }
+            { startPage: (page ?? 1) - 1, danger: danger, blacklists: blacklists }
         );
-        if (rip) this.warning = true;
+        if (rip) warning = true;
         await displayGallery.run(interaction, `> **Searching for** **\`${code}\`**`);
 
         if (more) {
             const { related, comments } = data;
 
             const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(
-                related,
-                { danger: this.danger }
+                related ?? [],
+                { danger: danger }
             );
-            if (rip) this.warning = true;
+            if (rip) warning = true;
             await displayRelated.run(interaction, '> **More Like This**');
 
-            if (!comments.length) return;
-            const displayComments = this.client.embeds.displayCommentList(comments);
+            if (!(comments ?? []).length) return;
+            const displayComments = this.client.embeds.displayCommentList(comments ?? []);
             await displayComments.run(interaction, '> `💬` **Comments**');
         }
 
-        await this.after(interaction, gallery);
+        await this.after(interaction, gallery, { danger, anonymous, warning });
     }
 }

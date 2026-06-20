@@ -12,14 +12,14 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        let [repo, owner] = npm_package_repository_url
+        let [repo, owner] = (npm_package_repository_url ?? '')
             .split('/')
             .filter(a => a)
             .reverse();
         repo = repo.replace('.git', '');
 
-        let url = `https://api.github.com/repos/${owner}/${repo}/commits?per_page=5`;
-        let commitList = await fetch(url).then(res => res.json()) as {
+        const url = `https://api.github.com/repos/${owner}/${repo}/commits?per_page=5`;
+        const commitList = await fetch(url).then(res => res.json()) as {
             url: string;
             sha: string;
             html_url: string;

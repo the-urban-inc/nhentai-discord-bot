@@ -10,7 +10,6 @@ import {
     Component,
     ComponentType,
 } from 'discord.js';
-import { User, Server } from '@database/models';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -73,29 +72,12 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        const member = await interaction.guild.members.fetch(interaction.user.id);
-        let user = await User.findOne({ userID: member.id }).exec();
-        if (!user) {
-            user = await new User({
-                userID: member.id,
-                blacklists: [],
-                language: {
-                    preferred: [],
-                    query: false,
-                    follow: false,
-                },
-            }).save();
-        }
+        const member = await interaction.guild!.members.fetch(interaction.user.id);
+        const user = await this.client.db.user.findOrCreate(member.id);
         let anonymous = user.anonymous,
-            danger = null, privateCommand = null;
+            danger: boolean | null = null, privateCommand: boolean | null = null;
         if (member.permissions.has(PermissionFlagsBits.ManageGuild)) {
-            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
-            if (!server) {
-                server = await new Server({
-                    serverID: interaction.guild.id,
-                    settings: { danger: false, private: false },
-                }).save();
-            }
+            const server = await this.client.db.server.findOrCreate(interaction.guild!.id);
             danger = server.settings.danger;
             privateCommand = server.settings.private;
         }
@@ -110,11 +92,11 @@ export default class extends Command {
         collector.on('collect', async i => {
             await i.deferUpdate();
             if (i.values.includes('anon'))
-                anonymous = await this.client.db.user.anonymous(member.id);
+                {anonymous = await this.client.db.user.anonymous(member.id);}
             if (i.values.includes('danger'))
-                danger = await this.client.db.server.danger(interaction.guild.id);
+                {danger = await this.client.db.server.danger(interaction.guild!.id);}
             if (i.values.includes('private'))
-                privateCommand = await this.client.db.server.private(interaction.guild.id);
+                {privateCommand = await this.client.db.server.private(interaction.guild!.id);}
             await interaction.editReply(this.update(anonymous, danger, privateCommand));
         });
     }

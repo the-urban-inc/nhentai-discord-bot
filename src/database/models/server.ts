@@ -26,10 +26,10 @@ const serverSchema = new Schema(
         users: {
             $type: Map,
             default: new Map<
-                String,
+                string,
                 {
-                    points: Number;
-                    level: Number;
+                    points: number;
+                    level: number;
                 }
             >(),
         },

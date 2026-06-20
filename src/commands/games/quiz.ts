@@ -9,8 +9,7 @@ import {
     MessageFlags,
 } from 'discord.js';
 import { decode } from 'he';
-import { User, Server, Blacklist } from '@database/models';
-import { Gallery } from '@api/nhentai';
+import { Blacklist } from '@database/models';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -24,45 +23,24 @@ export default class extends Command {
         });
     }
 
-    danger = false;
-    rawChoices: Gallery[] = [];
-    blacklists: Blacklist[] = [];
-
-    async before(interaction: CommandInteraction) {
+    async before(
+        interaction: CommandInteraction
+    ): Promise<{ danger: boolean; blacklists: Blacklist[] }> {
         try {
-            let user = await User.findOne({ userID: interaction.user.id }).exec();
-            if (!user) {
-                user = await new User({
-                    userID: interaction.user.id,
-                    blacklists: [],
-                    language: {
-                        preferred: [],
-                        query: false,
-                        follow: false,
-                    },
-                }).save();
-            }
-            this.blacklists = user.blacklists;
-            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
-            if (!server) {
-                server = await new Server({
-                    serverID: interaction.guild.id,
-                    settings: { danger: false },
-                }).save();
-            }
-            this.rawChoices = [];
-            this.blacklists = [];
-            this.danger = server.settings.danger;
+            const user = await this.client.db.user.findOrCreate(interaction.user.id);
+            const blacklists = user.blacklists;
+            const server = await this.client.db.server.findOrCreate(interaction.guild!.id);
+            return { danger: server.settings.danger, blacklists };
         } catch (err) {
             this.client.logger.error(err);
-            throw new Error(`Database error: ${err.message}`);
+            throw new Error(`Database error: ${(err as Error).message}`);
         }
     }
 
-    async fetchRandomDoujin() {
+    async fetchRandomDoujin(danger: boolean, blacklists: Blacklist[]) {
         return await this.client.db.cache.safeRandom(
-            this.danger,
-            this.blacklists.map(bl => bl.id)
+            danger,
+            blacklists.map(bl => bl.id)
         ).catch(err => {
             this.client.logger.warn('MariaDB random failed, using API fallback', err.message);
             return null;
@@ -70,8 +48,8 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
-        let galleryID = await this.fetchRandomDoujin();
+        const { danger, blacklists } = await this.before(interaction);
+        let galleryID = await this.fetchRandomDoujin(danger, blacklists);
         if (!galleryID) {
             const random = await this.client.nhentai.random().catch(() => null);
             if (!random) throw new UserError('NO_RESULT');
@@ -95,7 +73,7 @@ export default class extends Command {
             .setTimestamp();
         const choices = this.client.util
             .shuffle(
-                this.client.util.shuffle(gallery.related).slice(0, 3).concat([gallery.gallery])
+                this.client.util.shuffle(gallery.related ?? []).slice(0, 3).concat([gallery.gallery])
             )
             .map(({ id, title: { english }, tags }) => {
                 const title = decode(english);
@@ -108,7 +86,7 @@ export default class extends Command {
                         count >= 1000 ? `${Math.floor(count / 1000)}K` : count
                     })\``;
                     // let s = `**\`${name}\`** \`(${count.toLocaleString()})\``;
-                    if (this.blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
+                    if (blacklists.some(bl => bl.id === id.toString())) s = `~~${s}~~`;
                     a.push(s);
                     t.set(type, a);
                 });
@@ -222,7 +200,7 @@ export default class extends Command {
                         'add',
                         'exp',
                         interaction.user.id,
-                        interaction.guild.id,
+                        interaction.guild!.id,
                         inc
                     );
                     if (leveledUp) {

@@ -6,7 +6,7 @@ import {
     MessageFlags,
 } from 'discord.js';
 import { decode } from 'he';
-import { User, Server, Blacklist } from '@database/models';
+import { Blacklist } from '@database/models';
 import { PartialGallery } from '@api/nhentai';
 
 export default class extends Command {
@@ -28,45 +28,27 @@ export default class extends Command {
         });
     }
 
-    anonymous = true;
-    danger = false;
-    warning = false;
-    blacklists: Blacklist[] = [];
-
-    async before(interaction: CommandInteraction) {
+    async before(
+        interaction: CommandInteraction
+    ): Promise<{ danger: boolean; blacklists: Blacklist[]; anonymous: boolean }> {
         try {
-            let user = await User.findOne({ userID: interaction.user.id }).exec();
-            if (!user) {
-                user = await new User({
-                    userID: interaction.user.id,
-                    blacklists: [],
-                    anonymous: true,
-                    language: {
-                        preferred: [],
-                        query: false,
-                        follow: false,
-                    },
-                }).save();
-            }
-            this.blacklists = user.blacklists;
-            this.anonymous = user.anonymous;
-            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
-            if (!server) {
-                server = await new Server({
-                    serverID: interaction.guild.id,
-                    settings: { danger: false },
-                }).save();
-            }
-            this.danger = server.settings.danger;
-            this.warning = false;
+            const user = await this.client.db.user.findOrCreate(interaction.user.id);
+            const blacklists = user.blacklists;
+            const anonymous = user.anonymous;
+            const server = await this.client.db.server.findOrCreate(interaction.guild!.id);
+            return { danger: server.settings.danger, blacklists, anonymous };
         } catch (err) {
             this.client.logger.error(err);
-            throw new Error(`Database error: ${err.message}`);
+            throw new Error(`Database error: ${(err as Error).message}`);
         }
     }
 
-    async after(interaction: CommandInteraction, gallery: PartialGallery) {
-        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+    async after(
+        interaction: CommandInteraction,
+        gallery: PartialGallery,
+        ctx: { danger: boolean; warning: boolean; anonymous: boolean }
+    ) {
+        if (!ctx.danger && ctx.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
         }
@@ -79,11 +61,11 @@ export default class extends Command {
             type: 'g',
             name: decode(gallery.title.english),
             author: interaction.user.id,
-            guild: interaction.guild.id,
+            guild: interaction.guild!.id,
             date: Date.now(),
         };
 
-        if (interaction.guild && !this.anonymous) {
+        if (interaction.guild && !ctx.anonymous) {
             await this.client.db.server.history(interaction.guild.id, history);
             await this.client.db.user.history(interaction.user.id, history);
             const leveledUp = await this.client.db.xp.save(
@@ -105,8 +87,9 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
-        const code = interaction.options.get('query').value as number;
+        const { danger, blacklists, anonymous } = await this.before(interaction);
+        let warning = false;
+        const code = interaction.options.get('query')!.value as number;
         let gallery = await this.client.db.cache.getDoujin(code).catch(err => {
             this.client.logger.warn('MariaDB cache miss for', code, err.message);
             return null;
@@ -123,14 +106,14 @@ export default class extends Command {
         }
         const { thumb, rip } = this.client.embeds.displayShortGallery(
             gallery,
-            this.danger,
-            this.blacklists
+            danger,
+            blacklists
         );
-        if (rip) this.warning = true;
+        if (rip) warning = true;
         await interaction.editReply({
             embeds: [thumb],
         });
 
-        await this.after(interaction, gallery);
+        await this.after(interaction, gallery, { danger, warning, anonymous });
     }
 }

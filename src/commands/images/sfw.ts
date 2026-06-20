@@ -47,7 +47,7 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        const tag = interaction.options.get('tag').value as string;
+        const tag = interaction.options.get('tag')!.value as string;
         if (tag === 'list') {
             return interaction.editReply(
                 `Here's the tag list: ${Object.keys(SFW_METHODS)

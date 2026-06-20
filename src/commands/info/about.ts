@@ -14,7 +14,7 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        const [repo, owner] = npm_package_repository_url
+        const [repo, owner] = (npm_package_repository_url ?? '')
             .split('/')
             .filter(a => a)
             .reverse();
@@ -22,8 +22,8 @@ export default class extends Command {
             embeds: [
                 this.client.embeds
                     .default()
-                    .setThumbnail(this.client.user.displayAvatarURL())
-                    .setTitle(`Hey ${interaction.user.username}, I'm ${this.client.user.tag}!`)
+                    .setThumbnail(this.client.user!.displayAvatarURL())
+                    .setTitle(`Hey ${interaction.user.username}, I'm ${this.client.user!.tag}!`)
                     .setDescription(
                         "I'm an open source nhentai Discord bot powered by [TypeScript](https://www.typescriptlang.org/) with [discord.js](https://discord.js.org/#/)"
                     )

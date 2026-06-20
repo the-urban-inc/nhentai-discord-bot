@@ -18,6 +18,11 @@ import { createHttp } from './http';
 import { SimpleCache, CacheOptions } from './cache';
 
 const API_BASE = '/api/v2';
+
+/** Safely extract a message from an unknown thrown value. */
+function getErrorMessage(err: unknown): string {
+    return err instanceof Error ? err.message : String(err);
+}
 const DEFAULT_IMAGE_SERVERS = ['https://i1.nhentai.net', 'https://i2.nhentai.net', 'https://i3.nhentai.net', 'https://i4.nhentai.net'];
 const DEFAULT_THUMB_SERVERS = ['https://t1.nhentai.net', 'https://t2.nhentai.net', 'https://t3.nhentai.net', 'https://t4.nhentai.net'];
 
@@ -135,7 +140,9 @@ function fromGalleryListItem(item: GalleryListItem, tagMap?: Map<number, Tag>): 
         },
         scanlator: '',
         upload_date: 0,         // not available in list responses
-        tags: item.tag_ids.map(id => tagMap?.get(id) ?? { id, type: null as any, name: '', url: '', count: 0 }),
+        tags: item.tag_ids
+            .map(id => tagMap?.get(id))
+            .filter((t): t is Tag => Boolean(t)),
         num_pages: item.num_pages,
         num_favorites: 0,
     };
@@ -271,6 +278,9 @@ export class Client {
 
     public async random(more = false): Promise<GalleryResult> {
         const { id } = await this.fetchJson<{ id: number }>(`${API_BASE}/galleries/random`);
+        if (typeof id !== 'number' || !Number.isInteger(id) || id <= 0) {
+            throw new Error(`[nhentai] /galleries/random returned an invalid id: ${JSON.stringify(id)}`);
+        }
         return this.g(id, more);
     }
 
@@ -304,11 +314,11 @@ export class Client {
                       POPULAR_TTL
                   )
                 : await this.fetchJson<GalleryListItem[]>(`${API_BASE}/galleries/popular`);
-        } catch (err: any) {
-            if (err?.response?.status === 429) {
+        } catch (err) {
+            if ((err as any)?.response?.status === 429) {
                 this.logger.warn('[nhentai] /galleries/popular rate limited, returning home without popular');
             } else {
-                this.logger.warn('[nhentai] /galleries/popular failed, returning home without popular:', err.message);
+                this.logger.warn(`[nhentai] /galleries/popular failed, returning home without popular: ${getErrorMessage(err)}`);
             }
         }
 
@@ -379,8 +389,9 @@ export class Client {
      * Tries MariaDB cache first (fast, no Tor), then falls back to v2 API for cache misses.
      */
     public async resolveTagIds(ids: number[]): Promise<Map<number, Tag>> {
-        if (!ids.length) return new Map();
-        const unique = [...new Set(ids)];
+        // Drop any non-integer ids from untrusted API responses before they reach SQL / URLs.
+        const unique = [...new Set(ids)].filter(id => Number.isInteger(id) && id > 0);
+        if (!unique.length) return new Map();
         const result = new Map<number, Tag>();
 
         // 1. Try MariaDB tag cache (no Tor, fast) — gracefully skip if unavailable
@@ -393,11 +404,18 @@ export class Client {
                     result.set(id, t);
                 }
             } catch (err) {
-                this.logger.warn(`[nhentai] MariaDB tag cache unavailable, falling back to API: ${err.message}`);
+                this.logger.warn(`[nhentai] MariaDB tag cache unavailable, falling back to API: ${getErrorMessage(err)}`);
             }
         }
 
-        // 2. Check in-memory tagCache for anything still missing
+        // 2. Check the in-memory tagCache for anything still missing (avoids redundant Tor calls)
+        for (const id of unique) {
+            if (result.has(id)) continue;
+            const cached = this.tagCache.get(id);
+            if (cached) result.set(id, cached);
+        }
+
+        // 3. Fetch whatever is still unresolved from the API in batches
         const missing = unique.filter(id => !result.has(id));
         if (missing.length) {
             const BATCH = 100;
@@ -408,7 +426,10 @@ export class Client {
                 batches.map(ids =>
                     this.fetchJson<Array<{ id: number; type: string; name: string; slug: string; url: string; count: number }>>(
                         `${API_BASE}/tags/ids?ids=${ids.join(',')}`
-                    ).catch(() => [] as Array<{ id: number; type: string; name: string; slug: string; url: string; count: number }>)
+                    ).catch(err => {
+                        this.logger.warn(`[nhentai] tag batch resolve failed (${ids.length} ids): ${getErrorMessage(err)}`);
+                        return [] as Array<{ id: number; type: string; name: string; slug: string; url: string; count: number }>;
+                    })
                 )
             );
 
@@ -438,7 +459,8 @@ export class Client {
         page?: number,
         sort?: Sort
     ): Promise<TagResult> {
-        const slug = query.replace(/ /g, '-').toLowerCase();
+        // Percent-encode the slug so user input can't break out of the path (e.g. "../galleries/...").
+        const slug = encodeURIComponent(query.replace(/ /g, '-').toLowerCase());
         const tag = await this.fetchJson<TagLookupResult>(`${API_BASE}/tags/${prefix}/${slug}`);
         const pageNum = page ?? 1;
         const v2 = await this.fetchJson<V2Galleries>(`${API_BASE}/galleries/tagged`, {

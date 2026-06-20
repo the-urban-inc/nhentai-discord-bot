@@ -13,24 +13,26 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        const server = await Server.findOne({ serverID: interaction.guild.id }).exec();
-        const pervs = Array.from(server.users, ([userID, user]) => ({
-            id: userID,
-            points: user.points,
-            level: user.level,
-        }));
-        pervs.sort((a, b) => b.points - a.points);
+        const server = await Server.findOne({ serverID: interaction.guild!.id }).exec();
+        const pervs = server
+            ? Array.from(server.users, ([userID, user]) => ({
+                  id: userID,
+                  points: user.points,
+                  level: user.level,
+              }))
+            : [];
+        pervs.sort((a, b) => (b.points ?? 0) - (a.points ?? 0));
         const pos = pervs.findIndex(x => x.id == interaction.user.id);
         if (!pervs.length)
-            return interaction.editReply({
+            {return interaction.editReply({
                 embeds: [
                     this.client.embeds
                         .default()
-                        .setTitle(`🏆\u2000${interaction.guild.name}`)
-                        .setThumbnail(interaction.guild.iconURL())
+                        .setTitle(`🏆\u2000${interaction.guild!.name}`)
+                        .setThumbnail(interaction.guild!.iconURL())
                         .setDescription('Looks like nobody has any points. *cricket noises'),
                 ],
-            });
+            });}
         const members = [];
         for (const perv of pervs) {
             let level = `**Level** : ${perv.level}`,
@@ -48,8 +50,8 @@ export default class extends Command {
         for (let page = 0; page < Math.ceil(members.length / l); page++) {
             const embed = this.client.embeds
                 .default()
-                .setTitle(`🏆\u2000${interaction.guild.name}`)
-                .setThumbnail(interaction.guild.iconURL())
+                .setTitle(`🏆\u2000${interaction.guild!.name}`)
+                .setThumbnail(interaction.guild!.iconURL())
                 .setFooter({
                     text: `Your guild placing stats : Rank [${pos + 1}]\u2000•\u2000Level : ${
                         pervs[pos]?.level ?? 0

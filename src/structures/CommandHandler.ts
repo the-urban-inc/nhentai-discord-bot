@@ -32,20 +32,23 @@ export class CommandHandler extends ApplicationCommandManager {
             (!interaction.isCommand() &&
                 !interaction.isAnySelectMenu() &&
                 !interaction.isAutocomplete())
-        )
+        ) {
             return;
+        }
         if (
             !(interaction.channel instanceof TextChannel) &&
             !(interaction.channel instanceof ThreadChannel)
-        )
+        ) {
             return;
+        }
         if (
             ![
                 InteractionType.ApplicationCommand,
                 InteractionType.ApplicationCommandAutocomplete,
             ].includes(interaction.type as InteractionType)
-        )
+        ) {
             return;
+        }
 
         if (!this.client.commands.has((interaction as any).commandName)) return;
 
@@ -57,7 +60,7 @@ export class CommandHandler extends ApplicationCommandManager {
 
             if (interaction.isAutocomplete()) {
                 const acStart = performance.now();
-                await command.autocomplete(interaction as any);
+                await command.autocomplete?.(interaction as any);
                 const acElapsed = Math.round(performance.now() - acStart);
                 this.client.logger.info(
                     `[COMMAND][autocomplete] ${interaction.user.tag} (ID: ${
@@ -66,10 +69,10 @@ export class CommandHandler extends ApplicationCommandManager {
                 );
                 return;
             }
-            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
+            let server = await Server.findOne({ serverID: interaction.guild!.id }).exec();
             if (!server) {
                 server = await new Server({
-                    serverID: interaction.guild.id,
+                    serverID: interaction.guild!.id,
                     settings: { private: false },
                 }).save();
             }
@@ -109,7 +112,7 @@ export class CommandHandler extends ApplicationCommandManager {
                 const userPerms = channel.permissionsFor(interaction.user);
                 if (!userPerms || !userPerms.has(permissions)) {
                     const missing = permissions
-                        .filter((p: any) => !userPerms.has(p))
+                        .filter((p: any) => !userPerms?.has(p))
                         .map((p: any) => this.client.util.resolvePerm(p));
                     throw new UserError('MISSING_PERMISSIONS', missing);
                 }
@@ -124,7 +127,7 @@ export class CommandHandler extends ApplicationCommandManager {
                 const timestamps = cooldowns.get(name)!;
 
                 if (timestamps.has(interaction.user.id)) {
-                    const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
+                    const expirationTime = timestamps.get(interaction.user.id)! + cooldownAmount;
                     if (now < expirationTime) {
                         const timeLeft = expirationTime - now;
                         throw new UserError('COOLDOWN', +(timeLeft / 1000).toFixed(2));
@@ -163,10 +166,10 @@ export class CommandHandler extends ApplicationCommandManager {
             const isAxiosError = axios.isAxiosError(err);
             if (!isAxiosError) {
                 if (err.code === 10062 || err.code === 40060)
-                    this.client.logger.error(
+                    {this.client.logger.error(
                         `${(interaction as any)?.commandName} => ${err.message}`
-                    );
-                else this.client.logger.error(err instanceof UserError ? err.code : err);
+                    );}
+                else {this.client.logger.error(err instanceof UserError ? err.code : err);}
             }
             if ((interaction as any).isAutocomplete && (interaction as any).isAutocomplete()) {
                 (interaction as any).respond([]).catch(() => null);
@@ -178,17 +181,19 @@ export class CommandHandler extends ApplicationCommandManager {
                     : 'reply';
             if (err instanceof UserError) {
                 if (['NO_RESULT', 'INVALID_PAGE_INDEX', 'UNKNOWN_TAG'].includes(err.code))
-                    startCooldown();
+                    {startCooldown();}
                 return (interaction as any)[type]({
                     content: err.message,
                     embeds: [],
                     components: [],
                 });
             }
+            // Don't leak internal error details (DB hosts, query fragments, paths) to users.
+            // Full error is logged server-side above.
             return (interaction as any)[type]({
                 content: `An unexpected error occurred while executing the command \`${
                     (interaction as any).commandName
-                }\`: \`\`\`${err.message}\`\`\``,
+                }\`. The issue has been logged.`,
                 embeds: [],
                 components: [],
             });
@@ -196,8 +201,8 @@ export class CommandHandler extends ApplicationCommandManager {
     }
 
     cloneCommandData(c: Command, rep: string) {
-        const C = c.clone();
-        const clone = C.data.clone;
+        const C = c.clone!();
+        const clone = C.data.clone!;
         delete C.data.clone;
         C.data = JSON.parse(
             JSON.stringify(C.data).replace(new RegExp(clone.keyword, 'g'), rep)
@@ -218,7 +223,7 @@ export class CommandHandler extends ApplicationCommandManager {
                     if (!categories.has(folder)) categories.set(folder, []);
                     categories.get(folder)?.push(c.data.name);
                     if ((c as Command).data.clone) {
-                        const cloned = c.data.clone.clones.map(clone =>
+                        const cloned = c.data.clone!.clones.map((clone: string) =>
                             this.cloneCommandData(c, clone)
                         );
                         return cloned;
@@ -228,20 +233,57 @@ export class CommandHandler extends ApplicationCommandManager {
             );
             this.client.categories = categories;
             allCommands = allCommands.concat(...commands);
-            let updatedCommands = new Collection<Snowflake, ApplicationCommand>();
-            updatedCommands = await this.client.application?.commands.set(
-                allCommands.map(c => c.data)
+
+            // Owner-only commands (e.g. eval) are never published to the global command
+            // list. They are registered to the development guild only, so they stay hidden
+            // from every other server's slash menu. Execution is still gated by ownerID.
+            const ownerCommands = allCommands.filter(c => c.data.owner);
+            const globalCommands = allCommands.filter(c => !c.data.owner);
+
+            const updatedCommands = await this.client.application!.commands.set(
+                globalCommands.map(c => c.data)
             );
-            allCommands.forEach(cc => {
+            globalCommands.forEach(cc => {
                 const cmd = updatedCommands.find(dc => dc.name === cc.data.name);
                 if (!cmd) return;
                 this.client.commands.set(cmd.name, cc);
             });
+
+            const devGuildID = process.env.DEVELOPMENT_GUILD;
+            if (ownerCommands.length) {
+                if (devGuildID) {
+                    const guildCommands = await this.client.application!.commands.set(
+                        ownerCommands.map(c => c.data),
+                        devGuildID
+                    );
+                    ownerCommands.forEach(cc => {
+                        const cmd = guildCommands.find(dc => dc.name === cc.data.name);
+                        if (!cmd) return;
+                        this.client.commands.set(cmd.name, cc);
+                    });
+                    this.client.logger.info(
+                        `[COMMANDS] Registered ${ownerCommands.length} owner command(s) to development guild ${devGuildID}.`
+                    );
+                }
+                else {
+                    this.client.logger.warn(
+                        `[COMMANDS] DEVELOPMENT_GUILD is not set; owner command(s) (${ownerCommands
+                            .map(c => c.data.name)
+                            .join(', ')}) will not be registered anywhere.`
+                    );
+                }
+            }
+
             this.client.logger.info(
                 `[COMMANDS] Loaded ${this.client.commands.size} commands successfully.`
             );
         } catch (err) {
-            this.client.logger.error(err);
+            // Command registration is startup-critical: a bot with no commands is
+            // non-functional, so fail loudly and let the process manager restart us
+            // instead of silently running with zero commands.
+            this.client.logger.error('[COMMANDS] Fatal: failed to load commands.');
+            this.client.logger.stackTrace(err);
+            process.exit(1);
         }
     }
 }

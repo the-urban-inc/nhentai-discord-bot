@@ -42,9 +42,9 @@ export default class extends Command {
         for (const c of Object.keys(CATEGORIES).reverse()) {
             if (c === 'owner' && owner) continue;
             menu.spliceOptions(0, 0, {
-                label: CATEGORIES[c][1],
+                label: CATEGORIES[c as keyof typeof CATEGORIES][1],
                 value: c,
-                emoji: { name: CATEGORIES[c][0] },
+                emoji: { name: CATEGORIES[c as keyof typeof CATEGORIES][0] },
                 default: c === category,
             });
         }
@@ -124,10 +124,10 @@ export default class extends Command {
         embeds.set('qna', qna);
         for (const [category, commandNames] of this.client.categories.entries()) {
             if (category === 'owner' && interaction.user.id !== this.client.ownerID) continue;
-            const commands = commandNames.map(c => this.client.commands.get(c).data);
+            const commands = commandNames.map(c => this.client.commands.get(c)!.data);
             const embed = this.client.embeds
                 .default()
-                .setTitle(CATEGORIES[category].join('\u2000'))
+                .setTitle(CATEGORIES[category as keyof typeof CATEGORIES].join('\u2000'))
                 .setDescription(
                     'Note: All commands are slash commands, a feature Discord [introduced](https://blog.discord.com/slash-commands-are-here-8db0a385d9e6) not long ago. Commands with the `🔞` icon are NSFW commands and can only be used in NSFW channels.'
                 )
@@ -146,7 +146,7 @@ export default class extends Command {
         let menu = this.update('general', interaction.user.id === this.client.ownerID);
         menu.setCustomId(`${interaction.id}${menu.data.custom_id}`);
         const message = (await interaction.editReply({
-            embeds: [embeds.get('general')],
+            embeds: [embeds.get('general')!],
             components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
         })) as Message;
         const collector = message.createMessageComponentCollector({
@@ -161,7 +161,7 @@ export default class extends Command {
             menu = this.update(category, interaction.user.id === this.client.ownerID);
             menu.setCustomId(`${interaction.id}${menu.data.custom_id}`);
             await interaction.editReply({
-                embeds: [embeds.get(category)],
+                embeds: [embeds.get(category)!],
                 components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
             });
         });

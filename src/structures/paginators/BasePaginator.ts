@@ -79,6 +79,7 @@ export class BasePaginator {
 
 	protected currentPage: number;
 	#resolve: ((value: number | null) => void) | null = null;
+	#processing = false;
 
 	constructor(client: Client, options: BasePaginatorOptions = {}) {
 		this.client = client;
@@ -226,18 +227,32 @@ export class BasePaginator {
 			filter: this.filter as any,
 			idle: this.collectorTimeout,
 			dispose: this.dispose,
-		});
+		}) as InteractionCollector<CollectedInteraction>;
 
 		this.collector.on('collect', async interaction => {
 			try {
 				if (interaction.user.bot) return;
 				const method = this.parseMethod(interaction.customId);
 				if (!method) return;
-				if (method !== 'jump' && !interaction.deferred && !interaction.replied) await interaction.deferUpdate();
-				const handler = this.handlers.get(method);
-				if (!handler) return;
-				const stop = await handler.call(this, interaction);
-				if (stop) this.collector.stop();
+				// Serialize handling: if a previous interaction is still being processed,
+				// acknowledge this one and drop it to avoid double-acknowledge races.
+				if (this.#processing) {
+					if (method !== 'jump' && !interaction.deferred && !interaction.replied) {
+						await interaction.deferUpdate().catch(() => null);
+					}
+					return;
+				}
+				this.#processing = true;
+				try {
+					if (method !== 'jump' && !interaction.deferred && !interaction.replied) await interaction.deferUpdate();
+					const handler = this.handlers.get(method);
+					if (!handler) return;
+					const stop = await handler.call(this, interaction as MessageComponentInteraction);
+					if (stop) this.collector.stop();
+				}
+				finally {
+					this.#processing = false;
+				}
 			}
 			catch (err: any) {
 				try {
@@ -304,9 +319,9 @@ export class BasePaginator {
 			const existing = this.handlers.get(this.resolveOn);
 			this.handlers.set(this.resolveOn, async (interaction: MessageComponentInteraction) => {
 				if (!this.checkUser(interaction)) return false;
-				const pageIndex = this.currentPage;
 				if (existing) await existing.call(this, interaction);
-				return this.choose(pageIndex);
+				// Read the page *after* navigation so we resolve the page the user landed on.
+				return this.choose(this.currentPage);
 			});
 		}
 	}
@@ -394,9 +409,8 @@ export class BasePaginator {
 		await interaction.showModal(modal);
 		try {
 			const response = await interaction.awaitModalSubmit({
-				filter: mint => mint.user === interaction.user,
-				time: 15000,
-				idle: this.jumpTimeout,
+				filter: mint => mint.user.id === interaction.user.id,
+				time: this.jumpTimeout,
 			});
 			await response.deferUpdate();
 			const input = response.fields.getTextInputValue('pageInput');

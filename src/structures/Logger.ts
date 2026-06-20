@@ -24,7 +24,7 @@ export class Logger {
         this.client = client;
     }
 
-    client: Client;
+    client?: Client;
 
     log(...args: any) {
         const text = this.prepareText(args);
@@ -94,7 +94,9 @@ export class Logger {
             const statusPart = status ? ` (${status}${statusText ? ` ${statusText}` : ''})` : '';
             return `AxiosError: ${message}${statusPart} [${method} ${url}]`;
         }
-        const cleaned = util.inspect(item, { depth: Infinity });
+        // Bound the depth: `Infinity` can synchronously serialize huge object graphs
+        // (Mongoose docs, Discord.js structures) and block the event loop.
+        const cleaned = util.inspect(item, { depth: 4 });
         return cleaned;
     }
 

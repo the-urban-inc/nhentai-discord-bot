@@ -3,6 +3,20 @@ import { Server as S } from '../models/server';
 import { History } from '../models/tag';
 
 export class Server {
+    /**
+     * Returns the server document, creating it with default settings if it does not
+     * yet exist. Uses an atomic upsert so concurrent commands cannot race to create
+     * two records for the same guild.
+     */
+    async findOrCreate(serverID: Guild['id']) {
+        // upsert + new guarantees a document is returned, so the assertion is safe.
+        return (await S.findOneAndUpdate(
+            { serverID },
+            { $setOnInsert: { serverID, settings: { danger: false } } },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        ))!;
+    }
+
     async history(serverID: Guild['id'], serverHistory: History) {
         return await S.findOneAndUpdate(
             { serverID },
@@ -12,7 +26,7 @@ export class Server {
     }
 
     async danger(serverID: Guild['id']) {
-        let server = await S.findOne({ serverID }).exec();
+        const server = await S.findOne({ serverID }).exec();
         if (!server) {
             await new S({
                 serverID,
@@ -27,7 +41,7 @@ export class Server {
     }
 
     async url(serverID: Guild['id']) {
-        let server = await S.findOne({ serverID }).exec();
+        const server = await S.findOne({ serverID }).exec();
         if (!server) {
             await new S({
                 serverID,
@@ -42,7 +56,7 @@ export class Server {
     }
 
     async private(serverID: Guild['id']) {
-        let server = await S.findOne({ serverID }).exec();
+        const server = await S.findOne({ serverID }).exec();
         if (!server) {
             await new S({
                 serverID,

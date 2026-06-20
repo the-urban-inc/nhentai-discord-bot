@@ -268,7 +268,7 @@ export class Embeds {
         });
         for (const gallery of galleries) {
             const { id, title, tags, upload_date } = gallery;
-            let language: Language = null;
+            let language: Language | null = null;
             if (tags.some(tag => tag.id === 6346)) language = Language.Japanese;
             else if (tags.some(tag => tag.id === 12227)) language = Language.English;
             else if (tags.some(tag => tag.id === 29963)) language = Language.Chinese;
@@ -277,7 +277,7 @@ export class Embeds {
                 .setURL(`https://nhentai.net/g/${id}`)
                 .setDescription(
                     `**ID** : ${id}` +
-                        (FLAG_EMOJIS[language]
+                        (language && FLAG_EMOJIS[language]
                             ? `\u2000•\u2000**Language** : ${FLAG_EMOJIS[language]}`
                             : '')
                 );

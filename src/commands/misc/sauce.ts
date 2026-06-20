@@ -1,7 +1,7 @@
 import { Client, Command, UserError } from '@structures';
 import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction, User } from 'discord.js';
 import sagiri from 'sagiri';
-const sauceNAO = sagiri(process.env.SAUCENAO_TOKEN);
+const sauceNAO = sagiri(process.env.SAUCENAO_TOKEN!);
 
 export default class extends Command {
     constructor(client: Client) {

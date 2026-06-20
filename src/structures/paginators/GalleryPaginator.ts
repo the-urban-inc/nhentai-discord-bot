@@ -223,7 +223,7 @@ export class GalleryPaginator extends BasePaginator {
 				!channel?.permissionsFor(this.interaction.guild!.members.me!)?.has(PermissionFlagsBits.ViewChannel) ||
 				!channel?.permissionsFor(this.interaction.guild!.members.me!)?.has(PermissionFlagsBits.ReadMessageHistory)
 			) {
-				const comps = optionsRow.components;
+				const comps = [...optionsRow.components];
 				comps.splice(-1, 1);
 				optionsRow.setComponents(comps as any);
 			}
@@ -307,8 +307,7 @@ export class GalleryPaginator extends BasePaginator {
 	}
 
 	protected override async handleFirst(interaction: MessageComponentInteraction): Promise<boolean> {
-		if (this.priorityUser ? this.priorityUser.id !== interaction.user.id : interaction.user.id !== this.interaction.user.id)
-			return false;
+		if (!this.checkUser(interaction)) return false;
 		if (this.currentPage === 0) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'prev');
@@ -321,8 +320,7 @@ export class GalleryPaginator extends BasePaginator {
 	}
 
 	protected override async handleBack(interaction: MessageComponentInteraction): Promise<boolean> {
-		if (this.priorityUser ? this.priorityUser.id !== interaction.user.id : interaction.user.id !== this.interaction.user.id)
-			return false;
+		if (!this.checkUser(interaction)) return false;
 		if (this.currentPage <= 0) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'prev');
@@ -335,8 +333,7 @@ export class GalleryPaginator extends BasePaginator {
 	}
 
 	protected override async handleForward(interaction: MessageComponentInteraction): Promise<boolean> {
-		if (this.priorityUser ? this.priorityUser.id !== interaction.user.id : interaction.user.id !== this.interaction.user.id)
-			return false;
+		if (!this.checkUser(interaction)) return false;
 		if (this.currentPage >= this.getPageCount() - 1) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'next');
@@ -349,8 +346,7 @@ export class GalleryPaginator extends BasePaginator {
 	}
 
 	protected override async handleLast(interaction: MessageComponentInteraction): Promise<boolean> {
-		if (this.priorityUser ? this.priorityUser.id !== interaction.user.id : interaction.user.id !== this.interaction.user.id)
-			return false;
+		if (!this.checkUser(interaction)) return false;
 		if (this.currentPage === this.getPageCount() - 1) {
 			if (this.onBoundary) {
 				await this.runBoundary(interaction, 'next');
@@ -363,7 +359,7 @@ export class GalleryPaginator extends BasePaginator {
 	}
 
 	protected async handleSelect(interaction: MessageComponentInteraction): Promise<boolean> {
-		if (interaction.user !== this.interaction.user || !interaction.isStringSelectMenu()) return false;
+		if (!this.checkUser(interaction) || !interaction.isStringSelectMenu()) return false;
 		if (!interaction.deferred && !interaction.replied) await interaction.deferUpdate();
 		await interaction.editReply({ components: this.getDisabledComponents() } as any).catch(() => null);
 
@@ -453,11 +449,11 @@ export class GalleryPaginator extends BasePaginator {
 		}
 		catch (err) {
 			this.client.logger.error(err as any);
-			this.interaction.followUp({
+			await this.interaction.followUp({
 				embeds: [this.client.embeds.internalError(err as any)],
 				flags: MessageFlags.Ephemeral,
-			} as any);
-			return true;
+			} as any).catch(() => null);
+			return false;
 		}
 	}
 
@@ -483,11 +479,11 @@ export class GalleryPaginator extends BasePaginator {
 		}
 		catch (err) {
 			this.client.logger.error(err as any);
-			this.interaction.followUp({
+			await this.interaction.followUp({
 				embeds: [this.client.embeds.internalError(err as any)],
 				flags: MessageFlags.Ephemeral,
-			} as any);
-			return true;
+			} as any).catch(() => null);
+			return false;
 		}
 	}
 
@@ -511,16 +507,16 @@ export class GalleryPaginator extends BasePaginator {
 		}
 		catch (err) {
 			this.client.logger.error(err as any);
-			this.interaction.followUp({
+			await this.interaction.followUp({
 				embeds: [this.client.embeds.internalError(err as any)],
 				flags: MessageFlags.Ephemeral,
-			} as any);
-			return true;
+			} as any).catch(() => null);
+			return false;
 		}
 	}
 
 	protected async handleFilter(interaction: MessageComponentInteraction): Promise<boolean> {
-		if (interaction.user !== this.interaction.user) return false;
+		if (!this.checkUser(interaction)) return false;
 		this.views = { ...this.filteredViews };
 		this.filterIDs = [];
 		await this.update(interaction);

@@ -4,7 +4,7 @@ import {
     ApplicationCommandOptionType,
     CommandInteraction,
 } from 'discord.js';
-import { User, Server, Blacklist } from '@database/models';
+import { Blacklist } from '@database/models';
 
 export default class extends Command {
     constructor(client: Client) {
@@ -29,55 +29,35 @@ export default class extends Command {
         });
     }
 
-    danger = false;
-    warning = false;
-    blacklists: Blacklist[] = [];
-
-    async before(interaction: CommandInteraction) {
+    async before(
+        interaction: CommandInteraction
+    ): Promise<{ danger: boolean; blacklists: Blacklist[] }> {
         try {
-            let user = await User.findOne({ userID: interaction.user.id }).exec();
-            if (!user) {
-                user = await new User({
-                    userID: interaction.user.id,
-                    blacklists: [],
-                    anonymous: true,
-                    language: {
-                        preferred: [],
-                        query: false,
-                        follow: false,
-                    },
-                }).save();
-            }
-            this.blacklists = user.blacklists;
-            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
-            if (!server) {
-                server = await new Server({
-                    serverID: interaction.guild.id,
-                    settings: { danger: false },
-                }).save();
-            }
-            this.danger = server.settings.danger;
-            this.warning = false;
+            const user = await this.client.db.user.findOrCreate(interaction.user.id);
+            const blacklists = user.blacklists;
+            const server = await this.client.db.server.findOrCreate(interaction.guild!.id);
+            return { danger: server.settings.danger, blacklists };
         } catch (err) {
             this.client.logger.error(err);
-            throw new Error(`Database error: ${err.message}`);
+            throw new Error(`Database error: ${(err as Error).message}`);
         }
     }
 
-    async after(interaction: CommandInteraction) {
-        if (this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+    async after(interaction: CommandInteraction, ctx: { danger: boolean; warning: boolean }) {
+        if (ctx.danger && ctx.warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
         }
     }
 
     async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
+        const { danger, blacklists } = await this.before(interaction);
+        let warning = false;
         const more = interaction.options.get('more')?.value as boolean;
         const page = (interaction.options.get('page')?.value as number) ?? 1;
         let id = await this.client.db.cache.safeRandom(
-            this.danger,
-            this.blacklists.map(({ id }) => id)
+            danger,
+            blacklists.map(({ id }) => id)
         ).catch(err => {
             this.client.logger.warn('MariaDB random failed', err.message);
             return null;
@@ -103,11 +83,11 @@ export default class extends Command {
             }
             const { displayGallery, rip } = this.client.embeds.displaySingleGallery(
                 gallery,
-                { danger: this.danger, blacklists: this.blacklists }
+                { danger: danger, blacklists: blacklists }
             );
-            if (rip) this.warning = true;
+            if (rip) warning = true;
             await displayGallery.run(interaction, `> **Searching for** **\`${id}\`**`);
-            return await this.after(interaction);
+            return await this.after(interaction, { danger, warning });
         }
 
         const data = await this.client.nhentai.g(id, more);
@@ -121,26 +101,26 @@ export default class extends Command {
 
         const { displayGallery, rip } = this.client.embeds.displaySingleGallery(
             gallery,
-            { startPage: page - 1, danger: this.danger, blacklists: this.blacklists }
+            { startPage: page - 1, danger: danger, blacklists: blacklists }
         );
-        if (rip) this.warning = true;
+        if (rip) warning = true;
         await displayGallery.run(interaction, `> **Searching for random gallery**`);
 
         if (more) {
             const { related, comments } = data;
 
             const { displayList: displayRelated, rip } = this.client.embeds.displayGalleryList(
-                related,
-                { danger: this.danger }
+                related ?? [],
+                { danger: danger }
             );
-            if (rip) this.warning = true;
+            if (rip) warning = true;
             await displayRelated.run(interaction, '> **More Like This**');
 
-            if (!comments.length) return;
-            const displayComments = this.client.embeds.displayCommentList(comments);
+            if (!(comments ?? []).length) return;
+            const displayComments = this.client.embeds.displayCommentList(comments ?? []);
             await displayComments.run(interaction, '> `💬` **Comments**');
         }
 
-        await this.after(interaction);
+        await this.after(interaction, { danger, warning });
     }
 }

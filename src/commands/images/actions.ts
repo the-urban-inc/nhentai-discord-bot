@@ -90,7 +90,7 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        const action = interaction.options.get('action').value as string;
+        const action = interaction.options.get('action')!.value as string;
         if (action === 'list') {
             return interaction.editReply(
                 `Here's the action list: ${Object.keys(ACTIONS_PAST_TENSE)
@@ -112,8 +112,8 @@ export default class extends Command {
                     .default()
                     .setTitle(
                         user === interaction.user
-                            ? `You ${ACTIONS_PAST_TENSE[action].replace('someone', 'yourself')}`
-                            : `${interaction.user.tag} ${ACTIONS_PAST_TENSE[action].replace(
+                            ? `You ${ACTIONS_PAST_TENSE[action as keyof typeof ACTIONS_PAST_TENSE].replace('someone', 'yourself')}`
+                            : `${interaction.user.tag} ${ACTIONS_PAST_TENSE[action as keyof typeof ACTIONS_PAST_TENSE].replace(
                                   'someone',
                                   user.tag
                               )}!`

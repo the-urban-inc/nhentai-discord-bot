@@ -1,6 +1,5 @@
 import { Client, Command, UserError } from '@structures';
 import { ApplicationCommandOptionType, ApplicationCommandType, CommandInteraction } from 'discord.js';
-import { Server } from '@database/models';
 import { search } from 'booru';
 import { decode } from 'he';
 import { BANNED_TAGS_TEXT } from '@constants';
@@ -58,29 +57,27 @@ export default class extends Command {
         });
     }
 
-    danger = false;
-    warning = false;
-
-    async before(interaction: CommandInteraction) {
+    async before(
+        interaction: CommandInteraction
+    ): Promise<{ danger: boolean }> {
         try {
-            let server = await Server.findOne({ serverID: interaction.guild.id }).exec();
-            if (!server) {
-                server = await new Server({
-                    serverID: interaction.guild.id,
-                    settings: { danger: false },
-                }).save();
-            }
-            this.danger = server.settings.danger;
-            this.warning = false;
+            const server = await this.client.db.server.findOrCreate(interaction.guild!.id);
+            return { danger: server.settings.danger };
         } catch (err) {
             this.client.logger.error(err);
-            throw new Error(`Database error: ${err.message}`);
+            throw new Error(`Database error: ${(err as Error).message}`);
         }
     }
 
-    async run(interaction: CommandInteraction, page: number, external = false) {
-        const site = interaction.options.get('site').value as (typeof SITES)[number];
-        const tags = interaction.options.get('tags').value as string;
+    async run(
+        interaction: CommandInteraction,
+        page: number,
+        ctx: { danger: boolean },
+        external = false
+    ) {
+        let warning = false;
+        const site = interaction.options.get('site')!.value as (typeof SITES)[number];
+        const tags = interaction.options.get('tags')!.value as string;
 
         const res = await search(
             site,
@@ -92,12 +89,12 @@ export default class extends Command {
         if (
             !res ||
             !res.posts.length ||
-            !res.posts.filter(x => this.client.util.isUrl(x.fileUrl)).length
+            !res.posts.filter(x => this.client.util.isUrl(x.fileUrl!)).length
         ) {
             if (external) return;
             throw new UserError('NO_RESULT', tags);
         }
-        const dataPosts = res.posts.filter(x => this.client.util.isUrl(x.fileUrl));
+        const dataPosts = res.posts.filter(x => this.client.util.isUrl(x.fileUrl!));
         const display = this.client.embeds.basePaginator(this.client, {
             collectorTimeout: 180000,
         });
@@ -109,7 +106,7 @@ export default class extends Command {
             let tags = data.tags;
             tags = tags.map(x => decode(x).replace(/_/g, ' '));
             const prip = this.client.util.hasCommon(tags, BANNED_TAGS_TEXT);
-            if (prip) this.warning = true;
+            if (prip) warning = true;
             const src = source ? (typeof source === 'string' ? source : source[0]) : null;
             const embed = this.client.embeds
                 .default()
@@ -130,22 +127,22 @@ export default class extends Command {
                     text: `Page ${page} of ?`,
                 })
                 .setTimestamp(createdAt);
-            if (this.danger || !prip) embed.setImage(image);
+            if (ctx.danger || !prip) embed.setImage(image);
             display.addPage({ embed });
         });
         await display.run(interaction, `> **Searching for posts with tag(s)** **\`${tags}\`**`);
 
-        if (!this.danger && this.warning && !this.client.warned.has(interaction.user.id)) {
+        if (!ctx.danger && warning && !this.client.warned.has(interaction.user.id)) {
             this.client.warned.add(interaction.user.id);
             await interaction.followUp(this.client.util.communityGuidelines());
         }
     }
 
     async exec(interaction: CommandInteraction) {
-        await this.before(interaction);
+        const ctx = await this.before(interaction);
 
         const page = (interaction.options.get('page')?.value as number) ?? 1;
 
-        await this.run(interaction, page);
+        await this.run(interaction, page, ctx);
     }
 }

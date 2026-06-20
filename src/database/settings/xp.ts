@@ -81,7 +81,7 @@ export class XP {
     }
 
     async accumulatedEXP(userID: DUser['id']) {
-        let servers: IServer[] = await Server.aggregate([
+        const servers: IServer[] = await Server.aggregate([
             {
                 $addFields: { usersConverted: { $objectToArray: "$users" } }
             },
@@ -97,7 +97,7 @@ export class XP {
             }
         ]);
         if (!servers) return 0;
-        return servers.reduce((acc, current) => acc + current.users[userID].points, 0);
+        return servers.reduce((acc, current) => acc + (current.users.get(userID)?.points ?? 0), 0);
     }
 
     async getServerRanking(userID: DUser['id'], serverID: Guild['id']) {

@@ -15,7 +15,7 @@ export default class extends Command {
 
 	async exec(interaction: CommandInteraction) {
 		await interaction.editReply('Attempting to join voice channel ...');
-		let subscription = this.client.subscriptions.get(interaction.guildId);
+		let subscription = this.client.subscriptions.get(interaction.guildId!);
 		if (
 			!subscription ||
 			subscription.voiceConnection.state.status === VoiceConnectionStatus.Disconnected ||
@@ -29,9 +29,9 @@ export default class extends Command {
 				subscription = createGuildAudioPlayer(channel, interaction.channel as GuildTextBasedChannel);
 				subscription.voiceConnection.on('error', error => this.client.logger.error(error));
 				subscription.once('disconnect', () => {
-					this.client.subscriptions.delete(interaction.guildId);
+					this.client.subscriptions.delete(interaction.guildId!);
 				});
-				this.client.subscriptions.set(interaction.guildId, subscription);
+				this.client.subscriptions.set(interaction.guildId!, subscription);
 			}
 		}
 

@@ -36,14 +36,14 @@ export default class extends Command {
                 ],
             });
         }
-        let embed = this.client.embeds.default().setTitle(`🔖\u2000Follow List`).setFooter({
+        const embed = this.client.embeds.default().setTitle(`🔖\u2000Follow List`).setFooter({
             text: member.tag,
             iconURL: member.displayAvatarURL(),
         });
-        let t = new Map<string, string[]>();
+        const t = new Map<string, string[]>();
         tags.forEach(tag => {
             const { type, name } = tag;
-            let a = t.get(type) || [];
+            const a = t.get(type) || [];
             a.push(`\`${name}\``);
             t.set(type, a);
         });
@@ -56,7 +56,7 @@ export default class extends Command {
             ['language', 'Languages'],
             ['category', 'Categories'],
         ].forEach(([key, fieldName]) => {
-            t.has(key) && embed.addFields([{ name: fieldName, value: t.get(key).join(', ') }]);
+            t.has(key) && embed.addFields([{ name: fieldName, value: t.get(key)!.join(', ') }]);
         });
         return interaction.editReply({ embeds: [embed] });
     }

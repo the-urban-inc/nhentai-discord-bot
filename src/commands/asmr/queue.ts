@@ -37,7 +37,7 @@ export default class extends Command {
 	}
 
 	async exec(interaction: CommandInteraction) {
-		const subscription = this.client.subscriptions.get(interaction.guildId);
+		const subscription = this.client.subscriptions.get(interaction.guildId!);
 		if (!subscription) {
 			return interaction.editReply("❌\u2000Nothing's playing in this server!");
 		}
@@ -113,8 +113,8 @@ export default class extends Command {
 
 			if (!i.deferred && !i.replied) await i.deferUpdate();
 
-			if (i.customId === PREV) page--;
-			else if (i.customId === NEXT) page++;
+			if (i.customId === PREV) {page--;}
+			else if (i.customId === NEXT) {page++;}
 			else if (i.customId === TOGGLE) {
 				if (subscription.isPlaying) subscription.pause();
 				else if (subscription.isPaused) subscription.unpause();

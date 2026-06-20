@@ -1,6 +1,5 @@
 import { Client, Command } from '@structures';
 import { ApplicationCommandType, CommandInteraction, Message, ActionRowBuilder, StringSelectMenuBuilder, Component, ComponentType } from 'discord.js';
-import { User } from '@database/models';
 
 const LANGUAGE_ID = {
     japanese: '6346',
@@ -94,19 +93,8 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        const member = await interaction.guild.members.fetch(interaction.user.id);
-        let user = await User.findOne({ userID: member.id }).exec();
-        if (!user || !user.language) {
-            user = await new User({
-                userID: member.id,
-                blacklists: [],
-                language: {
-                    preferred: [],
-                    query: false,
-                    follow: false,
-                },
-            }).save();
-        }
+        const member = await interaction.guild!.members.fetch(interaction.user.id);
+        const user = await this.client.db.user.findOrCreate(member.id);
         let { preferred, query, follow } = user.language;
         const message = (await interaction.editReply(
             this.update(
@@ -122,13 +110,13 @@ export default class extends Command {
         });
         collector.on('collect', async i => {
             await i.deferUpdate();
-            let updateLanguages = [],
+            let updateLanguages: { id: string; name: string }[] = [],
                 updateQuery = false,
                 updateFollow = false;
             if (i.customId === 'language') {
                 updateLanguages = i.values.map(v => {
                     return {
-                        id: LANGUAGE_ID[v],
+                        id: LANGUAGE_ID[v as keyof typeof LANGUAGE_ID],
                         name: v,
                     };
                 });

@@ -9,6 +9,8 @@ export default class extends Command {
             type: ApplicationCommandType.ChatInput,
             description: 'Evaluates a code block',
             owner: true,
+            // Hide from the public slash menu; execution is still gated by the ownerID check.
+            defaultMemberPermissions: '0',
             options: [
                 {
                     name: 'code',
@@ -21,7 +23,7 @@ export default class extends Command {
     }
 
     async exec(interaction: CommandInteraction) {
-        const code = interaction.options.get('code').value as string;
+        const code = interaction.options.get('code')!.value as string;
         const logs = [''];
         const token = this.client.token!.split('').join('[^]{0,2}');
         const rev = this.client.token!.split('').reverse().join('[^]{0,2}');
@@ -50,7 +52,7 @@ export default class extends Command {
         } catch (err) {
             this.client.logger.error('An eval error occured.');
             this.client.logger.stackTrace(err);
-            let error = err.toString();
+            let error = (err as Error).toString();
             error = `${logs.join('\n')}\n${
                 logs.length && error === 'undefined' ? '' : error
             }`.replace(tokenRegex, '[TOKEN]');

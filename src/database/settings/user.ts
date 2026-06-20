@@ -12,6 +12,30 @@ const log = {
 };
 
 export class User {
+    /**
+     * Returns the user document, creating it with default settings if it does not
+     * yet exist. Uses an atomic upsert so concurrent commands cannot race to create
+     * two records for the same user.
+     */
+    async findOrCreate(userID: DiscordUser['id']) {
+        // upsert + new guarantees a document is returned, so the assertion is safe.
+        return (await U.findOneAndUpdate(
+            { userID },
+            {
+                $setOnInsert: {
+                    userID,
+                    blacklists: [],
+                    language: {
+                        preferred: [],
+                        query: false,
+                        follow: false,
+                    },
+                },
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        ))!;
+    }
+
     async history(userID: DiscordUser['id'], userHistory: History) {
         return await U.findOneAndUpdate(
             { userID },
@@ -90,7 +114,7 @@ export class User {
     ) {
         const user = await U.findOne({ userID });
         if (!user) {
-            await new U({
+            const created = await new U({
                 userID,
                 language: {
                     preferred: [],
@@ -98,7 +122,7 @@ export class User {
                     follow: false,
                 },
             }).save();
-            return user.language;
+            return created.language;
         } else {
             const { preferred, query, follow } = user.language;
             user.language = {
@@ -112,9 +136,9 @@ export class User {
     }
 
     async follow(userID: DiscordUser['id'], type: string, tag: number, name: string) {
-        let subscriberRecord = await WatchModel.findOne({ id: tag }).exec();
+        const subscriberRecord = await WatchModel.findOne({ id: tag }).exec();
         if (!subscriberRecord) {
-            let options = { upsert: true },
+            const options = { upsert: true },
                 record = { id: tag, type, name, user: [userID] };
             await WatchModel.findOneAndUpdate({ id: tag }, record, options).then(() =>
                 log.registered(userID, tag)
@@ -122,13 +146,13 @@ export class User {
             return true;
         }
         if (new Set(subscriberRecord.user).has(userID)) {
-            let s = new Set(subscriberRecord.user);
+            const s = new Set(subscriberRecord.user);
             s.delete(userID);
             subscriberRecord.user = [...s];
             subscriberRecord.save().then(() => log.removed(userID, tag));
             return false;
         }
-        let subscribers = subscriberRecord.user;
+        const subscribers = subscriberRecord.user;
         subscribers.push(userID);
         subscriberRecord.user = [...new Set(subscribers)];
         subscriberRecord.save().then(() => log.registered(userID, tag));

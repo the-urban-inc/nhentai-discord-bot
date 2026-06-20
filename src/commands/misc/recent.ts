@@ -16,14 +16,14 @@ export default class extends Command {
 
     async exec(interaction: CommandInteraction) {
         const server = await Server.findOne({
-            serverID: interaction.guild.id,
+            serverID: interaction.guild!.id,
         }).exec();
         if (!server) {
             return interaction.editReply({
                 embeds: [
                     this.client.embeds
                         .default()
-                        .setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
+                        .setAuthor({ name: interaction.guild!.name, iconURL: interaction.guild!.iconURL() ?? undefined })
                         .setDescription('There are no recent calls in this server!'),
                 ],
             });
@@ -33,7 +33,7 @@ export default class extends Command {
                 embeds: [
                     this.client.embeds
                         .default()
-                        .setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
+                        .setAuthor({ name: interaction.guild!.name, iconURL: interaction.guild!.iconURL() ?? undefined })
                         .setDescription('There are no recent calls in this server!'),
                 ],
             });
@@ -50,7 +50,7 @@ export default class extends Command {
             embeds: [
                 this.client.embeds
                     .default()
-                    .setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
+                    .setAuthor({ name: interaction.guild!.name, iconURL: interaction.guild!.iconURL() ?? undefined })
                     .setDescription(_.join('\n')),
             ],
         });
